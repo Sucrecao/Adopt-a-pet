@@ -1,5 +1,5 @@
 export const PETS = [
-  { id: 'cat', label: '猫咪', defaultName: '奶糖', subtitle: '慢热的小甜心', description: '柔软毛绒与好奇眼神，喜欢在你身边悄悄打盹。', personality: '好奇 · 亲近 · 慵懒', toyLabel: '逗猫棒', color: '#c69575', asset: 'pets/cat.png' },
-  { id: 'dog', label: '小狗', defaultName: '豆包', subtitle: '热情的陪伴专家', description: '摇着尾巴迎接每一次互动，追球是它最快乐的时刻。', personality: '活泼 · 忠诚 · 贪玩', toyLabel: '追球游戏', color: '#bd956b', asset: 'pets/dog.png' },
-  { id: 'parrot', label: '鹦鹉', defaultName: '青柠', subtitle: '会飞的小开心果', description: '亮丽羽毛与灵动翅膀，飞到桌面中央陪你玩一会儿。', personality: '聪明 · 灵巧 · 爱热闹', toyLabel: '飞行游戏', color: '#72a884', asset: 'pets/parrot.png' },
+  { id: 'cat', label: '猫咪', defaultName: '奶糖', subtitle: '慢热的小甜心', description: '柔软毛绒与好奇眼神，喜欢在你身边悄悄打盹。', personality: '好奇 · 亲近 · 慵懒', toyLabel: '逗猫棒', color: '#c69575', asset: 'pets/cat.png', motionAsset: 'pets/cat-motion.png' },
+  { id: 'dog', label: '小狗', defaultName: '豆包', subtitle: '热情的陪伴专家', description: '摇着尾巴迎接每一次互动，追球是它最快乐的时刻。', personality: '活泼 · 忠诚 · 贪玩', toyLabel: '追球游戏', color: '#bd956b', asset: 'pets/dog.png', motionAsset: 'pets/dog-motion.png' },
+  { id: 'parrot', label: '鹦鹉', defaultName: '青柠', subtitle: '会飞的小开心果', description: '亮丽羽毛与灵动翅膀，飞到桌面中央陪你玩一会儿。', personality: '聪明 · 灵巧 · 爱热闹', toyLabel: '飞行游戏', color: '#72a884', asset: 'pets/parrot.png', motionAsset: 'pets/parrot-motion.png' },
 ];

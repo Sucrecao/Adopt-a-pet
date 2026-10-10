@@ -61,3 +61,116 @@ test('desktop and phone layouts fit the viewport with loaded companions', async 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: '/tmp/pawpal-mobile-panel.png', fullPage: true });
 });
+
+async function sampleSprite(page, duration = 1100) {
+  return page.evaluate(duration => new Promise(resolve => {
+    const values = [], start = performance.now();
+    function sample(now) {
+      const sprite = document.querySelector('.stage-pet');
+      values.push({ frame: sprite.dataset.frame, clip: sprite.dataset.clip, left: sprite.parentElement.style.left, top: sprite.parentElement.style.top });
+      if (now - start < duration) requestAnimationFrame(sample); else resolve(values);
+    }
+    requestAnimationFrame(sample);
+  }), duration);
+}
+
+test('stretch and trick have species feedback and remain stationary', async ({ page }) => {
+  await page.getByRole('button', { name: /在预览中领养/ }).click();
+  await page.getByRole('button', { name: '伸懒腰', exact: true }).click();
+  await expect(page.locator('.stage-pet')).toHaveAttribute('data-clip', 'stretch');
+  const stretch = await sampleSprite(page);
+  expect(new Set(stretch.map(item => item.left + item.top)).size).toBe(1);
+  await expect(page.getByRole('status').filter({ hasText: /爪爪|伸/ }).first()).toBeVisible();
+  await page.getByRole('button', { name: '小把戏', exact: true }).click();
+  await expect(page.locator('.stage-pet')).toHaveAttribute('data-clip', 'hop');
+  await expect(page.getByRole('status').filter({ hasText: /跳|把戏/ }).first()).toBeVisible();
+  await page.goto('/?view=pet');
+  await page.locator('.overlay-sprite').hover({ force: true });
+  await expect(page.getByRole('button', { name: '伸懒腰', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '小把戏', exact: true })).toBeVisible();
+  await expect(page.locator('.overlay-toolbar button')).toHaveCount(8);
+});
+
+test('pointer play uses many walking frames and pause freezes animation and position', async ({ page }) => {
+  await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'motion');
+  await page.getByRole('button', { name: /在预览中领养/ }).click();
+  await page.getByRole('button', { name: '玩耍', exact: true }).click();
+  const stage = await page.locator('.desktop-stage').boundingBox();
+  await page.mouse.move(stage.x + stage.width * .83, stage.y + stage.height * .68);
+  await expect(page.locator('.stage-pet')).toHaveAttribute('data-clip', 'walk');
+  const moving = await sampleSprite(page, 850);
+  expect(new Set(moving.filter(item => item.clip === 'walk').map(item => item.frame)).size).toBeGreaterThanOrEqual(6);
+  await page.getByRole('switch', { name: '暂停活动' }).click();
+  const paused = await sampleSprite(page);
+  expect(new Set(paused.map(item => item.frame)).size).toBe(1);
+  expect(new Set(paused.map(item => item.left + item.top)).size).toBe(1);
+});
+
+test('reduced motion stops automatic playback and missing motion atlas retains legacy art', async ({ page }) => {
+  await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'motion');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'motion');
+  const reduced = await sampleSprite(page);
+  expect(new Set(reduced.map(item => item.frame)).size).toBe(1);
+  expect(new Set(reduced.map(item => item.left + item.top)).size).toBe(1);
+  await page.route('**/pets/*-motion.png', route => route.abort());
+  await page.reload();
+  await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'legacy');
+  await expect(page.locator('.stage-pet')).toHaveCSS('background-image', /cat\.png/);
+});
+
+async function expectStageContained(page, duration = 500) {
+  const violations = await page.evaluate(duration => new Promise(resolve => {
+    const violations = [], start = performance.now();
+    function sample(now) {
+      const stage = document.querySelector('.desktop-stage').getBoundingClientRect();
+      const sprite = document.querySelector('.stage-pet').getBoundingClientRect();
+      if (sprite.left < stage.left || sprite.right > stage.right || sprite.top < stage.top || sprite.bottom > stage.bottom) if (violations.length < 3) violations.push({ stage: stage.toJSON(), sprite: sprite.toJSON() });
+      if (now - start < duration) requestAnimationFrame(sample); else resolve(violations);
+    }
+    requestAnimationFrame(sample);
+  }), duration);
+  expect(violations).toEqual([]);
+}
+
+test('maximum phone pet stays inside the stage when dragged, chased, and resized at corners', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: /在预览中领养/ }).click();
+  await page.getByRole('slider', { name: '伙伴大小' }).focus();
+  await page.keyboard.press('End');
+  await expect(page.getByRole('slider', { name: '伙伴大小' })).toHaveValue('1.5');
+  await page.locator('.desktop-stage').scrollIntoViewIfNeeded();
+  const stage = await page.locator('.desktop-stage').boundingBox();
+  for (const [x, y] of [[1, 1], [.01, .99], [.99, .01], [.99, .99]]) {
+    const sprite = await page.locator('.stage-pet').boundingBox();
+    await page.mouse.move(sprite.x + sprite.width / 2, sprite.y + sprite.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(stage.x + stage.width * x, stage.y + stage.height * y, { steps: 3 });
+    await expectStageContained(page);
+    await page.mouse.up();
+  }
+  await page.getByRole('button', { name: '玩耍', exact: true }).click();
+  await page.locator('.desktop-stage').scrollIntoViewIfNeeded();
+  const chaseStage = await page.locator('.desktop-stage').boundingBox();
+  await page.mouse.move(chaseStage.x + 1, chaseStage.y + 1);
+  await expectStageContained(page, 1200);
+  await page.mouse.move(chaseStage.x + chaseStage.width - 1, chaseStage.y + chaseStage.height - 1);
+  await expectStageContained(page, 1200);
+  await page.setViewportSize({ width: 340, height: 844 });
+  await expectStageContained(page);
+});
+
+test('maximum pet fits desktop and tablet stages across a mobile resize round-trip', async ({ page }) => {
+  await page.getByRole('button', { name: /在预览中领养/ }).click();
+  await page.getByRole('slider', { name: '伙伴大小' }).focus();
+  await page.keyboard.press('End');
+  await expect(page.getByRole('slider', { name: '伙伴大小' })).toHaveValue('1.5');
+  await expectStageContained(page);
+  await page.setViewportSize({ width: 700, height: 1000 });
+  await expectStageContained(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expectStageContained(page);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await expectStageContained(page);
+});

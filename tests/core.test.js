@@ -66,6 +66,24 @@ test('interactions apply effects once during cooldown and remain bounded', () =>
   for (const value of Object.values(state.stats)) assert.ok(value >= 0 && value <= 100);
 });
 
+test('stretch and trick preserve duration, effects, cooldown and normalized action', () => {
+  for (const [action, duration, energy, happiness, bond] of [
+    ['stretch', 2600, -1, 4, 1], ['trick', 2800, -3, 7, 2],
+  ]) {
+    const initial = createState(1000);
+    const next = transition(initial, { type: 'interact', action }, 1000);
+    assert.deepEqual(next.action, { type: action, until: 1000 + duration });
+    assert.equal(next.stats.energy, initial.stats.energy + energy);
+    assert.equal(next.stats.happiness, initial.stats.happiness + happiness);
+    assert.equal(next.stats.bond, initial.stats.bond + bond);
+    assert.deepEqual(normalizeState(next, 1000).action, next.action);
+    assert.equal(transition(next, { type: 'interact', action }, 1200).lastInteraction, 1000);
+    assert.equal(decayState(next, 1000 + duration).action.type, 'idle');
+    const paused = transition(initial, { type: 'settings', patch: { paused: true } }, 1000);
+    assert.equal(transition(paused, { type: 'interact', action }, 1000).action.type, 'idle');
+  }
+});
+
 test('decay uses elapsed time, caps offline loss and expires actions', () => {
   const state = createState(1000);
   const minute = decayState(state, 61000);

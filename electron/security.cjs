@@ -13,7 +13,7 @@ function isValidCommand(command) {
   switch (command.type) {
     case 'adopt': return ['cat', 'dog', 'parrot'].includes(command.species) && isName(command.name);
     case 'rename': return isName(command.name);
-    case 'interact': return ['pet', 'feed', 'play', 'rest'].includes(command.action);
+    case 'interact': return ['pet', 'feed', 'play', 'rest', 'stretch', 'trick'].includes(command.action);
     case 'settings': return isRecord(command.patch) && Object.entries(command.patch).every(([key, value]) => Object.hasOwn(settings, key) && settings[key](value));
     case 'tick': return true;
     default: return false;

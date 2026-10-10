@@ -20,6 +20,13 @@ test('renderer cannot dispatch arbitrary actions or unknown settings', () => {
   assert.equal(isValidCommand({type:'delete-files'}), false);
 });
 
+test('new action IPC accepts stretch and trick only by their exact identifiers', () => {
+  assert.equal(isValidCommand({ type: 'interact', action: 'stretch' }), true);
+  assert.equal(isValidCommand({ type: 'interact', action: 'trick' }), true);
+  assert.equal(isValidCommand({ type: 'interact', action: 'hop' }), false);
+  assert.equal(isValidCommand({ type: 'interact', action: '伸懒腰' }), false);
+});
+
 test('only known window main frames may call IPC', () => {
   const mainFrame = {url:'file:///app/index.html'};
   const webContents = {mainFrame};

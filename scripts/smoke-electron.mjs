@@ -27,6 +27,7 @@ try {
     await image.decode();
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   });
+  await overlay.waitForFunction(() => document.querySelector('.pet-sprite')?.dataset.atlas === 'motion');
   const transparent = await app.evaluate(async ({ BrowserWindow }) => {
     const window = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet'));
     if (!window?.isVisible()) return false;
@@ -35,6 +36,25 @@ try {
     return pixels.length > 0 && pixels[3] === 0;
   });
   assert.equal(transparent, true, 'pet is in its own visible transparent window');
+  const petBounds = () => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet')).getBounds());
+  for (const action of ['stretch', 'trick']) {
+    await panel.waitForFunction(async () => Date.now() - (await window.companion.getState()).lastInteraction >= 850);
+    await panel.evaluate(action => window.companion.dispatch({ type: 'interact', action }), action);
+    const expected = action === 'trick' ? 'hop' : 'stretch';
+    await overlay.waitForFunction(clip => document.querySelector('.pet-sprite')?.dataset.clip === clip, expected);
+    const before = await petBounds();
+    const frames = await overlay.evaluate(() => new Promise(resolve => {
+      const frames = new Set(), started = performance.now();
+      function sample(now) {
+        frames.add(document.querySelector('.pet-sprite').dataset.frame);
+        if (now - started < 1000) requestAnimationFrame(sample); else resolve([...frames]);
+      }
+      requestAnimationFrame(sample);
+    }));
+    assert.ok(frames.length >= 2, `${action} plays a multi-frame animation`);
+    assert.deepEqual(await petBounds(), before, `${action} keeps its native window stationary`);
+  }
+  await panel.waitForFunction(async () => Date.now() - (await window.companion.getState()).lastInteraction >= 850);
   await panel.evaluate(() => window.companion.dispatch({ type: 'interact', action: 'play' }));
   const snapshot = await panel.evaluate(() => window.companion.getState());
   assert.equal(snapshot.action.type, 'play');
@@ -53,7 +73,7 @@ try {
   assert.equal(saved.species, 'dog');
   assert.equal(saved.name, '团子');
   assert.equal(saved.settings.movement, 'edge');
-  console.log('Electron smoke passed: desktop bridge, adoption, alpha transparency, interaction, drag lifecycle, settings and persisted state.');
+  console.log('Electron smoke passed: desktop bridge, adoption, alpha transparency, decoded motion atlas, multi-frame stretch/trick, stationary interaction, play, drag lifecycle, settings and persisted state.');
 } finally {
   if (app) await app.close();
   await rm(userData, { recursive: true, force: true });
