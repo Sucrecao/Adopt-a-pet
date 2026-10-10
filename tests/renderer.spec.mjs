@@ -174,3 +174,46 @@ test('maximum pet fits desktop and tablet stages across a mobile resize round-tr
   await page.setViewportSize({ width: 1440, height: 1000 });
   await expectStageContained(page);
 });
+
+test('fresh companion keeps its gait phase through a turn and interpolates each pose', async ({ page }) => {
+  await page.getByRole('button', { name: /在预览中领养/ }).click();
+  await page.getByRole('button', { name: '玩耍', exact: true }).click();
+  const stage = await page.locator('.desktop-stage').boundingBox();
+  await page.mouse.move(stage.x + stage.width * .88, stage.y + stage.height * .68);
+  await expect(page.locator('.stage-pet')).toHaveAttribute('data-clip', 'walk');
+  const before = await page.locator('.stage-pet').evaluate(sprite => ({ elapsed: Number(sprite.dataset.elapsed), sequence: sprite.dataset.sequence }));
+  await page.mouse.move(stage.x + stage.width * .12, stage.y + stage.height * .68);
+  const values = await page.evaluate(() => new Promise(resolve => {
+    const values = [], start = performance.now();
+    function sample(now) {
+      const sprite = document.querySelector('.stage-pet');
+      values.push({ elapsed: Number(sprite.dataset.elapsed), sequence: sprite.dataset.sequence, mix: Number(sprite.dataset.mix), clip: sprite.dataset.clip, facing: sprite.style.getPropertyValue('--pet-facing'), canvas: Boolean(sprite.querySelector('canvas')) });
+      if (now - start < 650) requestAnimationFrame(sample); else resolve(values);
+    }
+    requestAnimationFrame(sample);
+  }));
+  const walk = values.filter(item => item.clip === 'walk');
+  expect(walk.length).toBeGreaterThan(10);
+  expect(walk.every(item => item.elapsed >= before.elapsed && item.sequence === before.sequence)).toBe(true);
+  expect(walk.some(item => item.facing === '-1')).toBe(true);
+  expect(walk.every(item => item.canvas)).toBe(true);
+  expect(new Set(walk.filter(item => item.mix > 0 && item.mix < 1).map(item => item.mix)).size).toBeGreaterThan(10);
+});
+
+test('available flow reaches the GPU after asynchronous atlas loading', async ({ page }) => {
+  const gpuAvailable = await page.evaluate(() => Boolean(document.createElement('canvas').getContext('webgl')));
+  test.skip(!gpuAvailable, 'Browser does not support WebGL');
+  await expect(page.locator('.stage-pet canvas')).toHaveAttribute('data-renderer', 'webgl');
+});
+
+test('switching from a companion without flow releases its 2D canvas for the next species', async ({ page }) => {
+  const gpuAvailable = await page.evaluate(() => Boolean(document.createElement('canvas').getContext('webgl')));
+  test.skip(!gpuAvailable, 'Browser does not support WebGL');
+  await page.route('**/pets/cat-flow.*', route => route.abort());
+  await page.reload();
+  await expect(page.locator('.stage-pet canvas')).toHaveAttribute('data-renderer', '2d');
+  await page.getByRole('button', { name: /选择小狗/ }).click();
+  await page.getByRole('button', { name: /在预览中领养/ }).click();
+  await expect(page.locator('.stage-pet')).toHaveCSS('background-image', /dog-motion\.png/);
+  await expect(page.locator('.stage-pet canvas')).toHaveAttribute('data-renderer', 'webgl');
+});

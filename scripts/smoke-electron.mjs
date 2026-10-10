@@ -1,5 +1,6 @@
 import { _electron as electron } from '@playwright/test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { mkdtemp, rm, mkdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -28,6 +29,12 @@ try {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   });
   await overlay.waitForFunction(() => document.querySelector('.pet-sprite')?.dataset.atlas === 'motion');
+  await overlay.waitForFunction(() => {
+    const canvas = document.querySelector('.pet-sprite canvas');
+    return canvas?.dataset.renderer === 'webgl' && getComputedStyle(canvas).visibility === 'visible';
+  });
+  assert.equal(await overlay.evaluate(() => document.querySelector('.pet-sprite canvas')?.dataset.renderer), 'webgl',
+    'actual Electron companion uses the GPU canvas renderer');
   const transparent = await app.evaluate(async ({ BrowserWindow }) => {
     const window = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet'));
     if (!window?.isVisible()) return false;
@@ -43,15 +50,43 @@ try {
     const expected = action === 'trick' ? 'hop' : 'stretch';
     await overlay.waitForFunction(clip => document.querySelector('.pet-sprite')?.dataset.clip === clip, expected);
     const before = await petBounds();
-    const frames = await overlay.evaluate(() => new Promise(resolve => {
-      const frames = new Set(), started = performance.now();
+    const playback = await overlay.evaluate(() => new Promise(resolve => {
+      const frames = new Set(), callbacks = [], pixels = [], started = performance.now();
+      let previousCapture = -Infinity;
       function sample(now) {
-        frames.add(document.querySelector('.pet-sprite').dataset.frame);
-        if (now - started < 1000) requestAnimationFrame(sample); else resolve([...frames]);
+        const sprite = document.querySelector('.pet-sprite'), canvas = sprite.querySelector('canvas');
+        callbacks.push(now);
+        frames.add(sprite.dataset.frame);
+        // Read actual rendered PNG pixels at a modest cadence. Sampling each
+        // rAF with a GPU readback would itself distort the playback cadence.
+        if (now - previousCapture >= 50) {
+          pixels.push({ now, frame: sprite.dataset.frame, clip: sprite.dataset.clip, backend: canvas.dataset.renderer, image: canvas.toDataURL('image/png') });
+          previousCapture = now;
+        }
+        if (now - started < 1100) requestAnimationFrame(sample); else resolve({ frames: [...frames], callbacks, pixels });
       }
       requestAnimationFrame(sample);
     }));
-    assert.ok(frames.length >= 2, `${action} plays a multi-frame animation`);
+    assert.ok(playback.frames.length >= 2, `${action} plays a multi-frame animation`);
+    assert.ok(playback.callbacks.length >= 15, `${action} keeps requestAnimationFrame playback active`);
+    assert.ok(playback.pixels.length >= 10, `${action} supplies enough rendered pixel samples`);
+    const intervals = new Map();
+    const hashes = playback.pixels.map(sample => {
+      assert.equal(sample.clip, expected, `${action} retains its clip throughout sampling`);
+      assert.equal(sample.backend, 'webgl', `${action} remains on the actual GPU canvas`);
+      const hash = createHash('sha256').update(sample.image).digest('hex');
+      if (!intervals.has(sample.frame)) intervals.set(sample.frame, new Set());
+      intervals.get(sample.frame).add(hash);
+      return hash;
+    });
+    const unique = new Set(hashes).size;
+    const repeated = hashes.filter((hash, index) => index > 0 && hash === hashes[index - 1]).length;
+    assert.ok(unique >= Math.max(8, Math.ceil(hashes.length * .6)), `${action} renders continuous intermediate pixels (${unique}/${hashes.length} distinct, ${repeated} consecutive repeats)`);
+    assert.ok([...intervals.values()].filter(values => values.size >= 3).length >= 2,
+      `${action} changes rendered pixels within at least two original pose intervals`);
+    const gaps = playback.callbacks.slice(1).map((now, index) => now - playback.callbacks[index]).sort((a, b) => a - b);
+    const medianGap = gaps[Math.floor(gaps.length / 2)], p95Gap = gaps[Math.min(gaps.length - 1, Math.floor(gaps.length * .95))];
+    console.log(`${action} canvas continuity: ${playback.callbacks.length} rAF callbacks, median ${medianGap.toFixed(1)}ms / p95 ${p95Gap.toFixed(1)}ms; ${unique}/${hashes.length} distinct PNG hashes, ${repeated} repeats; pose intervals ${JSON.stringify([...intervals].map(([frame, values]) => [frame, values.size]))}.`);
     assert.deepEqual(await petBounds(), before, `${action} keeps its native window stationary`);
   }
   await panel.waitForFunction(async () => Date.now() - (await window.companion.getState()).lastInteraction >= 850);
@@ -116,7 +151,7 @@ try {
   assert.equal(saved.species, 'dog');
   assert.equal(saved.name, '团子');
   assert.equal(saved.settings.movement, 'edge');
-  console.log('Electron smoke passed: desktop bridge, adoption, alpha transparency, motion atlas, multi-frame actions, stationary interaction, play, drag, signed-zero and fractional native coordinates, settings and persisted state.');
+  console.log('Electron smoke passed: desktop bridge, adoption, alpha transparency, actual WebGL canvas, rAF cadence, continuous rendered-pixel stretch/trick poses, stationary interaction, play, drag, signed-zero and fractional native coordinates, settings and persisted state.');
 } finally {
   if (app) await app.close();
   await rm(userData, { recursive: true, force: true });

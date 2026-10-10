@@ -18,7 +18,8 @@ export function animationFrame({ action = 'idle', walking = false, elapsed = 0, 
   const stopped = paused || reducedMotion;
   const breathing = period => stopped ? 1 : 1 + .008 * (1 - Math.cos(Math.max(0, elapsed) / period * Math.PI * 2)) / 2;
   if (action === 'rest' || action === 'pet' || action === 'feed') {
-    return { atlas: 'legacy', frame: action === 'rest' ? 3 : 5, clip: action, done: false, lift: 0, scaleY: action === 'rest' ? breathing(5500) : 1 };
+    const frame = action === 'rest' ? 3 : 5;
+    return { atlas: 'legacy', frame, nextFrame: frame, mix: 0, clip: action, done: false, lift: 0, scaleY: action === 'rest' ? breathing(5500) : 1 };
   }
   const clip = action === 'stretch' ? 'stretch' : action === 'trick' ? 'hop' : !stopped && walking ? 'walk' : !stopped && action === 'idle' && CLIPS[ambientAction] ? ambientAction : 'idle';
   const definition = species === 'parrot' && clip === 'stretch' ? CLIPS.parrotStretch : CLIPS[clip];
@@ -26,13 +27,66 @@ export function animationFrame({ action = 'idle', walking = false, elapsed = 0, 
   const time = stopped ? 0 : Math.max(0, elapsed);
   const progress = definition.loop ? time % duration / duration : Math.min(1, time / duration);
   let index = Math.min(definition.frames.length - 1, Math.floor(progress * definition.frames.length));
+  let mix = progress * definition.frames.length - index;
   if (definition.dwell) {
     let remaining = time % duration;
     index = 0;
     while (index < definition.dwell.length - 1 && remaining >= definition.dwell[index]) { remaining -= definition.dwell[index]; index++; }
+    mix = remaining / definition.dwell[index];
   }
+  const nextIndex = definition.loop ? (index + 1) % definition.frames.length : Math.min(index + 1, definition.frames.length - 1);
+  if (stopped || nextIndex === index) mix = 0;
   const lift = stopped ? 0 : clip === 'walk' ? -Math.abs(Math.sin(progress * Math.PI * 4)) * (species === 'parrot' ? 2 : .7) : clip === 'hop' ? -Math.sin(progress * Math.PI) * 3 : 0;
-  return { atlas: 'motion', frame: definition.frames[index], clip, done: !definition.loop && time >= duration, lift, scaleY: clip === 'idle' ? breathing(4300) : 1 };
+  return { atlas: 'motion', frame: definition.frames[index], nextFrame: definition.frames[nextIndex], mix: Math.max(0, Math.min(1, mix)), clip, done: !definition.loop && time >= duration, lift, scaleY: clip === 'idle' ? breathing(4300) : 1 };
+}
+
+/** One persistent monotonic clock; props select clips without restarting gait. */
+export function createAnimationController({ species = 'cat', random = Math.random } = {}) {
+  let previousNow, previousProps, clock = 0, clipStarted = 0, currentClip, sequence = 0;
+  let ambientAction = 'idle', ambientStarted = 0, nextAmbient = 6500 + random() * 6500;
+  let turn;
+  const stopped = props => props.paused || props.reducedMotion || props.ambient === false;
+  return {
+    sample(props = {}, now = 0) {
+      const action = props.action ?? 'idle', facing = props.facing ?? 1;
+      if (previousNow !== undefined && !stopped(previousProps)) clock += Math.max(0, now - previousNow);
+      previousNow = Math.max(previousNow ?? now, now);
+      // Quiet modes display the destination immediately, so resume must start
+      // from that same settled facing rather than replaying an unfinished turn.
+      if (!turn || stopped(props)) turn = { from: facing, to: facing, started: clock };
+      else if (turn.to !== facing) {
+        turn = { from: turnPose(turn.from, turn.to, clock - turn.started).facing, to: facing, started: clock };
+      }
+      if (!stopped(props) && !props.walking && action === 'idle') {
+        if (ambientAction !== 'idle' && clock - ambientStarted >= CLIPS[ambientAction].duration) {
+          ambientAction = 'idle'; nextAmbient = clock + 6500 + random() * 6500;
+        }
+        if (ambientAction === 'idle' && clock >= nextAmbient) {
+          ambientAction = ['groom', 'stretch', 'hop', 'idle'][Math.min(3, Math.floor(random() * 4))];
+          ambientStarted = clock;
+          if (ambientAction === 'idle') nextAmbient = clock + 5000 + random() * 6000;
+        }
+      } else if (props.walking || action !== 'idle') {
+        if (ambientAction !== 'idle') nextAmbient = clock + 6500 + random() * 6500;
+        ambientAction = 'idle';
+      }
+      // Pause retains the active clip; a never-started quiet pet uses the static idle pose.
+      const quietInitially = stopped(props) && !currentClip;
+      const selected = animationFrame({ ...props, species, ambientAction, paused: quietInitially, reducedMotion: false, elapsed: 0 });
+      const clip = stopped(props) && currentClip && previousProps?.action === action ? currentClip : selected.clip;
+      const repeated = previousProps && !['idle', 'play'].includes(action) && previousProps.actionStartedAt !== props.actionStartedAt;
+      if (clip !== currentClip || repeated) {
+        currentClip = clip;
+        clipStarted = clock - (!['idle', 'play'].includes(action) ? Math.max(0, props.actionElapsed ?? 0) : 0);
+        sequence++;
+      }
+      const elapsed = props.ambient === false ? 0 : Math.max(0, clock - clipStarted);
+      const frame = animationFrame({ action: ['rest', 'pet', 'feed'].includes(clip) ? clip : 'idle', walking: clip === 'walk', ambientAction: clip, species, elapsed });
+      const body = stopped(props) ? { facing, scale: 1 } : turnPose(turn.from, turn.to, clock - turn.started);
+      previousProps = props;
+      return { ...frame, ...body, elapsed, sequence, ...(stopped(props) ? { lift: 0, scaleY: 1 } : {}) };
+    },
+  };
 }
 
 /** Mirror at the narrow middle of a 180ms turn, keeping the feet baseline fixed. */

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { animationFrame, atlasPosition, CLIPS, turnPose, spriteBaselineOffset } from './core/animation.js';
+import { animationFrame, atlasPosition, createAnimationController, spriteBaselineOffset } from './core/animation.js';
+import { createSpriteRenderer } from './rendering/sprite-renderer.js';
 
 export function useReducedMotion() {
   const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -12,68 +13,148 @@ export function useReducedMotion() {
   return reduced;
 }
 
-/** Keeps the original interaction surface; sprites swap only after successful decoding. */
+function decodeImage(asset, signal) {
+  return new Promise((resolve, reject) => {
+    if (!asset) { reject(new Error('No atlas')); return; }
+    const image = new Image();
+    const cleanup = () => { image.onload = image.onerror = null; signal.removeEventListener('abort', cancel); };
+    const cancel = () => { cleanup(); image.src = ''; reject(new DOMException('Atlas loading cancelled', 'AbortError')); };
+    if (signal.aborted) { cancel(); return; }
+    signal.addEventListener('abort', cancel, { once: true });
+    image.onload = async () => {
+      try { await image.decode(); resolve(image); } catch (error) { reject(error); } finally { cleanup(); }
+    };
+    image.onerror = error => { cleanup(); reject(error); };
+    image.src = `${import.meta.env.BASE_URL}${asset}`;
+  });
+}
+
+async function loadFlow(species, signal) {
+  const controller = new AbortController();
+  const cancel = () => controller.abort();
+  signal.addEventListener('abort', cancel, { once: true });
+  if (signal.aborted) cancel();
+  const timeout = setTimeout(cancel, 1500);
+  try {
+    const [meta, bytes] = await Promise.all([
+      fetch(`${import.meta.env.BASE_URL}pets/${species}-flow.json`, { signal: controller.signal }),
+      fetch(`${import.meta.env.BASE_URL}pets/${species}-flow.bin`, { signal: controller.signal }),
+    ]);
+    if (!meta.ok || !bytes.ok) return {};
+    const [flowMeta, flowBytes] = await Promise.all([meta.json(), bytes.arrayBuffer()]);
+    return { flowMeta, flowBytes };
+  } catch { return {}; } finally { clearTimeout(timeout); signal.removeEventListener('abort', cancel); }
+}
+
+/** Props update the persistent playback, while each display frame paints imperatively. */
 export default function Pet({ pet, size = 200, action = 'idle', walking = false, facing = 1, paused = false, ambient = true, actionStartedAt, className = '', style, ...handlers }) {
   const reducedMotion = useReducedMotion();
-  const [decodedAsset, setDecodedAsset] = useState(null);
-  const [sample, setSample] = useState(() => ({ ...animationFrame({ action, paused, reducedMotion }), facing, scale: 1, opacity: 1 }));
-  const clipTransition = useRef({ clip: null, started: 0 });
-  const turn = useRef({ from: facing, to: facing, started: 0 });
+  const elementRef = useRef(null), canvasRef = useRef(null), playbackRef = useRef(null);
+  const propsRef = useRef(null);
+  propsRef.current = { pet, action, walking, facing, paused, ambient, actionStartedAt, reducedMotion, className, style, ariaLabel: handlers['aria-label'] };
+
   useEffect(() => {
-    let cancelled = false;
-    if (!pet.motionAsset) return;
-    const image = new Image();
-    image.onload = async () => {
-      try {
-        await image.decode();
-        if (!cancelled) setDecodedAsset(pet.motionAsset);
-      } catch { /* Retain the legacy atlas if decoding fails. */ }
-    };
-    image.src = `${import.meta.env.BASE_URL}${pet.motionAsset}`;
-    return () => { cancelled = true; image.onload = null; };
-  }, [pet.motionAsset]);
-  useEffect(() => {
-    const current = turnPose(turn.current.from, turn.current.to, performance.now() - turn.current.started);
-    turn.current = { from: current.facing, to: facing, started: performance.now() };
-  }, [facing]);
-  useEffect(() => {
-    let request;
-    const started = performance.now() - (actionStartedAt ? Math.max(0, Date.now() - actionStartedAt) : 0);
-    let ambientAction = 'idle', ambientStarted = started;
-    let nextAmbient = performance.now() + 6500 + Math.random() * 6500;
-    function tick(now) {
-      const stopped = paused || reducedMotion;
-      if (ambient && !stopped && !walking && action === 'idle') {
-        if (ambientAction !== 'idle' && now - ambientStarted >= CLIPS[ambientAction].duration) {
-          ambientAction = 'idle'; nextAmbient = now + 6500 + Math.random() * 6500;
-        }
-        if (ambientAction === 'idle' && now >= nextAmbient) {
-          ambientAction = ['groom', 'stretch', 'hop', 'idle'][Math.floor(Math.random() * 4)];
-          ambientStarted = now;
-          if (ambientAction === 'idle') nextAmbient = now + 5000 + Math.random() * 6000;
+    const element = elementRef.current, canvas = canvasRef.current;
+    const controller = createAnimationController({ species: pet.id });
+    const abort = new AbortController();
+    let cancelled = false, request = null, renderer = null, images = null, motionLoaded = false, drawn = false;
+    let actionToken, actionElapsed = 0;
+
+    function paint(now) {
+      if (cancelled) return;
+      const props = propsRef.current;
+      if (actionToken !== props.actionStartedAt) {
+        actionToken = props.actionStartedAt;
+        actionElapsed = actionToken ? Math.max(0, Date.now() - actionToken) : 0;
+      }
+      const sample = controller.sample({ ...props, actionElapsed }, now);
+      const stopped = props.paused || props.reducedMotion || !props.ambient;
+      if (renderer) {
+        try {
+          if (renderer.draw({ ...sample, stopped }, now) !== false) drawn = true;
+        } catch {
+          renderer.dispose(); renderer = null; drawn = false;
         }
       }
-      const frame = animationFrame({ action, walking, paused, reducedMotion, ambientAction, species: pet.id, elapsed: !ambient ? 0 : now - (ambientAction !== 'idle' ? ambientStarted : started) });
-      if (clipTransition.current.clip !== frame.clip) {
-        clipTransition.current = { clip: frame.clip, started: clipTransition.current.clip ? now : now - 140 };
-      }
-      const body = stopped ? { facing, scale: 1 } : turnPose(turn.current.from, turn.current.to, now - turn.current.started);
-      setSample({ ...frame, ...body, opacity: stopped ? 1 : .82 + .18 * Math.min(1, (now - clipTransition.current.started) / 140) });
-      if (!stopped && ambient) request = requestAnimationFrame(tick);
+      const motion = sample.atlas === 'motion' && motionLoaded;
+      const frame = motion ? sample.frame : sample.atlas === 'legacy' ? sample.frame : sample.clip === 'walk' ? (sample.frame % 2 ? 1 : 2) : sample.clip === 'hop' ? 4 : 0;
+      const position = atlasPosition(frame, !motion);
+      const alignment = !drawn && motion ? spriteBaselineOffset(pet.id, frame) / 256 * 100 : 0;
+      canvas.style.visibility = drawn ? 'visible' : 'hidden';
+      element.style.backgroundImage = `url("${import.meta.env.BASE_URL}${motion ? pet.motionAsset : pet.asset}")`;
+      element.style.backgroundSize = drawn ? '0% 0%' : motion ? '600% 400%' : '300% 200%';
+      element.style.backgroundPosition = `${position.x}% ${position.y}%`;
+      element.style.setProperty('--pet-facing', sample.facing);
+      if (!props.style?.transform) element.style.transform = `translateY(calc(${sample.lift}px + ${alignment}%)) scale(${sample.facing * sample.scale}, ${sample.scaleY})`;
+      element.dataset.frame = frame;
+      element.dataset.nextFrame = motion ? sample.nextFrame : frame;
+      element.dataset.mix = motion ? sample.mix : 0;
+      element.dataset.elapsed = sample.elapsed;
+      element.dataset.sequence = sample.sequence;
+      element.dataset.clip = sample.clip;
+      element.dataset.atlas = motion ? 'motion' : 'legacy';
+      element.className = `pet-sprite ${sample.clip === 'walk' ? 'is-walking' : ''} ${pet.id === 'parrot' && sample.clip === 'walk' ? 'is-flying' : ''} ${props.action === 'rest' ? 'is-sleeping' : ''} ${props.className}`;
+      if (!props.ariaLabel) element.setAttribute('aria-label', `${pet.label}${props.action === 'rest' ? '正在睡觉' : sample.clip === 'walk' ? '正在活动' : ''}`);
     }
-    tick(performance.now());
-    return () => cancelAnimationFrame(request);
-  }, [pet.id, action, actionStartedAt, walking, facing, paused, ambient, reducedMotion]);
-  const motion = sample.atlas === 'motion' && decodedAsset === pet.motionAsset;
-  const legacyFrame = sample.atlas === 'legacy' ? sample.frame : walking && !paused && !reducedMotion ? (sample.frame % 2 ? 1 : 2) : action === 'trick' ? 4 : 0;
-  const frame = motion ? sample.frame : legacyFrame;
-  const position = atlasPosition(frame, !motion);
-  const alignment = motion ? spriteBaselineOffset(pet.id, frame) / 256 * 100 : 0;
-  return <div
-    className={`pet-sprite ${sample.clip === 'walk' ? 'is-walking' : ''} ${pet.id === 'parrot' && sample.clip === 'walk' ? 'is-flying' : ''} ${action === 'rest' ? 'is-sleeping' : ''} ${className}`}
-    data-frame={frame} data-clip={sample.clip} data-atlas={motion ? 'motion' : 'legacy'}
-    style={{ width: size, height: size, backgroundImage: `url("${import.meta.env.BASE_URL}${motion ? pet.motionAsset : pet.asset}")`, backgroundSize: motion ? '600% 400%' : '300% 200%', backgroundPosition: `${position.x}% ${position.y}%`, '--pet-facing': sample.facing, transform: `translateY(calc(${sample.lift}px + ${alignment}%)) scale(${sample.facing * sample.scale}, ${sample.scaleY})`, opacity: sample.opacity, ...style }}
-    role="img" aria-label={`${pet.label}${action === 'rest' ? '正在睡觉' : sample.clip === 'walk' ? '正在活动' : ''}`}
-    {...handlers}
-  />;
+    function tick(now) {
+      request = null;
+      paint(now);
+      const props = propsRef.current;
+      if (!cancelled && !props.paused && !props.reducedMotion && props.ambient) request = requestAnimationFrame(tick);
+    }
+    function refresh() {
+      if (cancelled) return;
+      paint(performance.now());
+      const props = propsRef.current;
+      const active = !props.paused && !props.reducedMotion && props.ambient;
+      if (!active && request !== null) { cancelAnimationFrame(request); request = null; }
+      if (active && request === null) request = requestAnimationFrame(tick);
+    }
+    function createRenderer() {
+      if (cancelled || !images) return;
+      renderer?.dispose(); renderer = null; drawn = false;
+      try {
+        renderer = createSpriteRenderer(canvas, { species: pet.id, ...images, onContextLost: () => {
+          if (cancelled) return;
+          renderer?.dispose(); drawn = false; renderer = null;
+          refresh();
+        } });
+      } catch { /* The decoded CSS atlas remains a usable fallback. */ }
+      refresh();
+    }
+    const restored = () => createRenderer();
+    canvas.addEventListener('webglcontextrestored', restored);
+    playbackRef.current = { refresh };
+    refresh();
+    // Optional flow loading never delays the first decoded atlas draw.
+    const flow = loadFlow(pet.id, abort.signal);
+    Promise.allSettled([decodeImage(pet.motionAsset, abort.signal), decodeImage(pet.asset, abort.signal)]).then(async ([motion, legacy]) => {
+      if (cancelled) return;
+      motionLoaded = motion.status === 'fulfilled';
+      if (motionLoaded && legacy.status === 'fulfilled') {
+        images = { motionImage: motion.value, legacyImage: legacy.value };
+        refresh();
+        const extra = await flow;
+        if (!cancelled) { images = { ...images, ...extra }; createRenderer(); }
+      } else refresh();
+    });
+    return () => {
+      cancelled = true;
+      abort.abort();
+      if (request !== null) cancelAnimationFrame(request);
+      canvas.removeEventListener('webglcontextrestored', restored);
+      renderer?.dispose();
+      playbackRef.current = null;
+    };
+  }, [pet.id, pet.asset, pet.motionAsset]);
+
+  useEffect(() => { playbackRef.current?.refresh(); }, [action, walking, facing, paused, ambient, actionStartedAt, reducedMotion, className, style, handlers['aria-label']]);
+  const initial = animationFrame({ action, paused, reducedMotion, species: pet.id });
+  const frame = initial.atlas === 'legacy' ? initial.frame : 0;
+  const position = atlasPosition(frame, true);
+  return <div ref={elementRef}
+    className={`pet-sprite ${className}`} data-frame={frame} data-clip={initial.clip} data-atlas="legacy"
+    style={{ width: size, height: size, backgroundImage: `url("${import.meta.env.BASE_URL}${pet.asset}")`, backgroundSize: '300% 200%', backgroundPosition: `${position.x}% ${position.y}%`, '--pet-facing': facing, ...style }}
+    role="img" aria-label={`${pet.label}${action === 'rest' ? '正在睡觉' : ''}`} {...handlers}
+  ><canvas key={pet.id} ref={canvasRef} width={256} height={256} aria-hidden="true" style={{ display: 'block', width: '100%', height: '100%', visibility: 'hidden', pointerEvents: 'none' }} /></div>;
 }

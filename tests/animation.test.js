@@ -97,3 +97,106 @@ test('motion clips share a ground baseline while hop airtime and parrot flight a
   assert.deepEqual(CLIPS.parrotStretch.frames, [16,17,16,15]);
   for (const elapsed of [0,650,1300,1950]) assert.ok(![18,19].includes(animationFrame({ species:'parrot', action:'stretch', elapsed }).frame));
 });
+
+test('poses interpolate continuously inside a walking or slow action interval', () => {
+  const walk = animationFrame({ walking: true, elapsed: 25 });
+  assert.equal(walk.nextFrame, 1);
+  assert.equal(walk.mix, .25);
+  const stretch = animationFrame({ action: 'stretch', elapsed: 325 });
+  assert.equal(stretch.frame, 16);
+  assert.equal(stretch.nextFrame, 17);
+  assert.equal(stretch.mix, .5);
+});
+
+test('loop neighbors wrap and completed one-shots hold their final pose', () => {
+  const boundary = animationFrame({ walking: true, elapsed: 799 });
+  assert.equal(boundary.frame, 7);
+  assert.equal(boundary.nextFrame, 0);
+  assert.ok(boundary.mix > .98 && boundary.mix < 1);
+  const loop = animationFrame({ walking: true, elapsed: 800 });
+  assert.equal(loop.mix, 0);
+  assert.equal(loop.nextFrame, 1);
+  const completed = animationFrame({ action: 'trick', elapsed: 2800 });
+  assert.equal(completed.nextFrame, 23);
+  assert.equal(completed.mix, 0);
+  assert.equal(completed.done, true);
+});
+
+const controllerModule = await import('../src/core/animation.js');
+function controller(options) {
+  assert.equal(typeof controllerModule.createAnimationController, 'function', 'persistent animation controller exists');
+  return controllerModule.createAnimationController(options);
+}
+
+test('turns and harmless updates keep the walking phase', () => {
+  const playback = controller({ species: 'cat', random: () => .5 });
+  playback.sample({ walking: true, facing: 1 }, 1000);
+  const before = playback.sample({ walking: true, facing: 1 }, 1125);
+  const turning = playback.sample({ walking: true, facing: -1, size: 250 }, 1150);
+  assert.equal(before.frame, 1);
+  assert.equal(turning.frame, 1);
+  assert.equal(turning.mix, .5);
+  assert.equal(turning.sequence, before.sequence);
+  assert.equal(playback.sample({ walking: true, facing: -1 }, 1240).facing, -1);
+});
+
+test('pause freezes the clip clock and resume continues from its held pose', () => {
+  const playback = controller({ species: 'dog', random: () => .5 });
+  playback.sample({ walking: true }, 0);
+  const held = playback.sample({ walking: true, paused: true }, 125);
+  const paused = playback.sample({ walking: true, paused: true }, 9125);
+  assert.equal(paused.frame, held.frame);
+  assert.equal(paused.mix, held.mix);
+  const resumed = playback.sample({ walking: true }, 9125);
+  assert.equal(resumed.frame, 1);
+  assert.equal(resumed.mix, .25);
+  assert.equal(playback.sample({ walking: true }, 9175).mix, .75);
+});
+
+test('ambient scheduling survives facing changes and resumes idle after its one-shot', () => {
+  const playback = controller({ species: 'cat', random: () => 0 });
+  playback.sample({ facing: 1 }, 0);
+  playback.sample({ facing: -1 }, 6000);
+  assert.equal(playback.sample({ facing: -1 }, 6500).clip, 'groom');
+  assert.equal(playback.sample({ facing: 1 }, 8700).clip, 'idle');
+});
+
+test('a repeated explicit action starts a new sequence while walking tokens do not reset gait', () => {
+  const playback = controller({ species: 'cat', random: () => .5 });
+  const first = playback.sample({ action: 'stretch', actionStartedAt: 1 }, 0);
+  assert.equal(playback.sample({ action: 'stretch', actionStartedAt: 1 }, 325).mix, .5);
+  const repeated = playback.sample({ action: 'stretch', actionStartedAt: 2 }, 350);
+  assert.equal(repeated.mix, 0);
+  assert.notEqual(repeated.sequence, first.sequence);
+  playback.sample({ walking: true, actionStartedAt: 2 }, 500);
+  assert.equal(playback.sample({ walking: true, actionStartedAt: 3 }, 650).mix, .5);
+});
+
+for (const mode of ['paused', 'reducedMotion']) {
+  test(`${mode} settles a turn so resume cannot reverse the displayed facing`, () => {
+    const playback = controller({ species: 'cat', random: () => .5 });
+    playback.sample({ walking: true, facing: 1 }, 0);
+    playback.sample({ walking: true, facing: -1 }, 100);
+    const quiet = playback.sample({ walking: true, facing: -1, [mode]: true }, 125);
+    assert.equal(quiet.facing, -1);
+    assert.equal(quiet.scale, 1);
+    const resumed = playback.sample({ walking: true, facing: -1 }, 9125);
+    assert.equal(resumed.facing, quiet.facing);
+    assert.equal(resumed.scale, 1);
+    assert.equal(resumed.elapsed, quiet.elapsed);
+    assert.equal(resumed.sequence, quiet.sequence);
+  });
+
+  test(`a facing change while ${mode} stays settled on resume`, () => {
+    const playback = controller({ species: 'cat', random: () => .5 });
+    playback.sample({ facing: 1, [mode]: true }, 0);
+    const quiet = playback.sample({ facing: -1, [mode]: true }, 125);
+    assert.equal(quiet.facing, -1);
+    assert.equal(quiet.scale, 1);
+    const resumed = playback.sample({ facing: -1 }, 9125);
+    assert.equal(resumed.facing, quiet.facing);
+    assert.equal(resumed.scale, 1);
+    assert.equal(resumed.elapsed, quiet.elapsed);
+    assert.equal(resumed.sequence, quiet.sequence);
+  });
+}
