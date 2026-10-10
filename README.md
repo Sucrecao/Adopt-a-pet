@@ -4,6 +4,16 @@ Mac / Windows 的桌面宠物程序：领养写实可爱的猫、狗或鹦鹉，
 
 ## 启动
 
+已经打包的试用版在 `release/`：
+
+- Apple 芯片 Mac：解压 `PawPal-0.1.0-mac-arm64.zip`，打开 `PawPal.app`。
+- Intel 芯片 Mac：解压 `PawPal-0.1.0-mac-x64.zip`，打开 `PawPal.app`。
+- Windows x64：解压 `PawPal-0.1.0-win.zip`，运行 `PawPal.exe`，保留同目录其他文件。
+
+当前包未签名。Apple 芯片 Mac 包已实测；Intel Mac 和 Windows 包已构建，尚待对应系统实测。
+
+从源码运行：
+
 需要 Node.js 22.12+（建议 22 LTS）与 npm。
 
 ```sh

@@ -18,6 +18,15 @@ try {
   await panel.waitForFunction(async () => (await window.companion.getState()).adopted);
   const overlay = await overlayPromise;
   await overlay.waitForFunction(() => Boolean(document.querySelector('.pet-sprite')));
+  await overlay.evaluate(async () => {
+    const sprite = document.querySelector('.pet-sprite');
+    const asset = getComputedStyle(sprite).backgroundImage.match(/^url\(["']?(.*?)["']?\)$/)?.[1];
+    if (!asset) throw new Error('Pet sprite has no image asset');
+    const image = new Image();
+    image.src = asset;
+    await image.decode();
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
   const transparent = await app.evaluate(async ({ BrowserWindow }) => {
     const window = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet'));
     if (!window?.isVisible()) return false;
