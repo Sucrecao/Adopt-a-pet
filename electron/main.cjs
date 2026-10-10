@@ -54,7 +54,8 @@ function createPanel() {
   panel.on('close', event => { if (!quitting) { event.preventDefault(); panel.hide(); } });
   load(panel).catch(error => dialog.showErrorBox('无法打开领养面板', error.message));
 }
-function rounded(bounds) { return Object.fromEntries(Object.entries(bounds).map(([key, value]) => [key, Math.round(value)])); }
+// Electron's integer conversion rejects -0; normalize it only at the native boundary.
+function rounded(bounds) { return Object.fromEntries(Object.entries(bounds).map(([key, value]) => [key, Math.round(value) + 0])); }
 function areaFor(bounds) { return screen.getDisplayMatching(bounds).workArea; }
 function resetMotion() {
   const bounds = petWindow && !petWindow.isDestroyed() ? petWindow.getBounds() : null;
@@ -165,7 +166,8 @@ function movementTick() {
   const nextMoving = !motion.arrived;
   const changed = moving !== nextMoving || facing !== nextFacing;
   moving = nextMoving; facing = nextFacing;
-  petWindow.setPosition(Math.round(motion.x), Math.round(motion.y));
+  const position = rounded({ x: motion.x, y: motion.y });
+  petWindow.setPosition(position.x, position.y);
   if (motion.arrived) { target = null; wanderAt = now + 4500 + Math.random() * 6500; }
   if (changed) publish();
 }
@@ -221,7 +223,8 @@ function registerIPC() {
   handle('companion:move', (_event, point) => {
     if (!isValidPoint(point) || !petWindow) return false;
     const bounds = petWindow.getBounds();
-    petWindow.setBounds(rounded(clampWindow({...bounds,...point}, screen.getDisplayNearestPoint(point).workArea)));
+    const position = rounded({ x: point.x, y: point.y });
+    petWindow.setBounds(rounded(clampWindow({...bounds,...position}, screen.getDisplayNearestPoint(position).workArea)));
     resetMotion(); wanderAt = Date.now() + 7000; publish();
     return true;
   });

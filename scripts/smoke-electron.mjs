@@ -65,6 +65,49 @@ try {
   await overlay.waitForFunction(async () => (await window.companion.getState()).motion.dragging);
   await overlay.evaluate(() => window.companion.endDrag());
   await overlay.waitForFunction(async () => !(await window.companion.getState()).motion.dragging);
+  assert.equal(await overlay.evaluate(() => window.companion.movePet({ x: -.2, y: -.2 })), true,
+    'fractional signed-zero inputs are converted before native display lookup');
+  await app.evaluate(({ BrowserWindow, screen }) => {
+    const pet = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet'));
+    const matching = screen.getDisplayMatching, cursor = screen.getCursorScreenPoint;
+    const setPosition = pet.setPosition.bind(pet);
+    const record = { samples: [], errors: [], cursor: { x: 0, y: 0 } };
+    globalThis.pawpalBoundarySmoke = record;
+    // Deterministic virtual display input, with the real native setPosition API.
+    screen.getDisplayMatching = () => ({ workArea: { x: -800, y: -800, width: 2400, height: 2400 } });
+    screen.getCursorScreenPoint = () => record.cursor;
+    pet.setPosition = (x, y, ...args) => {
+      record.samples.push({ x, y, negativeZero: Object.is(x, -0) || Object.is(y, -0) });
+      try { return setPosition(x, y, ...args); }
+      catch (error) { record.errors.push(error.message); }
+    };
+    record.restore = () => { screen.getDisplayMatching = matching; screen.getCursorScreenPoint = cursor; pet.setPosition = setPosition; };
+    setPosition(1, 1);
+  });
+  try {
+    await panel.evaluate(() => window.companion.dispatch({ type: 'settings', patch: { paused: true } }));
+    await panel.evaluate(() => window.companion.dispatch({ type: 'settings', patch: { paused: false } }));
+    await panel.waitForFunction(async () => Date.now() - (await window.companion.getState()).lastInteraction >= 850);
+    await panel.evaluate(() => window.companion.dispatch({ type: 'interact', action: 'play' }));
+    for (const direction of [-1, 1]) {
+      await app.evaluate(({ BrowserWindow }, direction) => {
+        const bounds = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet')).getBounds();
+        globalThis.pawpalBoundarySmoke.cursor = { x: Math.round(bounds.width / 2 + direction * 5), y: Math.round(bounds.height * .6 + direction * 5) };
+      }, direction);
+      await overlay.waitForFunction(() => document.querySelector('.pet-sprite')?.dataset.clip === 'walk');
+      const started = Date.now();
+      while (Date.now() - started < 2000) await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    const record = await app.evaluate(() => ({ samples: globalThis.pawpalBoundarySmoke.samples, errors: globalThis.pawpalBoundarySmoke.errors }));
+    assert.deepEqual(record.errors, [], 'native travel across zero does not throw');
+    assert.ok(record.samples.length > 50, 'both zero-crossing journeys run through the native movement timer');
+    assert.ok(record.samples.every(point => Number.isInteger(point.x) && Number.isInteger(point.y) && !point.negativeZero), 'every native coordinate is an integer with positive zero');
+    for (const axis of ['x', 'y']) for (const sign of [-1, 0, 1]) {
+      assert.ok(record.samples.some(point => Math.sign(point[axis]) === sign), `${axis} crosses negative, zero and positive positions`);
+    }
+  } finally {
+    await app.evaluate(() => { globalThis.pawpalBoundarySmoke.restore(); delete globalThis.pawpalBoundarySmoke; });
+  }
   await panel.screenshot({ path: '.artifacts/desktop-panel.png' });
   await overlay.screenshot({ path: '.artifacts/desktop-pet.png', omitBackground: true });
   await app.close();
@@ -73,7 +116,7 @@ try {
   assert.equal(saved.species, 'dog');
   assert.equal(saved.name, '团子');
   assert.equal(saved.settings.movement, 'edge');
-  console.log('Electron smoke passed: desktop bridge, adoption, alpha transparency, decoded motion atlas, multi-frame stretch/trick, stationary interaction, play, drag lifecycle, settings and persisted state.');
+  console.log('Electron smoke passed: desktop bridge, adoption, alpha transparency, motion atlas, multi-frame actions, stationary interaction, play, drag, signed-zero and fractional native coordinates, settings and persisted state.');
 } finally {
   if (app) await app.close();
   await rm(userData, { recursive: true, force: true });
