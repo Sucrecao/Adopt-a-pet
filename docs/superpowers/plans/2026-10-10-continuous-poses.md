@@ -49,5 +49,5 @@
 - [x] Independently review both changed units; address material issues and run covering tests.
 - [x] Run the full Node suite, browser suite, production build and native Electron smoke, including the existing signed-zero regression and new pixel-continuity coverage.
 - [x] Update version to 0.2.2 and documentation to explain the playback improvement and existing platform verification limits.
-- [ ] Review the complete change, rebuild all three ZIPs, verify embedded assets/version and archive integrity, and smoke-test packaged Mac ARM64.
-- [ ] Gracefully restart the updated real Mac app and verify retained dog 豆包 and settings before delivering links.
+- [x] Review the complete change, rebuild all three ZIPs, verify embedded assets/version and archive integrity, and smoke-test packaged Mac ARM64.
+- [x] Gracefully restart the updated real Mac app and verify retained dog 豆包 and settings before delivering links.
