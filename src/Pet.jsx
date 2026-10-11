@@ -156,15 +156,22 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
       pet.id === 'parrot' ? Promise.resolve(null) : fetch(`${import.meta.env.BASE_URL}pets/quadruped-legs-v2.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null),
       decodeImage(pet.id === 'dog' ? 'pets/dog-head-rig-v2.png' : null, abort.signal),
       pet.id === 'dog' ? fetch(`${import.meta.env.BASE_URL}pets/dog-head-rig-v2.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null) : Promise.resolve(null),
-    ]).then(async ([motion, legacy, rig, meta, perch, head, headMeta, limb, limbMeta, dogHead, dogHeadMeta]) => {
+      decodeImage(pet.id === 'cat' ? 'pets/cat-cohesive-v2.png' : null, abort.signal),
+      pet.id === 'cat' ? fetch(`${import.meta.env.BASE_URL}pets/cat-head-rig-v2.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null) : Promise.resolve(null),
+      pet.id === 'cat' ? fetch(`${import.meta.env.BASE_URL}pets/cat-limb-rig-v2.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null) : Promise.resolve(null),
+    ]).then(async ([motion, legacy, rig, meta, perch, head, headMeta, limb, limbMeta, dogHead, dogHeadMeta, catImage, catHeadMeta, catLimbMeta]) => {
       if (cancelled) return;
       motionLoaded = motion.status === 'fulfilled';
       if (legacy.status === 'fulfilled' && (motionLoaded || rig.status === 'fulfilled')) {
         images = { motionImage: motionLoaded ? motion.value : undefined, legacyImage: legacy.value };
         refresh();
         const registeredDogHead = dogHead.status === 'fulfilled' && dogHead.value && dogHeadMeta.status === 'fulfilled' && dogHeadMeta.value?.version === 2 && dogHeadMeta.value?.parts?.length === 6 && dogHeadMeta.value?.registration;
+        const coherentCat = catImage.status === 'fulfilled' && catImage.value && catHeadMeta.status === 'fulfilled' && catLimbMeta.status === 'fulfilled'
+          && catHeadMeta.value?.version === 2 && catHeadMeta.value?.parts?.length === 6 && catHeadMeta.value?.registration?.anchors?.length === 6 && catHeadMeta.value?.registration?.tail?.rect?.length === 4
+          && catLimbMeta.value?.version === 2 && ['fore', 'hind'].every(kind => { const part = catLimbMeta.value.parts?.[catLimbMeta.value.species?.cat?.[kind]]; return part?.rect?.length === 4 && part.joints?.length === 4 && part.joints.every((point, i) => !i || point[1] > part.joints[i - 1][1]); })
+          && [catHeadMeta.value, catLimbMeta.value].every(value => value.sourceSize?.[0] === catImage.value.width && value.sourceSize?.[1] === catImage.value.height);
         const extra = rig.status === 'fulfilled' && meta.status === 'fulfilled' && meta.value
-          ? { rigImage: rig.value, rigMeta: meta.value, limbImage: limb.status === 'fulfilled' ? limb.value : undefined, limbMeta: limbMeta.status === 'fulfilled' ? limbMeta.value : undefined, headImage: registeredDogHead ? dogHead.value : head.status === 'fulfilled' ? head.value : undefined, headMeta: registeredDogHead ? dogHeadMeta.value : headMeta.status === 'fulfilled' ? headMeta.value : undefined, perchImage: perch.status === 'fulfilled' ? perch.value : undefined } : await loadFlow(pet.id, abort.signal);
+          ? { rigImage: rig.value, rigMeta: meta.value, limbImage: coherentCat ? catImage.value : limb.status === 'fulfilled' ? limb.value : undefined, limbMeta: coherentCat ? catLimbMeta.value : limbMeta.status === 'fulfilled' ? limbMeta.value : undefined, headImage: coherentCat ? catImage.value : registeredDogHead ? dogHead.value : head.status === 'fulfilled' ? head.value : undefined, headMeta: coherentCat ? catHeadMeta.value : registeredDogHead ? dogHeadMeta.value : headMeta.status === 'fulfilled' ? headMeta.value : undefined, perchImage: perch.status === 'fulfilled' ? perch.value : undefined } : await loadFlow(pet.id, abort.signal);
         if (!cancelled) { images = { ...images, ...extra }; createRenderer(); }
       } else refresh();
     });

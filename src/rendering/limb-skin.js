@@ -39,7 +39,8 @@ export function createLimbSkin(document, image, meta, species) {
     gradient.addColorStop(0,'rgba(0,0,0,0)');gradient.addColorStop(part.joints[1][1],'rgba(0,0,0,0)');
     gradient.addColorStop(part.joints[2][1],'rgba(0,0,0,1)');gradient.addColorStop(1,'rgba(0,0,0,1)');
     foregroundContext.globalCompositeOperation='destination-in';foregroundContext.fillStyle=gradient;foregroundContext.fillRect(0,0,width,height);
-    textures.set(kind, { source, foreground, part, hull });
+    const widthScale = species === 'cat' && Number.isFinite(part.widthScale) && part.widthScale > 0 ? part.widthScale : 1;
+    textures.set(kind, { source, foreground, part, hull, widthScale });
   }
   const profileCanvas=document.createElement('canvas');profileCanvas.width=profileCanvas.height=256;
   const profileContext=profileCanvas.getContext('2d');
@@ -68,7 +69,7 @@ export function createLimbSkin(document, image, meta, species) {
   return {
     draw(context, limb, { foreground = false } = {}) {
       if (!limb.ankle) return false;
-      const item=textures.get(limb.kind), {source,part,hull}=item;
+      const item=textures.get(limb.kind), {source,part,hull,widthScale:partWidth}=item;
       const orientation=Math.max(-1,Math.min(1,limb.orientation??1));
       const texture=foreground?item.foreground:source;
       const points=[limb.hip,limb.knee,limb.ankle,limb.foot], joints=part.joints;
@@ -131,7 +132,7 @@ export function createLimbSkin(document, image, meta, species) {
         const rootWeight=Math.max(0,Math.min(1,(y-joints[0][1])/(joints[1][1]-joints[0][1])));
         const pawWeight=Math.max(0,Math.min(1,(y-joints[2][1])/(joints[3][1]-joints[2][1])));
         const perspectiveWidth=1+((limb.perspectiveFactor??1)-1)*(1-pawWeight);
-        const widthScale=scale*(1+(.4+.6*rootWeight-1)*raisedWeight)*perspectiveWidth;
+        const widthScale=scale*(1+(.4+.6*rootWeight-1)*raisedWeight)*perspectiveWidth*partWidth;
         return edges.map(x=>({source:{x,y:y*source.height},segment,u,center,offset:{x:(x-sourceCenter)*widthScale*nx,y:(x-sourceCenter)*widthScale*ny}}));
       });
       // Skin both complete profiles onto the same solved joints before blending.

@@ -66,15 +66,17 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
       {index,x,y,width,height,options:{...options,mirror:-1},alpha:blend}]);
   }
   const articulatedHead = headImage && headMeta?.parts?.length === 6;
-  const dogRegistration = articulatedHead && species === 'dog' && headMeta?.version === 2 ? headMeta.registration : null;
-  canvas.dataset.headRig = dogRegistration ? 'registered-v2' : 'legacy-parts';
+  const headRegistration = articulatedHead && ['dog', 'cat'].includes(species) && headMeta?.version === 2 ? headMeta.registration : null;
+  const registeredTail = species === 'cat' ? headRegistration?.tail : null;
+  const tailMeta = registeredTail ? {parts:[registeredTail.rect]} : null;
+  canvas.dataset.headRig = headRegistration ? 'registered-v2' : 'legacy-parts';
   const headProfiles = new Map(), headGrids = new Map();
   const headProfileCanvas = canvas.ownerDocument.createElement('canvas');
   headProfileCanvas.width = headProfileCanvas.height = 256;
   const headProfileContext = headProfileCanvas.getContext('2d');
   function registeredHead(entries) {
     const views = entries.filter(entry => entry.alpha > 0);
-    if (!views.length || views.some(view => !dogRegistration.features?.[view.index])) { blendedParts(entries); return; }
+    if (!views.length || views.some(view => !headRegistration.features?.[view.index])) { blendedParts(entries); return; }
     const rows = views.map(view => {
       const key = `${view.index}:${view.options.mirror}`;
       if (headGrids.has(key)) return headGrids.get(key);
@@ -86,7 +88,7 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
         headProfiles.set(view.index,{texture:crop,contours});
       }
       const {texture,contours}=headProfiles.get(view.index);
-      const mark = dogRegistration.features[view.index], anchor = dogRegistration.anchors[view.index];
+      const mark = headRegistration.features[view.index], anchor = headRegistration.anchors[view.index];
       const eyeY = (mark.eyes[0][1] + mark.eyes[1][1]) / 2;
       const featureRow = (point, halfWidth) => [0, Math.max(.001, point[0] - halfWidth), point[0], Math.min(.999, point[0] + halfWidth), 1].map(x => ({x,y:point[1]}));
       const grid = [
@@ -96,18 +98,22 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
         [0,.25,anchor[0],.75,1].map(x => ({x,y:anchor[1]})),
         [0,.25,.5,.75,1].map(x => ({x,y:1})),
       ];
+      const ears=species==='cat'?mark.ears:null;
+      if(ears){const earY=(ears[0][1]+ears[1][1])/2;grid.splice(1,0,[{x:0,y:earY},{x:ears[0][0],y:ears[0][1]},{x:(ears[0][0]+ears[1][0])/2,y:earY},{x:ears[1][0],y:ears[1][1]},{x:1,y:earY}]);}
+      const eyeRow=ears?2:1,noseRow=eyeRow+1,mouthRow=eyeRow+2,neckRow=eyeRow+3;
       // Opaque contour landmarks align the cheek/skull silhouette as well as
       // the face. Outer border columns retain every source pixel and margin.
       grid.forEach((row,index)=>{
         const y=row[2].y,at=Math.min(texture.height-1,Math.max(0,Math.round(y*texture.height)));
         let contour=contours[at];
         if(!contour)for(let d=1;d<texture.height&&!contour;d++)contour=contours[Math.max(0,at-d)]||contours[Math.min(texture.height-1,at+d)];
-        const left=Math.min(contour?.[0]??0,(index===1?row[1].x:row[2].x)-.002),right=Math.max(contour?.[1]??1,(index===1?row[3].x:row[2].x)+.002);
-        if(index===2||index===3){row[1].x=Math.max(left+.001,Math.min(row[1].x,row[2].x-.001));row[3].x=Math.min(right-.001,Math.max(row[3].x,row[2].x+.001));}
-        else if(index===1){ /* Eye landmarks stay exact, even where fur alpha is sparse. */ }
-        else if(index===4){row[1].x=left+(anchor[0]-left)*.5;row[3].x=anchor[0]+(right-anchor[0])*.5;}
+        const left=Math.min(contour?.[0]??0,(index===eyeRow||ears&&index===1?row[1].x:row[2].x)-.002),right=Math.max(contour?.[1]??1,(index===eyeRow||ears&&index===1?row[3].x:row[2].x)+.002);
+        if(index===noseRow||index===mouthRow){row[1].x=Math.max(left+.001,Math.min(row[1].x,row[2].x-.001));row[3].x=Math.min(right-.001,Math.max(row[3].x,row[2].x+.001));}
+        else if(index===eyeRow||ears&&index===1){ /* Eye and ear landmarks remain exact. */ }
+        else if(index===neckRow){row[1].x=left+(anchor[0]-left)*.5;row[3].x=anchor[0]+(right-anchor[0])*.5;}
         if(index===0||index===grid.length-1){row[1].x=left+(right-left)*.25;row[2].x=left+(right-left)*.5;row[3].x=left+(right-left)*.75;}
-        row.splice(1,0,{x:Math.max(.0001,left),y});row.splice(row.length-1,0,{x:Math.min(.9999,right),y});
+        if(ears&&index===1){row[0].y=ears[0][1];row[4].y=ears[1][1];}
+        row.splice(1,0,{x:Math.max(.0001,left),y:ears&&index===1?ears[0][1]:y});row.splice(row.length-1,0,{x:Math.min(.9999,right),y:ears&&index===1?ears[1][1]:y});
       });
       if (view.options.mirror < 0) grid.forEach(row => row.reverse());
       const sample = (values,index,u) => {
@@ -135,7 +141,7 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
     // neck root before mixing pixels. Full-profile endpoints remain untouched.
     const target = rows[0].map((row,r) => row.map((_,c) => {
       const point = views.reduce((sum,view,i) => {
-        const source = rows[i][r][c], anchor = dogRegistration.anchors[view.index];
+        const source = rows[i][r][c], anchor = headRegistration.anchors[view.index];
         sum.x += (source.x-anchor[0])*view.width*view.options.mirror*view.alpha;
         sum.y += (source.y-anchor[1])*view.height*view.alpha; return sum;
       },{x:0,y:0});
@@ -171,31 +177,34 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
     const lower = Math.floor(profile), mix = profile - lower;
     const indices = [3, 2, 1];
     const expression = pose.clip === 'pet' ? 4 : pose.clip === 'feed' ? 5 : null;
-    const expressionWeight = expression === null ? 0 : pose.expressionWeight * (dogRegistration ? Math.abs(orientation) : 1);
+    const expressionWeight = expression === null ? 0 : pose.expressionWeight * (headRegistration ? Math.abs(orientation) : 1);
     const entries=[];
     const draw = (index, alpha) => entries.push({index,x,y,width,height,alpha,options:{image:headImage,meta:headMeta,
-      anchorX:dogRegistration?.anchors?.[index]?.[0] ?? .5,anchorY:dogRegistration?.anchors?.[index]?.[1] ?? .8,
-      angle:pose.headAngle*(dogRegistration ? orientation : orientation<0?-1:1),mirror:index===3?1:orientation<0?-1:1}});
+      anchorX:headRegistration?.anchors?.[index]?.[0] ?? .5,anchorY:headRegistration?.anchors?.[index]?.[1] ?? .8,
+      angle:pose.headAngle*(headRegistration ? orientation : orientation<0?-1:1),mirror:index===3?1:orientation<0?-1:1}});
     draw(indices[lower], (1 - mix) * (1 - expressionWeight));
     if (lower < 2) draw(indices[lower + 1], mix * (1 - expressionWeight));
     if (expression !== null) draw(expression, expressionWeight);
-    if (dogRegistration) registeredHead(entries); else blendedParts(entries);
+    if (headRegistration) registeredHead(entries); else blendedParts(entries);
   }
   function quadruped(pose) {
     context.save(); context.globalAlpha = .88;
     pose.legs.filter(limb => limb.side === 'far').forEach(leg);
     context.restore();
     bodyTransform(pose.body, () => {
-      orientedPart(5, 128 - 62 * pose.orientation, 133, 48, 54,
+      if (registeredTail) {
+        orientedPart(0, 128 + registeredTail.offsetX * pose.orientation, registeredTail.y, registeredTail.width, registeredTail.height,
+          { anchorX: registeredTail.anchorX, anchorY: registeredTail.anchorY, angle: pose.tailAngle, image: headImage, meta: tailMeta }, -pose.orientation);
+      } else orientedPart(5, 128 - 62 * pose.orientation, 133, 48, 54,
         { anchorX: .15, anchorY: .86, angle: pose.tailAngle }, -pose.orientation);
     });
     const near = pose.legs.filter(limb => limb.side === 'near');
     near.forEach(limb => leg(limb, 'upper'));
     bodyTransform(pose.body, () => {
       if (articulatedHead) {
-        const body = dogRegistration?.body ?? {x:128,y:76,width:180,height:104};
-        const face = dogRegistration?.head ?? {offsetX:52,y:131,width:91,height:104};
-        orientedPart(0, body.x, body.y, body.width, body.height,
+        const body = headRegistration?.body ?? {x:128,y:76,width:180,height:104};
+        const face = headRegistration?.head ?? {offsetX:52,y:131,width:91,height:104};
+        orientedPart(0, body.x + (body.offsetX ?? 0) * pose.orientation, body.y, body.width, body.height,
           {anchorX:.5,image:headImage,meta:headMeta}, pose.orientation);
         head(pose, 128 + face.offsetX * pose.orientation, face.y, face.width, face.height);
       } else {

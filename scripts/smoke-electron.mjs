@@ -4,6 +4,10 @@ import { mkdtemp, rm, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
+const fixtureSpecies = process.env.PAWPAL_SMOKE_SPECIES ?? 'dog';
+assert.ok(['dog', 'cat'].includes(fixtureSpecies), 'PAWPAL_SMOKE_SPECIES must be dog or cat');
+const artifactPath = name => path.join('.artifacts', `${fixtureSpecies}-${name}`);
+
 const userData = await mkdtemp(path.join(tmpdir(), 'pawpal-smoke-'));
 await mkdir('.artifacts', { recursive: true });
 let app;
@@ -25,7 +29,7 @@ try {
     requestAnimationFrame(frame);
   });
   const overlayPromise = app.waitForEvent('window', { predicate: page => page !== panel });
-  await panel.evaluate(() => window.companion.dispatch({ type: 'adopt', species: 'dog', name: '团子' }));
+  await panel.evaluate(species => window.companion.dispatch({ type: 'adopt', species, name: '团子' }), fixtureSpecies);
   await panel.waitForFunction(async () => (await window.companion.getState()).adopted);
   const overlay = await overlayPromise;
   await overlay.waitForFunction(() => Boolean(document.querySelector('.pet-sprite')));
@@ -37,9 +41,9 @@ try {
   assert.equal(await overlay.evaluate(() => document.querySelector('.pet-sprite canvas')?.dataset.renderer), 'rig-2d',
     'actual Electron companion uses the articulated rig renderer');
   assert.equal(await overlay.evaluate(() => document.querySelector('.pet-sprite canvas')?.dataset.limbSkin), 'connected-v2',
-    'packaged dog uses the complete connected leg artwork');
+    `packaged ${fixtureSpecies} uses the complete connected leg artwork`);
   assert.equal(await overlay.evaluate(() => document.querySelector('.pet-sprite canvas')?.dataset.headRig), 'registered-v2',
-    'packaged dog uses the short-neck head artwork and anatomical registration');
+    `packaged ${fixtureSpecies} uses the registered head artwork`);
   const transparent = await app.evaluate(async ({ BrowserWindow }) => {
     const window = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet'));
     if (!window?.isVisible()) return false;
@@ -104,7 +108,7 @@ try {
     careTiming.push(timing);
     assert.ok(timing.p95 < 35, `${action} avoids sustained stutter including its first activation: ${JSON.stringify(timing)}`);
   }
-  await writeFile('.artifacts/natural-head-native-care-timing.json', JSON.stringify(careTiming, null, 2));
+  await writeFile(artifactPath('natural-head-native-care-timing.json'), JSON.stringify(careTiming, null, 2));
   console.log(`Cold native care timing: ${JSON.stringify(careTiming)}`);
   await new Promise(resolve => setTimeout(resolve, 900));
   await panel.evaluate(() => window.companion.dispatch({ type: 'interact', action: 'play' }));
@@ -193,7 +197,7 @@ try {
           const pet = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet'));
           return (await pet.webContents.capturePage()).toPNG().toString('base64');
         });
-        await writeFile(`.artifacts/grounded-native-${index}.png`, Buffer.from(png, 'base64'));
+        await writeFile(artifactPath(`grounded-native-${index}.png`), Buffer.from(png, 'base64'));
         captureIntervals.push([start, await overlay.evaluate(() => performance.now())]);
       }
       await new Promise(resolve => setTimeout(resolve, 40));
@@ -201,7 +205,7 @@ try {
     const rafTimes = await overlay.evaluate(() => { window.pawpalSmokeRafActive = false; return window.pawpalSmokeRafTimes; });
     const nativeJournal = await app.evaluate(() => globalThis.pawpalBoundarySmoke.journal);
     const motionJournal = await app.evaluate(() => globalThis.pawpalBoundarySmoke.motionJournal);
-    await writeFile('.artifacts/grounded-native-trace.json', JSON.stringify({ gait, nativeJournal, motionJournal, rafTimes, captureIntervals }, null, 2));
+    await writeFile(artifactPath('grounded-native-trace.json'), JSON.stringify({ gait, nativeJournal, motionJournal, rafTimes, captureIntervals }, null, 2));
     // Match each painted pose to the exact accepted native distance that drove
     // it, eliminating main/IPC/RAF sampling lag rather than widening drift.
     const packetLags = [], movingPacketLags = [], displayRootErrors = [];
@@ -209,7 +213,12 @@ try {
       const distance = Number(sample.dataset.motionDistance);
       assert.ok(Number.isFinite(distance), 'painted pose exposes applied locomotion distance');
       const epoch = Number(sample.dataset.motionEpoch);
-      const accepted = motionJournal.find(item => item.motion.epoch === epoch && item.motion.distanceDip === distance);
+      // A stopped turn publishes several packets at the same distance. Match
+      // the latest identical locomotion state available when this pose was
+      // observed, including facing and moving, rather than the pre-turn packet.
+      const accepted = motionJournal.findLast(item => item.motion.epoch === epoch && item.motion.distanceDip === distance
+        && item.motion.facing === sample.facing && item.motion.moving === (sample.clip === 'walk')
+        && item.wallMs <= sample.rendererWallMs);
       assert.ok(accepted, `painted distance ${distance} has an actual accepted native root journal entry`);
       packetLags.push(sample.nativeMs - accepted.monotonicMs);
       const rootError = Math.abs(sample.bounds.x - accepted.bounds.x);
@@ -223,7 +232,7 @@ try {
       movingPaintLagMs: { samples: movingPacketLags.length, median: percentile(movingPacketLags, .5) || 0, p95: percentile(movingPacketLags, .95) || 0, max: Math.max(0, ...movingPacketLags) },
       displayedRootErrorDip: { median: percentile(displayRootErrors, .5), p95: percentile(displayRootErrors, .95), max: Math.max(...displayRootErrors) },
       rafOutsideCaptureMs: { samples: rafGaps.length, median: percentile(rafGaps, .5), p95: percentile(rafGaps, .95), max: Math.max(...rafGaps) } };
-    await writeFile('.artifacts/grounded-native-timing.json', JSON.stringify(timing, null, 2));
+    await writeFile(artifactPath('grounded-native-timing.json'), JSON.stringify(timing, null, 2));
     console.log(`Native paint timing: ${JSON.stringify(timing)}`);
     assert.ok(timing.displayedRootErrorDip.max < 5, 'displayed planted pose stays within one native movement tick of current root');
     assert.ok(timing.movingPaintLagMs.max < 50, 'moving renderer does not accumulate a stale locomotion packet backlog');
@@ -263,7 +272,7 @@ try {
     }
     console.log(`Grounded reversal gait: ${planted.length} contact pairs, ${reversalSupports} continuing reversal supports; max world drift ${Math.max(...planted.map(item => item.dx)).toFixed(2)} DIP.`);
     const startup = await overlay.evaluate(() => { window.pawpalStartupTiming = false; return { reads: window.pawpalSourceReads, frames: window.pawpalStartupRaf }; });
-    const headParts = JSON.parse(await readFile('public/pets/dog-head-rig-v2.json', 'utf8')).parts;
+    const headParts = JSON.parse(await readFile(`public/pets/${fixtureSpecies}-head-rig-v2.json`, 'utf8')).parts;
     const coldViews = headParts.slice(1).map((part,index) => {
       const reads = startup.reads.filter(read => read.width === part[2] && read.height === part[3]);
       assert.equal(reads.length, 1, `head view ${index+1} scans its source exactly once`);
@@ -272,7 +281,7 @@ try {
       return { view: index+1, scanMs: read.ended-read.started, frameGapMs: after-before };
     });
     for (const view of coldViews.filter(view => view.view === 2 || view.view === 3)) assert.ok(view.frameGapMs < 50, `first turn view avoids a cold setup stall: ${JSON.stringify(view)}`);
-    await writeFile('.artifacts/natural-head-native-cold-views.json', JSON.stringify(coldViews, null, 2));
+    await writeFile(artifactPath('natural-head-native-cold-views.json'), JSON.stringify(coldViews, null, 2));
     console.log(`First-use native head views: ${JSON.stringify(coldViews)}`);
     for (const setting of ['paused', 'reducedMotion']) {
       if (setting === 'paused') await panel.evaluate(() => window.companion.dispatch({ type: 'settings', patch: { paused: true } }));
@@ -324,13 +333,13 @@ try {
       assert.ok(timing.p95 < 35, `mixed-turn ${action} avoids sustained stutter at the three-view mesh budget: ${JSON.stringify(timing)}`);
       mixedCareTiming.push(timing);
     }
-    await writeFile('.artifacts/natural-head-native-mixed-timing.json', JSON.stringify(mixedCareTiming, null, 2));
+    await writeFile(artifactPath('natural-head-native-mixed-timing.json'), JSON.stringify(mixedCareTiming, null, 2));
     console.log(`Mixed-turn native care timing: ${JSON.stringify(mixedCareTiming)}`);
     const record = await app.evaluate(() => ({ samples: globalThis.pawpalBoundarySmoke.samples, errors: globalThis.pawpalBoundarySmoke.errors }));
     assert.deepEqual(record.errors, [], 'native travel across zero does not throw');
     assert.ok(record.samples.length > 50, 'both zero-crossing journeys run through the native movement timer');
     assert.ok(record.samples.every(point => Number.isInteger(point.x) && Number.isInteger(point.y) && !point.negativeZero), 'every native coordinate is an integer with positive zero');
-    assert.ok(record.samples.every(point => point.y === record.samples[0].y), 'dog keeps its ground Y during chase');
+    assert.ok(record.samples.every(point => point.y === record.samples[0].y), `${fixtureSpecies} keeps its ground Y during chase`);
     for (const axis of ['x']) for (const sign of [-1, 0, 1]) {
       assert.ok(record.samples.some(point => Math.sign(point[axis]) === sign), `${axis} crosses negative, zero and positive positions`);
     }
@@ -354,20 +363,20 @@ try {
       await new Promise(resolve => setTimeout(resolve, 1500));
     }
     const bird = await app.evaluate(() => ({ samples: globalThis.pawpalBoundarySmoke.samples, errors: globalThis.pawpalBoundarySmoke.errors }));
-    await writeFile('.artifacts/natural-legs-native-bird-coordinates.json', JSON.stringify(bird, null, 2));
+    await writeFile(artifactPath('natural-legs-native-bird-coordinates.json'), JSON.stringify(bird, null, 2));
     assert.deepEqual(bird.errors, []);
     assert.ok(bird.samples.every(point => Number.isInteger(point.y) && !point.negativeZero));
     for (const sign of [-1, 0, 1]) assert.ok(bird.samples.some(point => Math.sign(point.y) === sign), 'parrot crosses Y zero');
-    await panel.evaluate(() => window.companion.dispatch({ type: 'adopt', species: 'dog', name: '团子' }));
+    await panel.evaluate(species => window.companion.dispatch({ type: 'adopt', species, name: '团子' }), fixtureSpecies);
   } finally {
     await app.evaluate(() => { globalThis.pawpalBoundarySmoke.restore(); delete globalThis.pawpalBoundarySmoke; });
   }
-  await panel.screenshot({ path: '.artifacts/desktop-panel.png' });
-  await overlay.screenshot({ path: '.artifacts/desktop-pet.png', omitBackground: true });
+  await panel.screenshot({ path: artifactPath('desktop-panel.png') });
+  await overlay.screenshot({ path: artifactPath('desktop-pet.png'), omitBackground: true });
   await app.close();
   app = null;
   const saved = JSON.parse(await readFile(path.join(userData, 'companion.json'), 'utf8'));
-  assert.equal(saved.species, 'dog');
+  assert.equal(saved.species, fixtureSpecies);
   assert.equal(saved.name, '团子');
   assert.equal(saved.settings.movement, 'edge');
   assert.equal(saved.settings.size, 0.8);

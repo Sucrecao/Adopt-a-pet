@@ -316,7 +316,7 @@ export default function App() {
       <div className="sidebar-section">你的陪伴空间</div>
       <nav aria-label="主导航"><button className={nav === 'home' ? 'active' : ''} onClick={() => navigate('home')}><Home size={18} />我的小伙伴<ChevronRight size={14} /></button><button className={nav === 'settings' ? 'active' : ''} onClick={() => navigate('settings')}><Settings2 size={18} />桌面设置</button></nav>
       <div className="sidebar-note"><div className="tiny-paws"><PawPrint size={17} /><PawPrint size={13} /></div><p>忙碌的日子里，<br />也有一份小小的陪伴。</p><span>A little friend. A lot of joy.</span></div>
-      <div className="sidebar-bottom"><span className="local-indicator"><i />陪伴留在这台电脑</span><span className="version">PawPal · v0.3.1</span></div>
+      <div className="sidebar-bottom"><span className="local-indicator"><i />陪伴留在这台电脑</span><span className="version">PawPal · v0.3.2</span></div>
     </aside>
     <main className="main-content">
       <header className="page-header"><div><div className="eyebrow">YOUR LITTLE COMPANION</div><h1>让桌面，多一点可爱<span className="headline-star">✳</span></h1><p>选一位小伙伴，让它陪你工作、发呆，和度过每个小日子。</p></div><span className={`environment-badge ${bridge.isDesktop ? 'desktop' : ''}`}><Monitor size={14} />{bridge.isDesktop ? '桌面模式' : '浏览器预览'}</span></header>
