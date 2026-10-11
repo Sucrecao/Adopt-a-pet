@@ -80,7 +80,9 @@ test('stretch and trick have species feedback and remain stationary', async ({ p
   await expect(page.locator('.stage-pet')).toHaveAttribute('data-clip', 'stretch');
   const stretch = await sampleSprite(page);
   expect(new Set(stretch.map(item => item.left + item.top)).size).toBe(1);
+  expect(new Set(stretch.map(item => item.frame)).size).toBeGreaterThan(2);
   await expect(page.getByRole('status').filter({ hasText: /爪爪|伸/ }).first()).toBeVisible();
+  await expect.poll(() => page.evaluate(() => Date.now() - JSON.parse(localStorage.getItem('pawpal.companion.v1')).lastInteraction)).toBeGreaterThanOrEqual(850);
   await page.getByRole('button', { name: '小把戏', exact: true }).click();
   await expect(page.locator('.stage-pet')).toHaveAttribute('data-clip', 'hop');
   await expect(page.getByRole('status').filter({ hasText: /跳|把戏/ }).first()).toBeVisible();
@@ -92,7 +94,7 @@ test('stretch and trick have species feedback and remain stationary', async ({ p
 });
 
 test('pointer play uses many walking frames and pause freezes animation and position', async ({ page }) => {
-  await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'motion');
+  await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'rig');
   await page.getByRole('button', { name: /在预览中领养/ }).click();
   await page.getByRole('button', { name: '玩耍', exact: true }).click();
   const stage = await page.locator('.desktop-stage').boundingBox();
@@ -107,14 +109,14 @@ test('pointer play uses many walking frames and pause freezes animation and posi
 });
 
 test('reduced motion stops automatic playback and missing motion atlas retains legacy art', async ({ page }) => {
-  await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'motion');
+  await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'rig');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
-  await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'motion');
+  await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'rig');
   const reduced = await sampleSprite(page);
   expect(new Set(reduced.map(item => item.frame)).size).toBe(1);
   expect(new Set(reduced.map(item => item.left + item.top)).size).toBe(1);
-  await page.route('**/pets/*-motion.png', route => route.abort());
+  await page.route(/pets\/.*-(motion|rig)\.png$/, route => route.abort());
   await page.reload();
   await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'legacy');
   await expect(page.locator('.stage-pet')).toHaveCSS('background-image', /cat\.png/);
@@ -175,45 +177,55 @@ test('maximum pet fits desktop and tablet stages across a mobile resize round-tr
   await expectStageContained(page);
 });
 
-test('fresh companion keeps its gait phase through a turn and interpolates each pose', async ({ page }) => {
+test('fresh companion preserves distance phase through an in-place reversal and resumes walking', async ({ page }) => {
   await page.getByRole('button', { name: /在预览中领养/ }).click();
   await page.getByRole('button', { name: '玩耍', exact: true }).click();
   const stage = await page.locator('.desktop-stage').boundingBox();
+  const pet = page.locator('.stage-pet');
   await page.mouse.move(stage.x + stage.width * .88, stage.y + stage.height * .68);
-  await expect(page.locator('.stage-pet')).toHaveAttribute('data-clip', 'walk');
-  const before = await page.locator('.stage-pet').evaluate(sprite => ({ elapsed: Number(sprite.dataset.elapsed), sequence: sprite.dataset.sequence }));
+  await expect(pet).toHaveAttribute('data-clip', 'walk');
+  const before = await pet.evaluate(sprite => ({ elapsed: Number(sprite.dataset.elapsed), sequence: Number(sprite.dataset.sequence) }));
   await page.mouse.move(stage.x + stage.width * .12, stage.y + stage.height * .68);
+  await expect(pet).toHaveAttribute('data-turning', 'true');
   const values = await page.evaluate(() => new Promise(resolve => {
     const values = [], start = performance.now();
     function sample(now) {
-      const sprite = document.querySelector('.stage-pet');
-      values.push({ elapsed: Number(sprite.dataset.elapsed), sequence: sprite.dataset.sequence, mix: Number(sprite.dataset.mix), clip: sprite.dataset.clip, facing: sprite.style.getPropertyValue('--pet-facing'), canvas: Boolean(sprite.querySelector('canvas')) });
-      if (now - start < 650) requestAnimationFrame(sample); else resolve(values);
+      const sprite = document.querySelector('.stage-pet'), root = document.querySelector('.stage-pet-anchor').getBoundingClientRect();
+      values.push({ elapsed: Number(sprite.dataset.elapsed), sequence: Number(sprite.dataset.sequence), phase: Number(sprite.dataset.phase), distance: Number(sprite.dataset.motionDistance), size: sprite.clientWidth, clip: sprite.dataset.clip, facing: sprite.dataset.facing, turning: sprite.dataset.turning === 'true', orientation: Number(sprite.dataset.orientation), x: root.x, y: root.y, canvas: Boolean(sprite.querySelector('canvas')) });
+      if (now - start < 1600) requestAnimationFrame(sample); else resolve(values);
     }
     requestAnimationFrame(sample);
   }));
-  const walk = values.filter(item => item.clip === 'walk');
+  const turn = values.filter(item => item.turning), walk = values.filter(item => item.clip === 'walk');
+  expect(turn.length).toBeGreaterThan(10);
+  expect(new Set(turn.map(item => item.orientation)).size).toBeGreaterThan(10);
+  expect(new Set(turn.map(item => item.phase)).size).toBe(1);
+  expect(new Set(turn.map(item => item.distance)).size).toBe(1);
+  expect(Math.max(...turn.map(item => item.x)) - Math.min(...turn.map(item => item.x))).toBeLessThan(.5);
+  expect(Math.max(...turn.map(item => item.y)) - Math.min(...turn.map(item => item.y))).toBeLessThan(.5);
   expect(walk.length).toBeGreaterThan(10);
-  expect(walk.every(item => item.elapsed >= before.elapsed && item.sequence === before.sequence)).toBe(true);
-  expect(walk.some(item => item.facing === '-1')).toBe(true);
-  expect(walk.every(item => item.canvas)).toBe(true);
-  expect(new Set(walk.filter(item => item.mix > 0 && item.mix < 1).map(item => item.mix)).size).toBeGreaterThan(10);
+  expect(values.every(item => item.elapsed >= before.elapsed && item.sequence === before.sequence && item.canvas)).toBe(true);
+  expect(walk.every(item => item.facing === '-1' && !item.turning)).toBe(true);
+  expect(new Set(walk.map(item => item.phase)).size).toBeGreaterThan(10);
+  const first = turn[0], last = walk.at(-1);
+  expect(last.phase - first.phase).toBeCloseTo((last.distance - first.distance) * 256 / last.size / 64, 6);
+  await page.getByRole('switch', { name: '暂停活动' }).click();
+  await page.waitForTimeout(60);
+  const frozen = await pet.evaluate(sprite => ({ phase: sprite.dataset.phase, pixels: sprite.querySelector('canvas').toDataURL() }));
+  await page.waitForTimeout(160);
+  expect(await pet.evaluate(sprite => ({ phase: sprite.dataset.phase, pixels: sprite.querySelector('canvas').toDataURL() }))).toEqual(frozen);
 });
 
-test('available flow reaches the GPU after asynchronous atlas loading', async ({ page }) => {
-  const gpuAvailable = await page.evaluate(() => Boolean(document.createElement('canvas').getContext('webgl')));
-  test.skip(!gpuAvailable, 'Browser does not support WebGL');
-  await expect(page.locator('.stage-pet canvas')).toHaveAttribute('data-renderer', 'webgl');
+test('matching joint layers load the continuous rig renderer', async ({ page }) => {
+  await expect(page.locator('.stage-pet canvas')).toHaveAttribute('data-renderer', 'rig-2d');
 });
 
-test('switching from a companion without flow releases its 2D canvas for the next species', async ({ page }) => {
-  const gpuAvailable = await page.evaluate(() => Boolean(document.createElement('canvas').getContext('webgl')));
-  test.skip(!gpuAvailable, 'Browser does not support WebGL');
-  await page.route('**/pets/cat-flow.*', route => route.abort());
+test('switching from missing layers recovers the next species rig', async ({ page }) => {
+  await page.route(/pets\/cat-(rig\.(png|json)|flow\.(bin|json))$/, route => route.abort());
   await page.reload();
   await expect(page.locator('.stage-pet canvas')).toHaveAttribute('data-renderer', '2d');
   await page.getByRole('button', { name: /选择小狗/ }).click();
   await page.getByRole('button', { name: /在预览中领养/ }).click();
-  await expect(page.locator('.stage-pet')).toHaveCSS('background-image', /dog-motion\.png/);
-  await expect(page.locator('.stage-pet canvas')).toHaveAttribute('data-renderer', 'webgl');
+  await expect(page.locator('.stage-pet')).toHaveCSS('background-image', /dog\.png/);
+  await expect(page.locator('.stage-pet canvas')).toHaveAttribute('data-renderer', 'rig-2d');
 });

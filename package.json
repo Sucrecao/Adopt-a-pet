@@ -1,6 +1,6 @@
 {
   "name": "pawpal-desktop",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "private": true,
   "description": "可爱、自由活动的猫狗鹦鹉桌面伙伴",
   "author": "PawPal",
@@ -36,15 +36,43 @@
     "appId": "com.pawpal.desktop",
     "productName": "PawPal",
     "icon": "public/icon.png",
-    "directories": { "output": "release" },
-    "files": ["dist/**/*", "electron/**/*", "src/core/**/*", "package.json"],
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "src/core/**/*",
+      "package.json"
+    ],
     "asar": true,
     "mac": {
       "category": "public.app-category.entertainment",
-      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
       "hardenedRuntime": true
     },
-    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true }
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
   }
 }

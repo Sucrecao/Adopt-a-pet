@@ -22,6 +22,8 @@ export const bridge = desktop ? window.companion : {
   getState: async () => previewState ||= readPreview(),
   dispatch: async command => broadcast(transition(previewState ||= readPreview(), command, Date.now())),
   onState: listener => { listeners.add(listener); return () => listeners.delete(listener); },
+  onMotion: () => () => {},
+  setReducedMotion: async () => true,
   showPanel: () => { if (new URLSearchParams(location.search).get('view') === 'pet') location.search = ''; },
   hidePet: () => {},
   setHitRegions: () => {},

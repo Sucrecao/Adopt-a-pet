@@ -19,7 +19,7 @@ async function harness(options = {}) {
     assert.ok(Number.isInteger(value) && !Object.is(value, -0),
       `Electron native argument must be an integer without negative zero; received ${Object.is(value, -0) ? '-0' : value}`);
   };
-  const handlers = {}, listeners = {};
+  const handlers = {}, listeners = {}, events = [];
   const mainFrame = {};
   const window = {
     isDestroyed: () => false, isVisible: () => true,
@@ -27,7 +27,7 @@ async function harness(options = {}) {
     setBounds: next => { Object.values(next).forEach(nativeInteger); bounds = { ...next }; },
     setPosition: (x, y) => { nativeInteger(x); nativeInteger(y); bounds = { ...bounds, x, y }; },
     setAlwaysOnTop: () => {}, setIgnoreMouseEvents: () => {},
-    webContents: { mainFrame, send: () => {} },
+    webContents: { mainFrame, send: (channel, value) => events.push({ channel, value: JSON.parse(JSON.stringify(value)), bounds: { ...bounds } }) },
   };
   const electron = {
     app: { isPackaged: true, requestSingleInstanceLock: () => false, quit: () => {} },
@@ -57,7 +57,7 @@ async function harness(options = {}) {
     transition = core.transition;
     chooseTarget = (bounds, area, mode) => geometry.chooseTarget(bounds, area, mode, () => options.random ?? 0.9);
     state = { ...core.createState(Date.now()), adopted: true,
-      settings: { size: 0.65, movement: 'free', paused: false, alwaysOnTop: true } };
+      species: options.species ?? "cat", settings: { size: 0.65, movement: 'free', paused: false, alwaysOnTop: true } };
     target = options.target === undefined ? { x: 720, y: 500 } : options.target;
     wanderAt = options.target === null ? 0 : Date.now() + 60000;
     registerIPC();
@@ -65,7 +65,7 @@ async function harness(options = {}) {
   `);
   const event = { sender: window.webContents, senderFrame: mainFrame };
   return {
-    run, bounds: () => ({ ...bounds }), area: workArea, nearestPoints,
+    run, events, reduced(value, trusted = true) { return handlers["companion:reduced-motion"](trusted ? event : { sender: {}, senderFrame: {} }, value); }, bounds: () => ({ ...bounds }), area: workArea, nearestPoints,
     tick(ms = 16) { now += ms; run('movementTick()'); },
     cursor(point) { cursor = point; },
     dispatch(command) { return handlers['companion:dispatch'](event, command); },
@@ -105,7 +105,7 @@ test('native travel follows actual elapsed time at 16ms and 33ms', async () => {
 });
 
 test('native fractional coordinates survive rounded window bounds', async () => {
-  const pet = await harness();
+  const pet = await harness({ species: 'parrot' });
   pet.run('target = { x: 301, y: 560 };');
   for (let tick = 0; tick < 250; tick++) pet.tick();
   assert.equal(pet.bounds().x, 301, 'the subpixel x movement must accumulate');
@@ -159,7 +159,7 @@ test('pause, drag, display constraints and movement changes discard old velocity
 });
 
 test('play chase retains continuous moving state and facing inside the horizontal dead zone', async () => {
-  const pet = await harness();
+  const pet = await harness({ species: 'parrot' });
   pet.dispatch({ type: 'interact', action: 'play' });
   pet.run('facing = "right"; regions = [{ type: "rect", x: 0, y: 0, width: 221, height: 234 }];');
   for (let frame = 0; frame < 60; frame++) {
@@ -167,13 +167,13 @@ test('play chase retains continuous moving state and facing inside the horizonta
     pet.cursor({ x: bounds.x + bounds.width / 2 + (frame % 2 ? -2 : 2), y: bounds.y + 220 });
     pet.tick();
     assert.equal(pet.snapshot().motion.moving, true);
-    assert.equal(pet.snapshot().motion.facing, 'right');
+    assert.equal(pet.snapshot().motion.facing, 1);
   }
 });
 
 test('roaming crosses zero on the secondary display without losing its fractional position', async () => {
   const pet = await harness({
-    workArea: { x: 1800, y: -414, width: 3840, height: 2130 },
+    species: 'parrot', workArea: { x: 1800, y: -414, width: 3840, height: 2130 },
     bounds: { x: 2000, y: 1, width: 221, height: 234 },
     target: null, random: 0.2,
   });
@@ -196,7 +196,7 @@ for (const axis of ['x', 'y']) {
     test(`native movement crosses ${axis} zero toward ${direction < 0 ? 'negative' : 'positive'} coordinates`, async () => {
       const start = -direction;
       const pet = await harness({
-        workArea: { x: -1000, y: -1000, width: 2000, height: 2000 },
+        species: 'parrot', workArea: { x: -1000, y: -1000, width: 2000, height: 2000 },
         bounds: { x: axis === 'x' ? start : 200, y: axis === 'y' ? start : 200, width: 221, height: 234 },
         target: { x: axis === 'x' ? direction * 35 : 200, y: axis === 'y' ? direction * 35 : 200 },
       });
@@ -258,4 +258,193 @@ test('dragging across a negative display origin supplies integer bounds and resu
   pet.tick(10000);
   for (let frame = 0; frame < 40; frame++) pet.tick();
   assert.notDeepEqual(pet.bounds(), before);
+});
+
+for (const species of ['cat', 'dog']) test(`${species} roam and chase retain ground Y`, async () => {
+  const pet = await harness({ species });
+  for (let i = 0; i < 100; i++) pet.tick();
+  assert.equal(pet.bounds().y, 300);
+  pet.dispatch({ type: 'interact', action: 'play' });
+  pet.cursor({ x: 900, y: 700 });
+  for (let i = 0; i < 100; i++) pet.tick();
+  assert.equal(pet.bounds().y, 300);
+});
+for (const species of ['cat', 'parrot']) test(`${species} telemetry measures accepted integer travel and emits after positioning`, async () => {
+  const pet = await harness({ species });
+  let before = pet.bounds(), distance = 0;
+  for (let i = 0; i < 100; i++) {
+    pet.tick(); const after = pet.bounds();
+    distance += species === 'parrot' ? Math.hypot(after.x - before.x, after.y - before.y) : Math.abs(after.x - before.x);
+    assert.equal(pet.snapshot().motion.distanceDip, distance);
+    const event = pet.events.filter(e => e.channel === 'companion:motion').at(-1);
+    assert.ok(event); assert.deepEqual(event.bounds, after);
+    assert.equal(event.value.distanceDip, distance);
+    before = after;
+  }
+  assert.equal(pet.snapshot().motion.spriteSizeDip, 221 * .76);
+  assert.ok([1, -1].includes(pet.snapshot().motion.facing));
+  assert.equal(pet.run('Object.hasOwn(state, "motion")'), false);
+});
+test('pause, drag, resize and relocation rebase motion without adding distance', async () => {
+  const pet = await harness();
+  for (let i = 0; i < 80; i++) pet.tick();
+  let epoch = pet.snapshot().motion.epoch;
+  assert.ok(pet.snapshot().motion.distanceDip > 0);
+  pet.dispatch({ type: 'settings', patch: { paused: true } });
+  assert.ok(pet.snapshot().motion.epoch > epoch);
+  assert.equal(pet.snapshot().motion.distanceDip, 0);
+  assert.equal(pet.snapshot().motion.paused, true);
+  pet.tick(10000); assert.equal(pet.snapshot().motion.distanceDip, 0);
+  pet.drag(true); pet.cursor({ x: 800, y: 700 }); pet.run('pointerTick()');
+  assert.equal(pet.snapshot().motion.dragging, true);
+  assert.equal(pet.snapshot().motion.distanceDip, 0);
+  pet.drag(false); epoch = pet.snapshot().motion.epoch;
+  pet.move({ x: 400, y: 200 });
+  assert.ok(pet.snapshot().motion.epoch > epoch);
+  assert.equal(pet.snapshot().motion.distanceDip, 0);
+  epoch = pet.snapshot().motion.epoch;
+  pet.dispatch({ type: 'settings', patch: { size: 1 } });
+  assert.ok(pet.snapshot().motion.epoch > epoch);
+  assert.equal(pet.snapshot().motion.spriteSizeDip, 340 * .76);
+});
+test('reduced motion uses trusted boolean IPC and remains transient', async () => {
+  const pet = await harness();
+  assert.throws(() => pet.reduced(true, false));
+  for (const invalid of [1, 'true', null, {}]) assert.throws(() => pet.reduced(invalid));
+  pet.reduced(true);
+  const before = pet.bounds(); pet.tick(10000);
+  assert.deepEqual(pet.bounds(), before); assert.equal(pet.snapshot().motion.paused, true);
+  assert.equal(pet.snapshot().settings.paused, false);
+  assert.equal(pet.run('Object.hasOwn(state, "reducedMotion")'), false);
+  pet.reduced(false); pet.run('wanderAt = 0;');
+  for (let i = 0; i < 80; i++) pet.tick();
+  assert.notDeepEqual(pet.bounds(), before);
+});
+
+test('preload motion subscription hides IPC events, unsubscribes and sends reduced motion', () => {
+  let api; const subscriptions = new Map(), invoked = [];
+  const ipcRenderer = {
+    on: (channel, listener) => subscriptions.set(channel, listener),
+    removeListener: (channel, listener) => { assert.equal(subscriptions.get(channel), listener); subscriptions.delete(channel); },
+    invoke: (channel, value) => { invoked.push([channel, value]); return Promise.resolve(true); },
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../electron/preload.cjs'), 'utf8'), {
+    require: () => ({ contextBridge: { exposeInMainWorld: (_key, value) => { api = value; } }, ipcRenderer }),
+  });
+  const telemetry = { epoch: 2, distanceDip: 5 }; let received;
+  const unsubscribe = api.onMotion(value => { received = value; });
+  subscriptions.get('companion:motion')({ secret: true }, telemetry);
+  assert.equal(received, telemetry);
+  unsubscribe(); assert.equal(subscriptions.size, 0);
+  api.setReducedMotion(true);
+  assert.deepEqual(invoked, [['companion:reduced-motion', true]]);
+});
+
+test('switching a grounded pet to edge relocates to screen bottom before horizontal travel', async () => {
+  for (const species of ['cat', 'dog']) {
+    const pet = await harness({ species,
+      workArea: { x: -1000, y: -414, width: 2000, height: 1000 },
+      bounds: { x: 200, y: 100, width: 221, height: 234 } });
+    for (let i = 0; i < 40; i++) pet.tick();
+    const epoch = pet.snapshot().motion.epoch;
+    pet.dispatch({ type: 'settings', patch: { movement: 'edge' } });
+    assert.equal(pet.bounds().y, 352);
+    assert.ok(pet.snapshot().motion.epoch > epoch);
+    assert.equal(pet.snapshot().motion.distanceDip, 0);
+    const edge = pet.bounds();
+    for (let i = 0; i < 80; i++) pet.tick();
+    assert.equal(pet.bounds().y, edge.y);
+    assert.notEqual(pet.bounds().x, edge.x);
+    pet.move({ x: 200, y: 100 });
+    pet.dispatch({ type: 'settings', patch: { movement: 'free' } });
+    for (let i = 0; i < 80; i++) pet.tick();
+    assert.equal(pet.bounds().y, 100);
+  }
+});
+
+for (const species of ['cat', 'dog']) test(`${species} turns in place before accepting reverse travel for 800 active ms`, async () => {
+  const pet = await harness({ species });
+  for (let i = 0; i < 40; i++) pet.tick();
+  const before = pet.bounds(), distance = pet.snapshot().motion.distanceDip;
+  const floatX = pet.run('motion.x');
+  pet.run('target = { x: 0, y: motion.y };');
+  pet.tick();
+  assert.equal(pet.snapshot().motion.facing, -1);
+  assert.equal(pet.snapshot().motion.moving, false);
+  assert.deepEqual(pet.bounds(), before);
+  assert.equal(pet.run('motion.x'), floatX);
+  assert.equal(pet.snapshot().motion.distanceDip, distance);
+  for (let i = 0; i < 49; i++) {
+    pet.tick();
+    assert.deepEqual(pet.bounds(), before);
+    assert.equal(pet.snapshot().motion.distanceDip, distance);
+    assert.equal(pet.snapshot().motion.moving, false);
+  }
+  pet.tick();
+  assert.equal(pet.snapshot().motion.moving, true);
+  for (let i = 0; i < 12; i++) pet.tick();
+  assert.ok(pet.bounds().x < before.x);
+});
+
+for (const freeze of ['pause', 'reduced', 'action']) test(`native turn retains remaining duration across ${freeze}`, async () => {
+  const pet = await harness();
+  pet.run('target = { x: 0, y: motion.y };'); pet.tick();
+  for (let i = 0; i < 20; i++) pet.tick();
+  const before = pet.bounds(), telemetry = pet.snapshot().motion;
+  if (freeze === 'pause') pet.dispatch({ type: 'settings', patch: { paused: true } });
+  if (freeze === 'reduced') pet.reduced(true);
+  if (freeze === 'action') pet.dispatch({ type: 'interact', action: 'stretch' });
+  pet.tick(10000);
+  assert.deepEqual(pet.bounds(), before);
+  assert.equal(pet.snapshot().motion.epoch, telemetry.epoch);
+  if (freeze === 'pause') pet.dispatch({ type: 'settings', patch: { paused: false } });
+  if (freeze === 'reduced') pet.reduced(false);
+  // Expired actions become idle on the next native tick.
+  for (let i = 0; i < 29; i++) { pet.tick(); assert.deepEqual(pet.bounds(), before); }
+  assert.equal(pet.snapshot().motion.moving, false);
+  pet.tick(); assert.equal(pet.snapshot().motion.moving, true);
+});
+
+for (const reset of ['drag', 'resize', 'species', 'relocate']) test(`${reset} clears a native turn when rebasing motion`, async () => {
+  const pet = await harness();
+  pet.run('target = { x: 0, y: motion.y };'); pet.tick();
+  assert.equal(pet.snapshot().motion.moving, false);
+  const epoch = pet.snapshot().motion.epoch;
+  if (reset === 'drag') { pet.drag(true); pet.drag(false); }
+  if (reset === 'resize') pet.dispatch({ type: 'settings', patch: { size: 1 } });
+  if (reset === 'species') pet.run('const previous = state; state = { ...state, species: "dog" }; configurePet(previous);');
+  if (reset === 'relocate') pet.move({ x: 400, y: 200 });
+  assert.ok(pet.snapshot().motion.epoch > epoch);
+  assert.equal(pet.snapshot().motion.distanceDip, 0);
+  pet.run('target = { x: 0, y: motion.y };'); pet.tick();
+  assert.equal(pet.snapshot().motion.moving, true, 'rebased facing must not inherit a stale hold');
+});
+
+test('a chase heading changed during a turn cannot translate against the published facing', async () => {
+  const pet = await harness();
+  pet.run('target = { x: 0, y: motion.y };'); pet.tick();
+  const before = pet.bounds();
+  pet.run('target = { x: 720, y: motion.y };');
+  for (let i = 0; i < 50; i++) pet.tick();
+  assert.equal(pet.snapshot().motion.facing, 1);
+  assert.equal(pet.snapshot().motion.moving, false);
+  assert.deepEqual(pet.bounds(), before);
+  for (let i = 0; i < 49; i++) { pet.tick(); assert.deepEqual(pet.bounds(), before); }
+  pet.tick(); assert.equal(pet.snapshot().motion.moving, true);
+});
+
+test('active play completes a reverse turn before the chase action expires', async () => {
+  const pet = await harness();
+  pet.dispatch({ type: 'interact', action: 'play' });
+  pet.cursor({ x: 0, y: 400 });
+  pet.tick();
+  const before = pet.bounds(), until = pet.snapshot().action.until;
+  assert.equal(pet.snapshot().motion.facing, -1);
+  assert.equal(pet.snapshot().motion.moving, false);
+  for (let i = 0; i < 49; i++) { pet.tick(); assert.deepEqual(pet.bounds(), before); }
+  pet.tick();
+  assert.ok(pet.run('Date.now()') < until, 'turn completes during the active chase');
+  assert.equal(pet.snapshot().motion.moving, true);
+  for (let i = 0; i < 12; i++) pet.tick();
+  assert.ok(pet.bounds().x < before.x);
 });

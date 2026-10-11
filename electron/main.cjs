@@ -8,12 +8,22 @@ if (process.env.PAWPAL_TEST_USER_DATA) app.setPath('userData', process.env.PAWPA
 let panel, petWindow, tray, state, storePath, transition, normalizeState, clampWindow, chooseTarget, advanceMotion;
 let quitting = false, hidden = false, regions = [], ignoring = null, target = null, wanderAt = 0, saveTimer;
 let dragging = null, moving = false, facing = 'right';
-let motion = null, lastMovementAt = null;
+let motion = null, lastMovementAt = null, turnRemainingMs = 0;
+let motionEpoch = 0, distanceDip = 0, reducedMotion = false;
 const timers = [];
 const devURL = !app.isPackaged ? process.env.VITE_DEV_SERVER_URL : undefined;
 const preload = path.join(__dirname, 'preload.cjs');
 
-function snapshot() { return { ...state, motion: { moving, facing, dragging: Boolean(dragging) }, desktop: { hidden } }; }
+function motionSnapshot() {
+  const bounds = petWindow && !petWindow.isDestroyed() ? petWindow.getBounds() : null;
+  return { epoch: motionEpoch, distanceDip, spriteSizeDip: (bounds?.width ?? 340 * (state?.settings.size ?? 1)) * 0.76,
+    facing: facing === 'left' ? -1 : 1, moving, dragging: Boolean(dragging),
+    paused: Boolean(state?.settings.paused || reducedMotion) };
+}
+function emitMotion() {
+  if (petWindow && !petWindow.isDestroyed()) petWindow.webContents.send('companion:motion', motionSnapshot());
+}
+function snapshot() { return { ...state, motion: motionSnapshot(), desktop: { hidden } }; }
 function publish() {
   for (const window of [panel, petWindow]) {
     if (window && !window.isDestroyed()) window.webContents.send('companion:update', snapshot());
@@ -61,7 +71,9 @@ function resetMotion() {
   const bounds = petWindow && !petWindow.isDestroyed() ? petWindow.getBounds() : null;
   motion = bounds ? { x: bounds.x, y: bounds.y, vx: 0, vy: 0, arrived: true } : null;
   lastMovementAt = Date.now();
-  target = null; moving = false;
+  target = null; moving = false; turnRemainingMs = 0;
+  motionEpoch++; distanceDip = 0;
+  emitMotion();
 }
 function constrainPet(area) {
   if (!petWindow || petWindow.isDestroyed()) return;
@@ -102,8 +114,13 @@ function configurePet(previous) {
     regions = [];
     resetMotion(); wanderAt = 0;
   }
+  if (previous.settings.movement !== state.settings.movement && state.settings.movement === 'edge' &&
+      state.species !== 'parrot') {
+    const bounds = petWindow.getBounds(), area = areaFor(bounds);
+    petWindow.setBounds(rounded(clampWindow({ ...bounds, y: area.y + area.height - bounds.height }, area)));
+  }
   if (previous.settings.movement !== state.settings.movement || previous.species !== state.species ||
-      previous.settings.paused !== state.settings.paused) {
+      (previous.settings.paused !== state.settings.paused && !turnRemainingMs)) {
     resetMotion(); wanderAt = 0;
   }
 }
@@ -133,9 +150,10 @@ function pointerTick() {
 }
 function movementTick() {
   const now = Date.now();
+  const previousMovementAt = lastMovementAt;
   const elapsed = lastMovementAt === null ? 0 : Math.min(0.05, Math.max(0, (now - lastMovementAt) / 1000));
   lastMovementAt = now;
-  if (!state.adopted || !petWindow || petWindow.isDestroyed() || !petWindow.isVisible() || state.settings.paused || dragging) return;
+  if (!state.adopted || !petWindow || petWindow.isDestroyed() || !petWindow.isVisible() || state.settings.paused || reducedMotion || dragging) return;
   const bounds = petWindow.getBounds(), area = areaFor(bounds);
   // getBounds() is integer-valued; use it for geometry, never to overwrite the
   // floating position during an ordinary tick.
@@ -144,7 +162,7 @@ function movementTick() {
   if (['rest', 'pet', 'feed', 'stretch', 'trick'].includes(action) ||
       (action !== 'play' && hitAt(screen.getCursorScreenPoint(), bounds))) {
     motion = { ...motion, vx: 0, vy: 0 };
-    if (moving) { moving = false; publish(); }
+    if (moving) { moving = false; emitMotion(); publish(); }
     return;
   }
   if (action === 'play') {
@@ -154,9 +172,26 @@ function movementTick() {
   } else if (!target && now >= wanderAt) target = chooseTarget(bounds, area, state.settings.movement);
   if (!target) return;
   const boundedTarget = clampWindow({ ...bounds, ...target }, area);
-  target = { x: boundedTarget.x, y: boundedTarget.y };
+  target = { x: boundedTarget.x, y: state.species === 'parrot' ? boundedTarget.y : bounds.y };
   const dx = target.x - motion.x;
   const speed = (state.species === 'parrot' ? 85 : state.species === 'dog' ? 58 : 42) * (action === 'play' ? 1.7 : 1);
+  // Grounded turns finish their foot transfers before the root can translate.
+  // Facing is the requested heading; velocity can still point the old way while braking.
+  const requestedFacing = Math.abs(dx) > 6 ? (dx > 0 ? 'right' : 'left') : facing;
+  if (turnRemainingMs) {
+    // An action that expires between ticks cannot charge its stationary time to the turn.
+    const stationaryAction = ['rest', 'pet', 'feed', 'stretch', 'trick'].includes(state.action.type);
+    const activeElapsed = stationaryAction && previousMovementAt < state.action.until ? 0 : elapsed;
+    turnRemainingMs = Math.max(0, turnRemainingMs - activeElapsed * 1000);
+    if (turnRemainingMs) return;
+  }
+  if (state.species !== 'parrot' && !turnRemainingMs && requestedFacing !== facing) {
+    facing = requestedFacing; moving = false;
+    motion = { ...motion, vx: 0, vy: 0 };
+    turnRemainingMs = 800;
+    emitMotion(); publish();
+    return;
+  }
   motion = advanceMotion(motion, target, speed, elapsed);
   const constrained = clampWindow({ ...bounds, x: motion.x, y: motion.y }, area);
   if (motion.x !== constrained.x) motion.vx = 0;
@@ -165,9 +200,14 @@ function movementTick() {
   const nextFacing = Math.abs(dx) > 6 && Math.abs(motion.vx) > 2 ? (motion.vx > 0 ? 'right' : 'left') : facing;
   const nextMoving = !motion.arrived;
   const changed = moving !== nextMoving || facing !== nextFacing;
-  moving = nextMoving; facing = nextFacing;
+  moving = nextMoving; facing = state.species === 'parrot' ? nextFacing : facing;
   const position = rounded({ x: motion.x, y: motion.y });
   petWindow.setPosition(position.x, position.y);
+  // Count accepted native DIP travel, never the floating integrator's proposal.
+  const accepted = petWindow.getBounds();
+  distanceDip += state.species === 'parrot'
+    ? Math.hypot(accepted.x - bounds.x, accepted.y - bounds.y) : Math.abs(accepted.x - bounds.x);
+  emitMotion();
   if (motion.arrived) { target = null; wanderAt = now + 4500 + Math.random() * 6500; }
   if (changed) publish();
 }
@@ -176,7 +216,7 @@ function updateTray() {
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: '打开领养面板', click: showPanel },
     { label: hidden ? '叫宠物出来' : '让宠物暂时隐藏', enabled: state.adopted, click: () => { hidden = !hidden; if (hidden) petWindow?.hide(); else { createPet(); petWindow?.showInactive(); } resetMotion(); updateTray(); publish(); } },
-    { label: state.settings.paused ? '继续活动' : '暂停活动', enabled: state.adopted, click: () => { state = transition(state, {type:'settings',patch:{paused:!state.settings.paused}}); resetMotion(); publish(); scheduleSave(); updateTray(); } },
+    { label: state.settings.paused ? '继续活动' : '暂停活动', enabled: state.adopted, click: () => { state = transition(state, {type:'settings',patch:{paused:!state.settings.paused}}); if (turnRemainingMs) lastMovementAt = Date.now(); else resetMotion(); publish(); scheduleSave(); updateTray(); } },
     { type: 'separator' },
     { label: '退出 PawPal', click: () => app.quit() },
   ]));
@@ -204,14 +244,23 @@ function registerIPC() {
     return callback(event, ...args);
   });
   handle('companion:state', () => snapshot());
+  handle('companion:reduced-motion', (_event, value) => {
+    if (typeof value !== 'boolean') throw new Error('操作参数无效');
+    if (reducedMotion !== value) {
+      reducedMotion = value; if (turnRemainingMs) lastMovementAt = Date.now(); else { resetMotion(); wanderAt = 0; } publish();
+    }
+    return true;
+  });
   handle('companion:dispatch', (_event, command) => {
     if (!isValidCommand(command)) throw new Error('操作参数无效');
     const previous = state;
     state = transition(state, command, Date.now());
     if (command.type === 'adopt') { hidden = false; createPet(); petWindow?.showInactive(); }
     configurePet(previous);
+    if (previous.settings.paused !== state.settings.paused && turnRemainingMs) lastMovementAt = Date.now();
     if (command.type === 'interact' && state.lastInteraction !== previous.lastInteraction) {
-      resetMotion();
+      if (turnRemainingMs) { lastMovementAt = Date.now(); moving = false; emitMotion(); }
+      else resetMotion();
       wanderAt = state.action.type === 'play' ? 0 : state.action.until;
     }
     publish(); scheduleSave(); updateTray();
