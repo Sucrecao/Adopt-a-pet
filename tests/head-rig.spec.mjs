@@ -23,6 +23,8 @@ test('preview dog uses the production registered head and preserves the old pair
   await page.getByRole('button',{name:/选择小狗/}).click();await page.getByRole('button',{name:/在预览中领养/}).click();
   const canvas=page.locator('.stage-pet canvas');
   await expect(canvas).toHaveAttribute('data-head-rig','registered-v2');
+  await page.route('**/pets/dog-cohesive-v3.png',route=>route.abort());
+  await page.reload();await expect(canvas).toHaveAttribute('data-body-rig','side-profile');
   await page.route('**/pets/dog-head-rig-v2.png',route=>route.abort());
   await page.reload();await expect(canvas).toHaveAttribute('data-head-rig','legacy-parts');
 });

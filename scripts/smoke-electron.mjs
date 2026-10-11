@@ -17,6 +17,9 @@ try {
   const panel = await app.firstWindow();
   await panel.waitForFunction(() => Boolean(window.companion));
   assert.equal(await panel.evaluate(() => window.companion.isDesktop), true);
+  // Keep fixture placement and click-through independent of the user's real
+  // pointer. Native position writes and every timing assertion stay active.
+  await app.evaluate(({ screen }) => { screen.getCursorScreenPoint = () => ({ x: -500, y: 0 }); });
   await app.context().addInitScript(() => {
     const read = CanvasRenderingContext2D.prototype.getImageData;
     window.pawpalSourceReads = []; window.pawpalStartupRaf = []; window.pawpalStartupTiming = true;
@@ -44,6 +47,8 @@ try {
     `packaged ${fixtureSpecies} uses the complete connected leg artwork`);
   assert.equal(await overlay.evaluate(() => document.querySelector('.pet-sprite canvas')?.dataset.headRig), 'registered-v2',
     `packaged ${fixtureSpecies} uses the registered head artwork`);
+  if (fixtureSpecies === 'dog') assert.equal(await overlay.evaluate(() => document.querySelector('.pet-sprite canvas')?.dataset.bodyRig), 'matched-views-v3',
+    'packaged dog uses matching front, quarter and side torso artwork');
   const transparent = await app.evaluate(async ({ BrowserWindow }) => {
     const window = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet'));
     if (!window?.isVisible()) return false;
@@ -52,6 +57,13 @@ try {
     return pixels.length > 0 && pixels[3] === 0;
   });
   assert.equal(transparent, true, 'pet is in its own visible transparent window');
+  await overlay.evaluate(() => {
+    window.pawpalPointerEvents = [];
+    for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel']) document.addEventListener(type, event => {
+      window.pawpalPointerEvents.push({ now: Date.now(), type, trusted: event.isTrusted, buttons: event.buttons, x: event.screenX, y: event.screenY });
+      if (window.pawpalPointerEvents.length > 50) window.pawpalPointerEvents.shift();
+    }, true);
+  });
   const petBounds = () => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet')).getBounds());
   const careTiming = [];
   for (const action of ['pet', 'feed', 'stretch', 'trick']) {
@@ -85,16 +97,20 @@ try {
         if (now - started < 700) requestAnimationFrame(sample); else resolve({ frames: [...frames], callbacks, pixels });
       }
       requestAnimationFrame(sample);
-    })), app.evaluate(async ({ BrowserWindow }, until) => {
+    })), app.evaluate(async ({ BrowserWindow, screen }, until) => {
       const pet = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet'));
       const samples = [];
       const end = Math.min(until - 50, Date.now() + 650);
       while (Date.now() < end) {
-        samples.push({ now: Date.now(), bounds: pet.getBounds() });
+        samples.push({ now: Date.now(), bounds: pet.getBounds(), cursor: screen.getCursorScreenPoint() });
         await new Promise(resolve => setTimeout(resolve, 20));
       }
       return samples;
     }, dispatched.action.until)]);
+    await writeFile(artifactPath(`natural-head-native-${action}-stationary-trace.json`), JSON.stringify({
+      before, dispatched, stationary,
+      after: await overlay.evaluate(async () => ({ state: await window.companion.getState(), pointers: window.pawpalPointerEvents, playback: { ...document.querySelector('.pet-sprite').dataset } })),
+    }, null, 2));
     assert.ok(stationary.length >= 15, `${action} has substantial native samples within action lifetime`);
     assert.ok(stationary.every(sample => sample.now < dispatched.action.until), `${action} native samples stay inside explicit action lifetime`);
     for (const sample of stationary) assert.deepEqual(sample.bounds, before, `${action} keeps native window stationary during its active lifetime`);
@@ -272,7 +288,7 @@ try {
     }
     console.log(`Grounded reversal gait: ${planted.length} contact pairs, ${reversalSupports} continuing reversal supports; max world drift ${Math.max(...planted.map(item => item.dx)).toFixed(2)} DIP.`);
     const startup = await overlay.evaluate(() => { window.pawpalStartupTiming = false; return { reads: window.pawpalSourceReads, frames: window.pawpalStartupRaf }; });
-    const headParts = JSON.parse(await readFile(`public/pets/${fixtureSpecies}-head-rig-v2.json`, 'utf8')).parts;
+    const headParts = JSON.parse(await readFile(`public/pets/${fixtureSpecies}-head-rig-${fixtureSpecies === 'dog' ? 'v3' : 'v2'}.json`, 'utf8')).parts;
     const coldViews = headParts.slice(1).map((part,index) => {
       const reads = startup.reads.filter(read => read.width === part[2] && read.height === part[3]);
       assert.equal(reads.length, 1, `head view ${index+1} scans its source exactly once`);

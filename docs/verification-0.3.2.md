@@ -2,6 +2,8 @@
 
 Verified on Apple Silicon macOS, 2026-10-11.
 
+Later on the same day the user rejected the composed cat's proportions again. The numerical checks below established contacts and renderer stability, but the visual PASS did not catch the remaining broad, deeply hooked hind skin or the stretched head aspect ratio. Version 0.3.3 addresses these with new measured limb artwork, cat-specific anatomy and complete real-controller pose evidence; see `verification-0.3.3.md`.
+
 This correction replaces the cat's pendant torso chest and mismatched head/limbs with one generated silver-kitten atlas. The nine source components share fur and lighting: torso, five facial views, complete fore/hind legs and tail. The PNG is copied intact; source measurements, registration and runtime deformation establish the connections. Cat loading selects the PNG and both metadata files as one group, restoring the original head/leg combination if any member fails.
 
 ## Source and visual checks

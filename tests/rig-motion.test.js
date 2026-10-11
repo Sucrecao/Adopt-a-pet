@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { footTrajectory, solveLeg, createRigController } from '../src/core/rig-motion.js';
+import { footTrajectory, solveLeg, createRigController, DOG_GEOMETRY } from '../src/core/rig-motion.js';
 const props = (distanceDip=0, spriteSizeDip=256, extra={}) => ({locomotion:{epoch:1,distanceDip,spriteSizeDip,facing:1,moving:true,...extra}});
 const near = (a,b) => assert.ok(Math.abs(a-b)<1e-7, `${a} != ${b}`);
 test('distance owns phase across timing and sprite scales', () => {
@@ -99,8 +99,8 @@ test('final arrival delta completes stride but subsequent idle telemetry is reba
  const c=createRigController({species:'dog'});c.sample(props(),0);near(c.sample(props(60),100).phase,60/64);near(c.sample(props(64,256,{moving:false}),120).phase,1);near(c.sample(props(500,256,{moving:false}),140).phase,1);
 });
 test('hind geometry attaches inside torso and stretch uses full action duration',()=>{
- assert.equal(createRigController({species:'cat'}).sample(props(),0).geometry.hindHip.y,147);
- const c=createRigController({species:'cat'});const p={...props(0,256,{moving:false}),action:'stretch',actionStartedAt:1};c.sample(p,0);near(c.sample(p,1300).bodyAngle,.18);assert.ok(c.sample(p,2000).bodyAngle>0);near(c.sample(p,2600).bodyAngle,0);
+ assert.equal(createRigController({species:'cat'}).sample(props(),0).geometry.hindHip.y,151);
+ const c=createRigController({species:'cat'});const p={...props(0,256,{moving:false}),action:'stretch',actionStartedAt:1};c.sample(p,0);near(c.sample(p,1300).bodyAngle,.16);assert.ok(c.sample(p,2000).bodyAngle>0);near(c.sample(p,2600).bodyAngle,0);
 });
 test('all gait phases remain reachable through full bow envelope',()=>{
  for(let d=0;d<=64;d+=2)for(let t=0;t<=2600;t+=100){
@@ -163,7 +163,7 @@ test('trick during early mid and late turn carries every paw through flight and 
  const pose=c.sample({...loc,action:'trick',actionStartedAt:1},startTime+elapsed);
  near(pose.orientation,base.orientation);
  for(let i=0;i<4;i++){
- const leg=pose.legs[i];if(pose.airborne){assert.equal(leg.planted,false);near(leg.foot.y-pose.bodyY,base.legs[i].foot.y);}
+ const leg=pose.legs[i];if(pose.airborne){assert.equal(leg.planted,false);near(leg.foot.y-pose.bodyY,226);}
  assert.ok(Math.hypot(leg.ankle.x-leg.hip.x,leg.ankle.y-leg.hip.y)<=leg.upperLength+leg.lowerLength+1e-6,`reach turn${turnTime} t${elapsed} ${i}`);
  if(previous)assert.ok(Math.hypot(leg.foot.x-previous.legs[i].foot.x,leg.foot.y-previous.legs[i].foot.y)<4,`jump turn${turnTime} t${elapsed} ${i}`);
  }previous=pose;
@@ -203,8 +203,8 @@ test('fore wrist and hind hock connect anatomical proximal chains to fixed soles
  assert.ok(leg.ankle, `${leg.kind} requires a wrist or hock`);
  near(leg.orientation,facing);
  const hind=leg.kind==='hind';
- near(leg.ankle.y,leg.foot.y-(hind?21:9));
- near(leg.ankle.x,leg.foot.x-(hind?8:2)*facing);
+ near(leg.ankle.y,leg.foot.y-(hind?15:9));
+ near(leg.ankle.x,leg.foot.x-(hind?6:2)*facing);
  near(Math.hypot(leg.hip.x-leg.knee.x,leg.hip.y-leg.knee.y),leg.upperLength);
  near(Math.hypot(leg.ankle.x-leg.knee.x,leg.ankle.y-leg.knee.y),leg.lowerLength);
  near(Math.hypot(leg.foot.x-leg.ankle.x,leg.foot.y-leg.ankle.y),leg.pawLength);
@@ -219,8 +219,8 @@ test('wrists hocks and knees reverse continuously while soles keep support ident
  const pose=c.sample(props(speed*t,256,{facing:t<400?1:-1,moving:speed>0}),t);
  for(let i=0;i<4;i++){
  const leg=pose.legs[i],hind=leg.kind==='hind';
- near(leg.foot.x-leg.ankle.x,(hind?8:2)*leg.orientation);
- near(leg.foot.y-leg.ankle.y,hind?21:9);
+ near(leg.foot.x-leg.ankle.x,(hind?6:2)*leg.orientation);
+ near(leg.foot.y-leg.ankle.y,hind?15:9);
  near(Math.hypot(leg.foot.x-leg.ankle.x,leg.foot.y-leg.ankle.y),leg.pawLength);
  assert.ok(Math.hypot(leg.ankle.x-leg.hip.x,leg.ankle.y-leg.hip.y)<=leg.upperLength+leg.lowerLength);
  if(previous){
@@ -246,13 +246,13 @@ test('all actions retain fixed short paw segments and reachable wrist hock endpo
  }
  }
 });
-test('groom after a stationary turn keeps the fully reversed wrist within minimum reach',()=>{
+test('groom during a stationary turn keeps the torso-aligned wrist within minimum reach',()=>{
  const c=createRigController({species:'dog',random:()=>0});
  const base=props(0,256,{moving:false});c.sample(base,0);
  const reversed=props(0,256,{facing:-1,moving:false});
  for(let t=8;t<=592;t+=8)c.sample(reversed,t);
  let pose;for(let elapsed=0;elapsed<=192;elapsed+=8)pose=c.sample({...reversed,action:'groom',actionStartedAt:1},592+elapsed);
- const leg=pose.legs[1];near(leg.orientation,-1);
+ const leg=pose.legs[1];near(leg.orientation,pose.orientation);
  const distance=Math.hypot(leg.ankle.x-leg.hip.x,leg.ankle.y-leg.hip.y);
  assert.ok(distance>=Math.abs(leg.upperLength-leg.lowerLength), `minimum wrist reach ${distance}`);
  near(Math.hypot(leg.knee.x-leg.ankle.x,leg.knee.y-leg.ankle.y),leg.lowerLength);
@@ -284,8 +284,8 @@ test('raised grooming folds project the elbow near the wrist shoulder midpoint',
  let pose;for(let elapsed=0;elapsed<=600;elapsed+=8)pose=c.sample({...loc,action:'groom',actionStartedAt:1},turnTime+elapsed);
  const l=pose.legs[1],mid={x:(l.hip.x+l.ankle.x)/2,y:(l.hip.y+l.ankle.y)/2};
  assert.ok(Math.hypot(l.knee.x-mid.x,l.knee.y-mid.y)<=4.01, 'raised elbow should fold within its projected skin');
- assert.ok(l.perspectiveFactor<1);near(l.skinLength,89);
- near(l.upperLength,44.5*l.perspectiveFactor);near(l.lowerLength,44.5*l.perspectiveFactor);
+ assert.ok(l.perspectiveFactor<1);near(l.skinLength,DOG_GEOMETRY.foreLengths.reduce((a,b)=>a+b));
+ near(l.upperLength,DOG_GEOMETRY.foreLengths[0]*l.perspectiveFactor);near(l.lowerLength,DOG_GEOMETRY.foreLengths[1]*l.perspectiveFactor);
  }
 });
 test('groom projection enters and exits continuously in both ordinary and frozen turns',()=>{

@@ -61,7 +61,7 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
     const rigController = createRigController({ species: pet.id });
     const abort = new AbortController();
     let cancelled = false, request = null, renderer = null, images = null, motionLoaded = false, drawn = false, articulated = false;
-    let actionToken, actionElapsed = 0;
+    let actionToken, actionElapsed = 0, previousRigPose;
 
     function paint(now) {
       if (cancelled) return;
@@ -70,12 +70,17 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
         actionToken = props.actionStartedAt;
         actionElapsed = actionToken ? Math.max(0, Date.now() - actionToken) : 0;
       }
-      let sample = controller.sample({ ...props, actionElapsed }, now);
+      const locomotion = articulated ? props.locomotionRef?.current || { epoch: 0, distanceDip: 0, spriteSizeDip: element.clientWidth, facing: props.facing, moving: props.walking } : null;
+      // Ambient care must not outlast the movement controller's turn hold.
+      // The walking scheduler cancels it; explicit care still pauses the rig.
+      const dogTurn = Boolean(articulated && pet.id === 'dog' && props.action === 'idle' && previousRigPose
+        && (previousRigPose.turning || locomotion.facing !== previousRigPose.facing));
+      let sample = controller.sample({ ...props, walking: props.walking || dogTurn, actionElapsed }, now);
       if (articulated) {
-        const locomotion = props.locomotionRef?.current || { epoch: 0, distanceDip: 0, spriteSizeDip: element.clientWidth, facing: props.facing, moving: props.walking };
-        const automatic = props.action === 'idle' && !locomotion.moving;
+        const automatic = props.action === 'idle' && !locomotion.moving && !dogTurn;
         const action = automatic && ['groom', 'stretch', 'hop'].includes(sample.clip) ? sample.clip === 'hop' ? 'trick' : sample.clip : props.action;
         sample = rigController.sample({ ...props, action, actionElapsed: automatic ? sample.elapsed : actionElapsed, actionStartedAt: automatic ? sample.sequence : props.actionStartedAt, locomotion }, now);
+        previousRigPose = sample;
       }
       const stopped = props.paused || props.reducedMotion || !props.ambient;
       if (renderer) {
@@ -159,19 +164,48 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
       decodeImage(pet.id === 'cat' ? 'pets/cat-cohesive-v2.png' : null, abort.signal),
       pet.id === 'cat' ? fetch(`${import.meta.env.BASE_URL}pets/cat-head-rig-v2.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null) : Promise.resolve(null),
       pet.id === 'cat' ? fetch(`${import.meta.env.BASE_URL}pets/cat-limb-rig-v2.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null) : Promise.resolve(null),
-    ]).then(async ([motion, legacy, rig, meta, perch, head, headMeta, limb, limbMeta, dogHead, dogHeadMeta, catImage, catHeadMeta, catLimbMeta]) => {
+      decodeImage(pet.id === 'cat' ? 'pets/cat-limbs-v3.png' : null, abort.signal),
+      pet.id === 'cat' ? fetch(`${import.meta.env.BASE_URL}pets/cat-head-rig-v3.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null) : Promise.resolve(null),
+      pet.id === 'cat' ? fetch(`${import.meta.env.BASE_URL}pets/cat-limb-rig-v3.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null) : Promise.resolve(null),
+      decodeImage(pet.id === 'dog' ? 'pets/dog-cohesive-v3.png' : null, abort.signal),
+      pet.id === 'dog' ? fetch(`${import.meta.env.BASE_URL}pets/dog-head-rig-v3.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null) : Promise.resolve(null),
+      pet.id === 'dog' ? fetch(`${import.meta.env.BASE_URL}pets/dog-limb-rig-v3.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null) : Promise.resolve(null),
+    ]).then(async ([motion, legacy, rig, meta, perch, head, headMeta, limb, limbMeta, dogHead, dogHeadMeta, catImage, catHeadMeta, catLimbMeta, catLegs, catHeadV3, catLimbsV3, dogImageV3, dogHeadV3, dogLimbsV3]) => {
       if (cancelled) return;
       motionLoaded = motion.status === 'fulfilled';
       if (legacy.status === 'fulfilled' && (motionLoaded || rig.status === 'fulfilled')) {
         images = { motionImage: motionLoaded ? motion.value : undefined, legacyImage: legacy.value };
         refresh();
         const registeredDogHead = dogHead.status === 'fulfilled' && dogHead.value && dogHeadMeta.status === 'fulfilled' && dogHeadMeta.value?.version === 2 && dogHeadMeta.value?.parts?.length === 6 && dogHeadMeta.value?.registration;
+        const dogSourceRect = rect => Array.isArray(rect) && rect.length === 4 && rect.every(Number.isFinite)
+          && rect[0] >= 0 && rect[1] >= 0 && rect[2] > 0 && rect[3] > 0
+          && rect[0] + rect[2] <= dogImageV3.value?.width && rect[1] + rect[3] <= dogImageV3.value?.height;
+        const dogSourcePoint = point => Array.isArray(point) && point.length === 2 && point.every(value => Number.isFinite(value) && value >= 0 && value <= 1);
+        const dogDimensions = view => view && [view.width, view.height].every(value => Number.isFinite(value) && value > 0);
+        const coherentDog = dogImageV3.status === 'fulfilled' && dogImageV3.value && dogHeadV3.status === 'fulfilled' && dogLimbsV3.status === 'fulfilled'
+          && dogHeadV3.value?.version === 2 && dogHeadV3.value?.revision === 3 && dogHeadV3.value?.parts?.length === 6
+          && dogHeadV3.value.parts.every(dogSourceRect)
+          && dogHeadV3.value?.registration?.anchors?.length === 6 && dogHeadV3.value?.registration?.bodyViews?.length === 3
+          && dogHeadV3.value.registration.anchors.every(dogSourcePoint)
+          && dogHeadV3.value.registration.headViews?.length === 6 && dogHeadV3.value.registration.headViews.slice(1).every(dogDimensions)
+          && dogHeadV3.value.registration.bodyViews.every(view => view && dogSourceRect(view.rect) && dogDimensions(view) && [view.x, view.y, view.neck?.x, view.neck?.y].every(Number.isFinite))
+          && dogSourceRect(dogHeadV3.value.registration.tail?.rect) && dogDimensions(dogHeadV3.value.registration.tail)
+          && dogSourcePoint([dogHeadV3.value.registration.tail.anchorX, dogHeadV3.value.registration.tail.anchorY])
+          && dogHeadV3.value.registration.features?.length === 6 && dogHeadV3.value.registration.features.slice(1).every(mark => mark?.eyes?.length === 2 && mark.eyes.every(dogSourcePoint) && dogSourcePoint(mark.nose) && dogSourcePoint(mark.mouth))
+          && dogLimbsV3.value?.version === 2 && dogLimbsV3.value?.revision === 3
+          && ['fore', 'hind'].every(kind => { const part = dogLimbsV3.value.parts?.[dogLimbsV3.value.species?.dog?.[kind]]; return dogSourceRect(part?.rect) && part.joints?.length === 4 && part.joints.every(dogSourcePoint) && part.joints.every((point, i) => !i || point[1] > part.joints[i - 1][1]); })
+          && [dogHeadV3.value, dogLimbsV3.value].every(value => value.sourceSize?.[0] === dogImageV3.value.width && value.sourceSize?.[1] === dogImageV3.value.height);
         const coherentCat = catImage.status === 'fulfilled' && catImage.value && catHeadMeta.status === 'fulfilled' && catLimbMeta.status === 'fulfilled'
           && catHeadMeta.value?.version === 2 && catHeadMeta.value?.parts?.length === 6 && catHeadMeta.value?.registration?.anchors?.length === 6 && catHeadMeta.value?.registration?.tail?.rect?.length === 4
           && catLimbMeta.value?.version === 2 && ['fore', 'hind'].every(kind => { const part = catLimbMeta.value.parts?.[catLimbMeta.value.species?.cat?.[kind]]; return part?.rect?.length === 4 && part.joints?.length === 4 && part.joints.every((point, i) => !i || point[1] > part.joints[i - 1][1]); })
           && [catHeadMeta.value, catLimbMeta.value].every(value => value.sourceSize?.[0] === catImage.value.width && value.sourceSize?.[1] === catImage.value.height);
+        const naturalCat = coherentCat && catLegs.status === 'fulfilled' && catHeadV3.status === 'fulfilled' && catLimbsV3.status === 'fulfilled'
+          && catHeadV3.value?.version === 2 && catHeadV3.value?.revision === 3 && catHeadV3.value?.parts?.length === 6 && catHeadV3.value?.registration?.anchors?.length === 6 && catHeadV3.value?.registration?.tail?.rect?.length === 4
+          && catHeadV3.value.sourceSize?.[0] === catImage.value.width && catHeadV3.value.sourceSize?.[1] === catImage.value.height
+          && catLimbsV3.value?.version === 2 && ['fore', 'hind'].every(kind => { const part = catLimbsV3.value.parts?.[catLimbsV3.value.species?.cat?.[kind]]; return part?.rect?.length === 4 && part.joints?.length === 4 && part.joints.every((point, i) => !i || point[1] > part.joints[i - 1][1]); })
+          && catLimbsV3.value.sourceSize?.[0] === catLegs.value.width && catLimbsV3.value.sourceSize?.[1] === catLegs.value.height;
         const extra = rig.status === 'fulfilled' && meta.status === 'fulfilled' && meta.value
-          ? { rigImage: rig.value, rigMeta: meta.value, limbImage: coherentCat ? catImage.value : limb.status === 'fulfilled' ? limb.value : undefined, limbMeta: coherentCat ? catLimbMeta.value : limbMeta.status === 'fulfilled' ? limbMeta.value : undefined, headImage: coherentCat ? catImage.value : registeredDogHead ? dogHead.value : head.status === 'fulfilled' ? head.value : undefined, headMeta: coherentCat ? catHeadMeta.value : registeredDogHead ? dogHeadMeta.value : headMeta.status === 'fulfilled' ? headMeta.value : undefined, perchImage: perch.status === 'fulfilled' ? perch.value : undefined } : await loadFlow(pet.id, abort.signal);
+          ? { rigImage: rig.value, rigMeta: meta.value, limbImage: coherentDog ? dogImageV3.value : naturalCat ? catLegs.value : coherentCat ? catImage.value : limb.status === 'fulfilled' ? limb.value : undefined, limbMeta: coherentDog ? dogLimbsV3.value : naturalCat ? catLimbsV3.value : coherentCat ? catLimbMeta.value : limbMeta.status === 'fulfilled' ? limbMeta.value : undefined, headImage: coherentDog ? dogImageV3.value : coherentCat ? catImage.value : registeredDogHead ? dogHead.value : head.status === 'fulfilled' ? head.value : undefined, headMeta: coherentDog ? dogHeadV3.value : naturalCat ? catHeadV3.value : coherentCat ? catHeadMeta.value : registeredDogHead ? dogHeadMeta.value : headMeta.status === 'fulfilled' ? headMeta.value : undefined, perchImage: perch.status === 'fulfilled' ? perch.value : undefined } : await loadFlow(pet.id, abort.signal);
         if (!cancelled) { images = { ...images, ...extra }; createRenderer(); }
       } else refresh();
     });

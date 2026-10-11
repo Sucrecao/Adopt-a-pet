@@ -1,4 +1,6 @@
 import { createLimbSkin } from './limb-skin.js';
+import { createBodyViews } from './body-views.js';
+import { createHeadViews } from './head-views.js';
 
 /** Matching bitmap parts are attached to solved joints; support paws stay flat. */
 export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyImage, perchImage, headImage, headMeta, limbImage, limbMeta }) {
@@ -66,15 +68,37 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
       {index,x,y,width,height,options:{...options,mirror:-1},alpha:blend}]);
   }
   const articulatedHead = headImage && headMeta?.parts?.length === 6;
+  const catAttachments = species === 'cat' && headMeta?.revision === 3 && !!limbSkin;
   const headRegistration = articulatedHead && ['dog', 'cat'].includes(species) && headMeta?.version === 2 ? headMeta.registration : null;
-  const registeredTail = species === 'cat' ? headRegistration?.tail : null;
+  const dogViews = species === 'dog' && headMeta?.revision === 3 && headRegistration?.bodyViews?.length === 3 ? headRegistration.bodyViews : null;
+  const dogBody = dogViews ? createBodyViews(canvas.ownerDocument,headImage,dogViews) : null;
+  const dogHead = dogViews && headRegistration.features?.length===6 && headRegistration.features.slice(1).every(mark=>mark?.eyes?.length===2)
+    ? createHeadViews(canvas.ownerDocument,headImage,headMeta) : null;
+  const nearAttachments = catAttachments || !!dogViews && !!limbSkin;
+  const registeredTail = species === 'cat' || dogViews ? headRegistration?.tail : null;
   const tailMeta = registeredTail ? {parts:[registeredTail.rect]} : null;
   canvas.dataset.headRig = headRegistration ? 'registered-v2' : 'legacy-parts';
+  canvas.dataset.bodyRig = dogViews ? 'matched-views-v3' : 'side-profile';
+  function dogViewLayout(orientation) {
+    const profile = Math.min(2, Math.abs(orientation) * 2), lower = Math.floor(profile), mix = profile - lower;
+    const first = dogViews[lower], second = dogViews[Math.min(2, lower + 1)], mirror = orientation < 0 ? -1 : 1;
+    const value = (key, fallback) => (first[key] ?? fallback) * (1 - mix) + (second[key] ?? fallback) * mix;
+    const neck = {
+      x: (first.neck?.x ?? 128 + lower * 26) * (1 - mix) + (second.neck?.x ?? 128 + Math.min(2, lower + 1) * 26) * mix,
+      y: (first.neck?.y ?? 119) * (1 - mix) + (second.neck?.y ?? 119) * mix,
+    };
+    return {lower,mix,mirror,x:128 + (value('x',128) - 128) * mirror,y:value('y',82),width:value('width',180),height:value('height',104),
+      neck:{x:128 + (neck.x - 128) * mirror,y:neck.y}};
+  }
+  function matchedDogBody(orientation) {
+    dogBody.draw(context,dogViewLayout(orientation));
+  }
   const headProfiles = new Map(), headGrids = new Map();
   const headProfileCanvas = canvas.ownerDocument.createElement('canvas');
   headProfileCanvas.width = headProfileCanvas.height = 256;
   const headProfileContext = headProfileCanvas.getContext('2d');
   function registeredHead(entries) {
+    if(dogHead){dogHead.draw(context,entries);return;}
     const views = entries.filter(entry => entry.alpha > 0);
     if (!views.length || views.some(view => !headRegistration.features?.[view.index])) { blendedParts(entries); return; }
     const rows = views.map(view => {
@@ -179,7 +203,8 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
     const expression = pose.clip === 'pet' ? 4 : pose.clip === 'feed' ? 5 : null;
     const expressionWeight = expression === null ? 0 : pose.expressionWeight * (headRegistration ? Math.abs(orientation) : 1);
     const entries=[];
-    const draw = (index, alpha) => entries.push({index,x,y,width,height,alpha,options:{image:headImage,meta:headMeta,
+    const draw = (index, alpha) => entries.push({index,x,y,width:dogViews ? headRegistration.headViews?.[index]?.width ?? width : width,
+      height:dogViews ? headRegistration.headViews?.[index]?.height ?? height : height,alpha,options:{image:headImage,meta:headMeta,
       anchorX:headRegistration?.anchors?.[index]?.[0] ?? .5,anchorY:headRegistration?.anchors?.[index]?.[1] ?? .8,
       angle:pose.headAngle*(headRegistration ? orientation : orientation<0?-1:1),mirror:index===3?1:orientation<0?-1:1}});
     draw(indices[lower], (1 - mix) * (1 - expressionWeight));
@@ -188,12 +213,17 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
     if (headRegistration) registeredHead(entries); else blendedParts(entries);
   }
   function quadruped(pose) {
-    context.save(); context.globalAlpha = .88;
+    context.save(); context.globalAlpha = species === 'cat' && headMeta?.revision === 3 ? .96 : .88;
     pose.legs.filter(limb => limb.side === 'far').forEach(leg);
     context.restore();
     bodyTransform(pose.body, () => {
       if (registeredTail) {
-        orientedPart(0, 128 + registeredTail.offsetX * pose.orientation, registeredTail.y, registeredTail.width, registeredTail.height,
+        if (dogViews) {
+          context.save(); context.globalAlpha *= Math.abs(pose.orientation);
+          part(0,128 + registeredTail.offsetX * pose.orientation,registeredTail.y,registeredTail.width,registeredTail.height,
+            {anchorX:registeredTail.anchorX,anchorY:registeredTail.anchorY,angle:pose.tailAngle,image:headImage,meta:tailMeta,mirror:pose.orientation<0?-1:1});
+          context.restore();
+        } else orientedPart(0, 128 + registeredTail.offsetX * pose.orientation, registeredTail.y, registeredTail.width, registeredTail.height,
           { anchorX: registeredTail.anchorX, anchorY: registeredTail.anchorY, angle: pose.tailAngle, image: headImage, meta: tailMeta }, -pose.orientation);
       } else orientedPart(5, 128 - 62 * pose.orientation, 133, 48, 54,
         { anchorX: .15, anchorY: .86, angle: pose.tailAngle }, -pose.orientation);
@@ -204,15 +234,25 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
       if (articulatedHead) {
         const body = headRegistration?.body ?? {x:128,y:76,width:180,height:104};
         const face = headRegistration?.head ?? {offsetX:52,y:131,width:91,height:104};
-        orientedPart(0, body.x + (body.offsetX ?? 0) * pose.orientation, body.y, body.width, body.height,
+        if (dogViews) matchedDogBody(pose.orientation);
+        else orientedPart(0, body.x + (body.offsetX ?? 0) * pose.orientation, body.y, body.width, body.height,
           {anchorX:.5,image:headImage,meta:headMeta}, pose.orientation);
-        head(pose, 128 + face.offsetX * pose.orientation, face.y, face.width, face.height);
+        const neck=dogViews ? dogViewLayout(pose.orientation).neck : {x:128 + face.offsetX * pose.orientation,y:face.y};
+        if (!nearAttachments) head(pose, neck.x, neck.y, face.width, face.height);
       } else {
         // A complete matching body is the fallback when supplemental parts fail.
         orientedPart(0, 128, 50, 180, 125, {anchorX:.5}, pose.orientation);
       }
     });
     near.forEach(limb => leg(limb, 'lower'));
+    if (nearAttachments) {
+      near.forEach(limb => limbSkin.draw(context,limb,{attachment:true}));
+      bodyTransform(pose.body, () => {
+        const face=headRegistration.head;
+        const neck=dogViews ? dogViewLayout(pose.orientation).neck : {x:128+face.offsetX*pose.orientation,y:face.y};
+        head(pose,neck.x,neck.y,face.width,face.height);
+      });
+    }
     if (limbSkin && pose.clip === 'groom') {
       const elapsed = pose.elapsed || 0;
       const smooth = value => { const x = Math.max(0, Math.min(1, value)); return x * x * (3 - 2 * x); };

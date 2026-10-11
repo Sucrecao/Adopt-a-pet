@@ -39,8 +39,19 @@ export function createLimbSkin(document, image, meta, species) {
     gradient.addColorStop(0,'rgba(0,0,0,0)');gradient.addColorStop(part.joints[1][1],'rgba(0,0,0,0)');
     gradient.addColorStop(part.joints[2][1],'rgba(0,0,0,1)');gradient.addColorStop(1,'rgba(0,0,0,1)');
     foregroundContext.globalCompositeOperation='destination-in';foregroundContext.fillStyle=gradient;foregroundContext.fillRect(0,0,width,height);
-    const widthScale = species === 'cat' && Number.isFinite(part.widthScale) && part.widthScale > 0 ? part.widthScale : 1;
-    textures.set(kind, { source, foreground, part, hull, widthScale });
+    // The proximal skin belongs over the torso, but its concealed root must
+    // blend into body fur instead of exposing the atlas's detached top cap.
+    const attachment = species === 'cat' || species === 'dog' && meta.revision === 3 ? document.createElement('canvas') : null;
+    if (attachment) {
+      attachment.width=width;attachment.height=height;
+      const ink=attachment.getContext('2d');ink.drawImage(source,0,0);
+      const fade=ink.createLinearGradient(0,0,0,height);
+      fade.addColorStop(0,'rgba(0,0,0,0)');fade.addColorStop(part.joints[0][1],'rgba(0,0,0,0)');
+      fade.addColorStop(part.joints[1][1],'rgba(0,0,0,1)');fade.addColorStop(1,'rgba(0,0,0,1)');
+      ink.globalCompositeOperation='destination-in';ink.fillStyle=fade;ink.fillRect(0,0,width,height);
+    }
+    const widthScale = (species === 'cat' || species === 'dog' && meta.revision === 3) && Number.isFinite(part.widthScale) && part.widthScale > 0 ? part.widthScale : 1;
+    textures.set(kind, { source, foreground, attachment, part, hull, widthScale });
   }
   const profileCanvas=document.createElement('canvas');profileCanvas.width=profileCanvas.height=256;
   const profileContext=profileCanvas.getContext('2d');
@@ -67,11 +78,11 @@ export function createLimbSkin(document, image, meta, species) {
     context.closePath();context.clip();context.transform(a,b,c,d,d0.x-a*s0.x-c*s0.y,d0.y-b*s0.x-d*s0.y);context.drawImage(texture,0,0);context.restore();
   }
   return {
-    draw(context, limb, { foreground = false } = {}) {
+    draw(context, limb, { foreground = false, attachment = false } = {}) {
       if (!limb.ankle) return false;
       const item=textures.get(limb.kind), {source,part,hull,widthScale:partWidth}=item;
       const orientation=Math.max(-1,Math.min(1,limb.orientation??1));
-      const texture=foreground?item.foreground:source;
+      const texture=foreground?item.foreground:attachment&&item.attachment?item.attachment:source;
       const points=[limb.hip,limb.knee,limb.ankle,limb.foot], joints=part.joints;
       const proximal=Math.hypot(points[1].x-points[0].x,points[1].y-points[0].y)+Math.hypot(points[2].x-points[1].x,points[2].y-points[1].y);
       const scale=(limb.skinLength ?? proximal)/((joints[2][1]-joints[0][1])*source.height);
