@@ -13,6 +13,17 @@ try {
   const panel = await app.firstWindow();
   await panel.waitForFunction(() => Boolean(window.companion));
   assert.equal(await panel.evaluate(() => window.companion.isDesktop), true);
+  await app.context().addInitScript(() => {
+    const read = CanvasRenderingContext2D.prototype.getImageData;
+    window.pawpalSourceReads = []; window.pawpalStartupRaf = []; window.pawpalStartupTiming = true;
+    CanvasRenderingContext2D.prototype.getImageData = function(...args) {
+      const started = performance.now(), pixels = read.apply(this, args);
+      window.pawpalSourceReads.push({ started, ended: performance.now(), width: args[2], height: args[3] });
+      return pixels;
+    };
+    function frame(now) { if (window.pawpalStartupTiming) { window.pawpalStartupRaf.push(now); requestAnimationFrame(frame); } }
+    requestAnimationFrame(frame);
+  });
   const overlayPromise = app.waitForEvent('window', { predicate: page => page !== panel });
   await panel.evaluate(() => window.companion.dispatch({ type: 'adopt', species: 'dog', name: '团子' }));
   await panel.waitForFunction(async () => (await window.companion.getState()).adopted);
@@ -25,6 +36,10 @@ try {
   });
   assert.equal(await overlay.evaluate(() => document.querySelector('.pet-sprite canvas')?.dataset.renderer), 'rig-2d',
     'actual Electron companion uses the articulated rig renderer');
+  assert.equal(await overlay.evaluate(() => document.querySelector('.pet-sprite canvas')?.dataset.limbSkin), 'connected-v2',
+    'packaged dog uses the complete connected leg artwork');
+  assert.equal(await overlay.evaluate(() => document.querySelector('.pet-sprite canvas')?.dataset.headRig), 'registered-v2',
+    'packaged dog uses the short-neck head artwork and anatomical registration');
   const transparent = await app.evaluate(async ({ BrowserWindow }) => {
     const window = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet'));
     if (!window?.isVisible()) return false;
@@ -34,11 +49,19 @@ try {
   });
   assert.equal(transparent, true, 'pet is in its own visible transparent window');
   const petBounds = () => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet')).getBounds());
-  for (const action of ['stretch', 'trick']) {
+  const careTiming = [];
+  for (const action of ['pet', 'feed', 'stretch', 'trick']) {
     await new Promise(resolve => setTimeout(resolve, 900));
+    // Begin before dispatch so the first activation of each facial texture,
+    // including its one-time contour scan, is included in native timing.
+    await overlay.evaluate(() => new Promise(resolve => {
+      window.pawpalCareTimes = []; window.pawpalCareTiming = true;
+      function frame(now) { if (window.pawpalCareTiming) { window.pawpalCareTimes.push(now); if (window.pawpalCareTimes.length === 1) resolve(); requestAnimationFrame(frame); } }
+      requestAnimationFrame(frame);
+    }));
     const dispatched = await panel.evaluate(action => window.companion.dispatch({ type: 'interact', action }), action);
     assert.equal(dispatched.action.type, action, `${action} is accepted by main process`);
-    const expected = action === 'trick' ? 'hop' : 'stretch';
+    const expected = action === 'trick' ? 'hop' : action;
     await overlay.waitForFunction(clip => document.querySelector('.pet-sprite')?.dataset.clip === clip, expected);
     const before = await petBounds();
     console.log(action, before, (await panel.evaluate(() => window.companion.getState())).action);
@@ -51,7 +74,8 @@ try {
         frames.add(sprite.dataset.frame);
         // Read composed PNG pixels without treating repaint counts as gait proof.
         if (now - previousCapture >= 50) {
-          pixels.push({ now, frame: sprite.dataset.frame, clip: sprite.dataset.clip, backend: canvas.dataset.renderer, image: canvas.toDataURL('image/png') });
+          const captureStart = performance.now(), image = canvas.toDataURL('image/png'), captureEnd = performance.now();
+          pixels.push({ now, captureStart, captureEnd, frame: sprite.dataset.frame, clip: sprite.dataset.clip, backend: canvas.dataset.renderer, image });
           previousCapture = now;
         }
         if (now - started < 700) requestAnimationFrame(sample); else resolve({ frames: [...frames], callbacks, pixels });
@@ -73,8 +97,15 @@ try {
     assert.ok(playback.pixels.length >= 10, `${action} supplies rendered pixel samples`);
     assert.ok(playback.pixels.every(sample => sample.clip === expected && sample.backend === 'rig-2d'));
     assert.ok(new Set(playback.pixels.map(sample => sample.image)).size >= 5, `${action} visibly articulates`);
-
+    const times = await overlay.evaluate(() => { window.pawpalCareTiming = false; return window.pawpalCareTimes; });
+    const gaps = times.slice(1).flatMap((now, index) => playback.pixels.some(pixel => times[index] <= pixel.captureEnd && now >= pixel.captureStart) ? [] : [now - times[index]]).sort((a,b) => a-b);
+    assert.ok(gaps.length >= 10, `${action} includes native frame timing before and during first activation`);
+    const timing = { action, samples: gaps.length, p95: gaps[Math.floor((gaps.length-1)*.95)], max: gaps.at(-1) };
+    careTiming.push(timing);
+    assert.ok(timing.p95 < 35, `${action} avoids sustained stutter including its first activation: ${JSON.stringify(timing)}`);
   }
+  await writeFile('.artifacts/natural-head-native-care-timing.json', JSON.stringify(careTiming, null, 2));
+  console.log(`Cold native care timing: ${JSON.stringify(careTiming)}`);
   await new Promise(resolve => setTimeout(resolve, 900));
   await panel.evaluate(() => window.companion.dispatch({ type: 'interact', action: 'play' }));
   const snapshot = await panel.evaluate(() => window.companion.getState());
@@ -231,6 +262,18 @@ try {
       assert.ok(spread(0) < 5 && spread(1) < 2, `${key} remains at one world position for its entire planted support (${spread(0).toFixed(2)}, ${spread(1).toFixed(2)} DIP)`);
     }
     console.log(`Grounded reversal gait: ${planted.length} contact pairs, ${reversalSupports} continuing reversal supports; max world drift ${Math.max(...planted.map(item => item.dx)).toFixed(2)} DIP.`);
+    const startup = await overlay.evaluate(() => { window.pawpalStartupTiming = false; return { reads: window.pawpalSourceReads, frames: window.pawpalStartupRaf }; });
+    const headParts = JSON.parse(await readFile('public/pets/dog-head-rig-v2.json', 'utf8')).parts;
+    const coldViews = headParts.slice(1).map((part,index) => {
+      const reads = startup.reads.filter(read => read.width === part[2] && read.height === part[3]);
+      assert.equal(reads.length, 1, `head view ${index+1} scans its source exactly once`);
+      const read = reads[0], before = startup.frames.findLast(now => now <= read.started), after = startup.frames.find(now => now >= read.ended);
+      assert.ok(Number.isFinite(before) && Number.isFinite(after), `head view ${index+1} cold setup is bracketed by actual native frames`);
+      return { view: index+1, scanMs: read.ended-read.started, frameGapMs: after-before };
+    });
+    for (const view of coldViews.filter(view => view.view === 2 || view.view === 3)) assert.ok(view.frameGapMs < 50, `first turn view avoids a cold setup stall: ${JSON.stringify(view)}`);
+    await writeFile('.artifacts/natural-head-native-cold-views.json', JSON.stringify(coldViews, null, 2));
+    console.log(`First-use native head views: ${JSON.stringify(coldViews)}`);
     for (const setting of ['paused', 'reducedMotion']) {
       if (setting === 'paused') await panel.evaluate(() => window.companion.dispatch({ type: 'settings', patch: { paused: true } }));
       else await overlay.emulateMedia({ reducedMotion: 'reduce' });
@@ -244,6 +287,45 @@ try {
       if (setting === 'paused') await panel.evaluate(() => window.companion.dispatch({ type: 'settings', patch: { paused: false } }));
       else await overlay.emulateMedia({ reducedMotion: 'no-preference' });
     }
+    const mixedCareTiming = [];
+    for (const action of ['pet', 'feed']) {
+      await new Promise(resolve => setTimeout(resolve, 900));
+      const facing = await overlay.evaluate(() => Number(document.querySelector('.pet-sprite').dataset.facing));
+      await app.evaluate(({ BrowserWindow }, facing) => {
+        const bounds = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet')).getBounds();
+        globalThis.pawpalBoundarySmoke.cursor = { x: bounds.x + bounds.width / 2 + facing * 500, y: bounds.y + bounds.height / 2 };
+      }, facing);
+      await panel.evaluate(() => window.companion.dispatch({ type: 'interact', action: 'play' }));
+      // Let the interaction cooldown expire before triggering this reversal.
+      await new Promise(resolve => setTimeout(resolve, 900));
+      await app.evaluate(({ BrowserWindow }, facing) => {
+        const bounds = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet')).getBounds();
+        globalThis.pawpalBoundarySmoke.cursor = { x: bounds.x + bounds.width / 2 - facing * 500, y: bounds.y + bounds.height / 2 };
+      }, facing);
+      await overlay.waitForFunction(() => {
+        const pet = document.querySelector('.pet-sprite'), orientation = Math.abs(Number(pet.dataset.orientation));
+        return pet.dataset.turning === 'true' && orientation > .15 && orientation < .45;
+      });
+      const care = await panel.evaluate(action => window.companion.dispatch({ type: 'interact', action }), action);
+      assert.equal(care.action.type, action, `mixed-turn ${action} is accepted after the cooldown`);
+      const samples = await overlay.evaluate(() => new Promise(resolve => {
+        const samples = [], started = performance.now();
+        function sample(now) {
+          const pet = document.querySelector('.pet-sprite');
+          samples.push({ now, clip: pet.dataset.clip, orientation: Math.abs(Number(pet.dataset.orientation)), elapsed: Number(pet.dataset.elapsed) });
+          if (now - started < 700) requestAnimationFrame(sample); else resolve(samples);
+        }
+        requestAnimationFrame(sample);
+      }));
+      const mixed = samples.filter(sample => sample.clip === action && sample.elapsed >= 200 && sample.orientation > .01 && sample.orientation < .99 && Math.abs(sample.orientation - .5) > .01);
+      assert.ok(mixed.length >= 5, `${action} actually exercises two head views plus expression during a turn`);
+      const gaps = samples.slice(1).map((sample,index) => sample.now-samples[index].now).sort((a,b) => a-b);
+      const timing = { action, mixedSamples: mixed.length, p95: gaps[Math.floor((gaps.length-1)*.95)], max: gaps.at(-1) };
+      assert.ok(timing.p95 < 35, `mixed-turn ${action} avoids sustained stutter at the three-view mesh budget: ${JSON.stringify(timing)}`);
+      mixedCareTiming.push(timing);
+    }
+    await writeFile('.artifacts/natural-head-native-mixed-timing.json', JSON.stringify(mixedCareTiming, null, 2));
+    console.log(`Mixed-turn native care timing: ${JSON.stringify(mixedCareTiming)}`);
     const record = await app.evaluate(() => ({ samples: globalThis.pawpalBoundarySmoke.samples, errors: globalThis.pawpalBoundarySmoke.errors }));
     assert.deepEqual(record.errors, [], 'native travel across zero does not throw');
     assert.ok(record.samples.length > 50, 'both zero-crossing journeys run through the native movement timer');
@@ -253,14 +335,17 @@ try {
       assert.ok(record.samples.some(point => Math.sign(point[axis]) === sign), `${axis} crosses negative, zero and positive positions`);
     }
     await panel.evaluate(() => window.companion.dispatch({ type: 'adopt', species: 'parrot', name: '团子' }));
+    await panel.evaluate(() => window.companion.dispatch({ type: 'settings', patch: { paused: true } }));
     await app.evaluate(({ BrowserWindow }) => {
       const pet = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet'));
       pet.setPosition(1, 1); globalThis.pawpalBoundarySmoke.samples = [];
+      const bounds = pet.getBounds();
+      globalThis.pawpalBoundarySmoke.cursor = { x: bounds.x + bounds.width / 2, y: Math.round(bounds.height * .6 - 5) };
     });
-    await panel.evaluate(() => window.companion.dispatch({ type: 'settings', patch: { paused: true } }));
+    await overlay.waitForFunction(() => document.querySelector('.pet-sprite canvas')?.dataset.limbSkin === 'legacy-parts');
     await panel.evaluate(() => window.companion.dispatch({ type: 'settings', patch: { paused: false } }));
-    await new Promise(resolve => setTimeout(resolve, 900));
-    await panel.evaluate(() => window.companion.dispatch({ type: 'interact', action: 'play' }));
+    const birdPlay = await panel.evaluate(() => window.companion.dispatch({ type: 'interact', action: 'play' }));
+    assert.equal(birdPlay.action.type, 'play');
     for (const direction of [-1, 1]) {
       await app.evaluate(({ BrowserWindow }, direction) => {
         const bounds = BrowserWindow.getAllWindows().find(item => item.webContents.getURL().includes('view=pet')).getBounds();
@@ -269,6 +354,7 @@ try {
       await new Promise(resolve => setTimeout(resolve, 1500));
     }
     const bird = await app.evaluate(() => ({ samples: globalThis.pawpalBoundarySmoke.samples, errors: globalThis.pawpalBoundarySmoke.errors }));
+    await writeFile('.artifacts/natural-legs-native-bird-coordinates.json', JSON.stringify(bird, null, 2));
     assert.deepEqual(bird.errors, []);
     assert.ok(bird.samples.every(point => Number.isInteger(point.y) && !point.negativeZero));
     for (const sign of [-1, 0, 1]) assert.ok(bird.samples.some(point => Math.sign(point.y) === sign), 'parrot crosses Y zero');
@@ -286,7 +372,7 @@ try {
   assert.equal(saved.settings.movement, 'edge');
   assert.equal(saved.settings.size, 0.8);
   assert.equal(saved.motion, undefined, 'runtime locomotion is never persisted');
-  console.log('Electron smoke passed: desktop bridge, adoption, alpha transparency, articulated Canvas2D, grounded travel and rendered stretch/trick poses, stationary interaction, play, drag, signed-zero and fractional native coordinates, settings and persisted state.');
+  console.log('Electron smoke passed: desktop bridge, adoption, alpha transparency, articulated Canvas2D, grounded travel and rendered pet/feed/stretch/trick poses, cold and mixed-turn care timing, stationary interaction, play, drag, signed-zero and fractional native coordinates, settings and persisted state.');
 } finally {
   if (app) await app.close();
   await rm(userData, { recursive: true, force: true });

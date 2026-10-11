@@ -1,7 +1,7 @@
 /** Source coordinates are 256px square; all ground contacts share y=226. */
 export const RIG_GEOMETRY = Object.freeze({
  renderSize:256, groundY:226, pivot:{x:128,y:140}, bodyBounds:{x:45,y:50,width:180,height:125},
- hindHip:{x:80,y:147}, foreHip:{x:170,y:154}, hindLengths:[45,45], foreLengths:[38,40],
+ hindHip:{x:80,y:147}, foreHip:{x:170,y:135}, hindLengths:[35,40], foreLengths:[44.5,44.5],
 });
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const smooth=u=>u*u*(3-2*u);
@@ -26,7 +26,7 @@ export function createRigController({species='cat',stride=64,random=Math.random}
  // Randomness changes only secondary idle motion, never contact or phase.
  const idleOffset=random()*Math.PI*2;
  let turnId=0,supportId=0;
- let direction,turn,contacts=[null,null,null,null];
+ let direction,turn,contacts=[null,null,null,null],contactHips=[];
  let phase=0,lastDistance,lastEpoch,lastSize,lastSpecies=species,lastNow,liftWeight=0,sequence=0,activeAction,activeToken,actionElapsed=0,activeClock=0,lastFrozen=false,lastMoving=false,lastPose;
  return {sample(props={},now=0) {
  const locomotion=props.locomotion||{},size=locomotion.spriteSizeDip>0?locomotion.spriteSizeDip:256;
@@ -49,7 +49,7 @@ export function createRigController({species='cat',stride=64,random=Math.random}
  activeClock+=dt;
  if(rebase){turn=undefined;contacts=[null,null,null,null];direction=requestedFacing;}
  if(requestedFacing!==direction&&!turn&&lastPose){
- turn={id:++turnId,from:direction,to:requestedFacing,elapsed:0,replanted:[false,false,false,false],start:lastPose.legs.map(l=>({foot:{...l.foot},hip:{...l.hip},planted:l.planted,supportGeneration:l.supportKey})),travel:0};
+ turn={id:++turnId,from:direction,to:requestedFacing,elapsed:0,replanted:[false,false,false,false],start:lastPose.legs.map((l,i)=>({contactHip:{...contactHips[i]},foot:{...l.foot},hip:{...l.hip},planted:l.planted,supportGeneration:l.supportKey})),travel:0};
  }
  if(turn){if(!props.action||props.action==='idle'||props.action==='play')turn.elapsed+=Math.min(50,dt);turn.travel+=travel*requestedFacing;}
  for(const contact of contacts)if(contact)contact.x-=travel*requestedFacing;
@@ -78,6 +78,8 @@ export function createRigController({species='cat',stride=64,random=Math.random}
  const kind=i%2?'fore':'hind',side=i<2?'near':'far',far=side==='far'?4:0;
  const sourceHip=kind==='fore'?RIG_GEOMETRY.foreHip:RIG_GEOMETRY.hindHip;
  let hip=transform({x:sourceHip.x+far,y:sourceHip.y},body);
+ // Contact release retains the accepted old attachment geometry independently of the skin joints.
+ let contactHip=transform({x:sourceHip.x+far,y:kind==='fore'?154:sourceHip.y},body);
  const trajectory=footTrajectory(phase+i*.25,{stride,lift:15*liftWeight});
  let foot={x:sourceHip.x+far+trajectory.x,y:226+trajectory.y},planted=trajectory.planted&&!airborne;
  if(!moving&&liftWeight<.001){foot.y=226;planted=!airborne;}
@@ -85,7 +87,7 @@ export function createRigController({species='cat',stride=64,random=Math.random}
  // Legs are already in canvas coordinates; reversing never mirrors planted paws.
  let supportGeneration=`gait:${lastEpoch}:${direction}:${Math.floor(phase+i*.25)}`;
  const facing=turn?turn.to:direction;
- hip.x=128+facing*(hip.x-128);foot.x=128+facing*(foot.x-128);
+ hip.x=128+facing*(hip.x-128);contactHip.x=128+facing*(contactHip.x-128);foot.x=128+facing*(foot.x-128);
  let kneeTurn=1;
  let holdingTurnContact=false;
  if(turn){
@@ -93,6 +95,7 @@ export function createRigController({species='cat',stride=64,random=Math.random}
  kneeTurn=weight;
  const heldX=start.foot.x-turn.travel;
  hip.x=(start.hip.x-turn.travel)*(1-weight)+hip.x*weight;
+ contactHip.x=(start.contactHip.x-turn.travel)*(1-weight)+contactHip.x*weight;
  if(u<1){foot={x:heldX*(1-weight)+foot.x*weight,y:start.foot.y*(1-weight)+226*weight-32*Math.sin(Math.PI*u)};planted=u===0&&start.planted;supportGeneration=start.supportGeneration;}
  else {
  if(!turn.replanted[i]){contacts[i]={x:foot.x,y:226,supportGeneration:`turn:${turn.id}:${i}`};turn.replanted[i]=true;}
@@ -101,7 +104,7 @@ export function createRigController({species='cat',stride=64,random=Math.random}
  }
  if(contacts[i]&&(!turn||holdingTurnContact)){
  const contact=contacts[i];
- const nearingReach=Math.hypot(contact.x-hip.x,contact.y-(hip.y-(airborne?bodyY:0)))>(kind==='fore'?76:88);
+ const nearingReach=Math.hypot(contact.x-contactHip.x,contact.y-(contactHip.y-(airborne?bodyY:0)))>(kind==='fore'?76:88);
  if((!turn&&!trajectory.planted&&moving)||nearingReach||contact.recovery!==undefined){
  contact.recovery=(contact.recovery||0)+((action==='idle'||action==='play')?dt:0);
  const weight=smooth(clamp(contact.recovery/180,0,1));
@@ -111,18 +114,29 @@ export function createRigController({species='cat',stride=64,random=Math.random}
  }else {foot={x:contact.x,y:contact.y};supportGeneration=contact.supportGeneration;planted=foot.y===226;}
  }
 
+ contactHips[i]=contactHip;
  if(airborne){foot.y+=bodyY;planted=false;}
- if(action==='groom'&&i===1){const u=smooth(clamp(elapsed/300,0,1))*smooth(clamp((1800-elapsed)/300,0,1));foot={x:foot.x*(1-u)+(128+orientation*(62+Math.sin(elapsed/90)*3))*u,y:foot.y*(1-u)+108*u};planted=planted&&u===0;}
- const [upperLength,lowerLength]=kind==='fore'?RIG_GEOMETRY.foreLengths:RIG_GEOMETRY.hindLengths;
+ const groomWeight=action==='groom'&&i===1?smooth(clamp(elapsed/300,0,1))*smooth(clamp((1800-elapsed)/300,0,1)):0;
+ if(action==='groom'&&i===1){const u=groomWeight;foot={x:foot.x*(1-u)+(128+orientation*(62+Math.sin(elapsed/90)*3))*u,y:foot.y*(1-u)+108*u};planted=planted&&u===0;}
+ const [restUpperLength,restLowerLength]=kind==='fore'?RIG_GEOMETRY.foreLengths:RIG_GEOMETRY.hindLengths;
+ const limbOrientation=turn?turn.from+(turn.to-turn.from)*kneeTurn:direction;
+ const ankle={x:foot.x-(kind==='fore'?2:8)*limbOrientation,y:foot.y-(kind==='fore'?9:21)};
+ const pawLength=Math.hypot(foot.x-ankle.x,foot.y-ankle.y);
+ // Raised grooming bends toward the viewer; its screen projection folds without changing the sole.
+ const foldedLength=Math.hypot(Math.hypot(ankle.x-hip.x,ankle.y-hip.y)/2,4);
+ const projectionWeight=action==='groom'&&i===1?smooth(clamp(elapsed/120,0,1))*smooth(clamp((1800-elapsed)/120,0,1)):0;
+ const perspectiveFactor=1-projectionWeight+projectionWeight*foldedLength/restUpperLength;
+ const upperLength=restUpperLength*perspectiveFactor,lowerLength=restLowerLength*perspectiveFactor;
+ const skinLength=restUpperLength+restLowerLength;
  const bend=facing*(kind==='fore'?1:-1);
- const joints=solveLeg(hip,foot,upperLength,lowerLength,bend);
+ const joints=solveLeg(hip,ankle,upperLength,lowerLength,bend);
  if(turn&&kneeTurn<1){
- const before=solveLeg(hip,foot,upperLength,lowerLength,turn.from*(kind==='fore'?1:-1));
+ const before=solveLeg(hip,ankle,upperLength,lowerLength,turn.from*(kind==='fore'?1:-1));
  joints.knee={x:before.knee.x*(1-kneeTurn)+joints.knee.x*kneeTurn,y:before.knee.y*(1-kneeTurn)+joints.knee.y*kneeTurn};
  }
  const supportKey=supportGeneration,previous=lastPose?.legs[i];
  supportGeneration=previous&&previous.planted===planted&&previous.supportKey===supportKey?previous.supportGeneration:`support:${++supportId}`;
- return {id,side,kind,hip,supportKey,supportGeneration,...joints,planted,upperLength,lowerLength,bend};
+ return {id,side,kind,hip,supportKey,supportGeneration,...joints,foot,ankle,orientation:limbOrientation,pawLength,perspectiveFactor,skinLength,planted,upperLength,lowerLength,bend};
  });
  if(turn&&turn.elapsed>=800){direction=turn.to;turn=undefined;}
  const headAngle=action==='groom'?.32*envelope+.06*Math.sin(elapsed/90)*envelope:action==='pet'?-.18*envelope:action==='feed'?.2*envelope+.035*Math.sin(elapsed/100)*envelope:0;

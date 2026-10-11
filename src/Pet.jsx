@@ -152,14 +152,19 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
       decodeImage(pet.id === 'parrot' ? 'pets/parrot-perch-rig.png' : null, abort.signal),
       decodeImage(`pets/${pet.id}-head-rig.png`, abort.signal),
       fetch(`${import.meta.env.BASE_URL}pets/${pet.id}-head-rig.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null),
-    ]).then(async ([motion, legacy, rig, meta, perch, head, headMeta]) => {
+      decodeImage(pet.id === 'parrot' ? null : 'pets/quadruped-legs-v2.png', abort.signal),
+      pet.id === 'parrot' ? Promise.resolve(null) : fetch(`${import.meta.env.BASE_URL}pets/quadruped-legs-v2.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null),
+      decodeImage(pet.id === 'dog' ? 'pets/dog-head-rig-v2.png' : null, abort.signal),
+      pet.id === 'dog' ? fetch(`${import.meta.env.BASE_URL}pets/dog-head-rig-v2.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null) : Promise.resolve(null),
+    ]).then(async ([motion, legacy, rig, meta, perch, head, headMeta, limb, limbMeta, dogHead, dogHeadMeta]) => {
       if (cancelled) return;
       motionLoaded = motion.status === 'fulfilled';
       if (legacy.status === 'fulfilled' && (motionLoaded || rig.status === 'fulfilled')) {
         images = { motionImage: motionLoaded ? motion.value : undefined, legacyImage: legacy.value };
         refresh();
+        const registeredDogHead = dogHead.status === 'fulfilled' && dogHead.value && dogHeadMeta.status === 'fulfilled' && dogHeadMeta.value?.version === 2 && dogHeadMeta.value?.parts?.length === 6 && dogHeadMeta.value?.registration;
         const extra = rig.status === 'fulfilled' && meta.status === 'fulfilled' && meta.value
-          ? { rigImage: rig.value, rigMeta: meta.value, headImage: head.status === 'fulfilled' ? head.value : undefined, headMeta: headMeta.status === 'fulfilled' ? headMeta.value : undefined, perchImage: perch.status === 'fulfilled' ? perch.value : undefined } : await loadFlow(pet.id, abort.signal);
+          ? { rigImage: rig.value, rigMeta: meta.value, limbImage: limb.status === 'fulfilled' ? limb.value : undefined, limbMeta: limbMeta.status === 'fulfilled' ? limbMeta.value : undefined, headImage: registeredDogHead ? dogHead.value : head.status === 'fulfilled' ? head.value : undefined, headMeta: registeredDogHead ? dogHeadMeta.value : headMeta.status === 'fulfilled' ? headMeta.value : undefined, perchImage: perch.status === 'fulfilled' ? perch.value : undefined } : await loadFlow(pet.id, abort.signal);
         if (!cancelled) { images = { ...images, ...extra }; createRenderer(); }
       } else refresh();
     });

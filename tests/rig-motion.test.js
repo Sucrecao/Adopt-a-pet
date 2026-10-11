@@ -32,10 +32,10 @@ test('trajectory wraps, lifts and rejoins continuously',()=>{
 test('IK endpoints are finite and reachable for complete gait',()=>{
  const c=createRigController({species:'cat'}); c.sample(props(),0);
  for(let d=0;d<=64;d++){ for(const leg of c.sample(props(d),d*10).legs){
- const p=solveLeg(leg.hip,leg.foot,leg.upperLength,leg.lowerLength,leg.bend);
+ const p=solveLeg(leg.hip,leg.ankle,leg.upperLength,leg.lowerLength,leg.bend);
  assert.ok(Number.isFinite(p.knee.x)&&Number.isFinite(p.knee.y));
  near(Math.hypot(p.knee.x-leg.hip.x,p.knee.y-leg.hip.y),leg.upperLength);
- near(Math.hypot(p.knee.x-leg.foot.x,p.knee.y-leg.foot.y),leg.lowerLength);
+ near(Math.hypot(p.knee.x-leg.ankle.x,p.knee.y-leg.ankle.y),leg.lowerLength);
  }}
  const clamped=solveLeg({x:0,y:0},{x:999,y:0},40,40,1); assert.ok(Number.isFinite(clamped.knee.x)); assert.equal(clamped.foot.x,999);
 });
@@ -54,8 +54,8 @@ test('every interaction endpoint remains reachable without stretching bones',()=
  for(const action of ['groom','stretch','trick']){
  const c=createRigController({species:'dog'});
  for(let t=0;t<=2000;t+=20)for(const l of c.sample({...props(0,256,{moving:false}),action,actionStartedAt:0},t).legs){
- assert.ok(Math.hypot(l.foot.x-l.hip.x,l.foot.y-l.hip.y)<=l.upperLength+l.lowerLength);
- near(Math.hypot(l.knee.x-l.foot.x,l.knee.y-l.foot.y),l.lowerLength);
+ assert.ok(Math.hypot(l.ankle.x-l.hip.x,l.ankle.y-l.hip.y)<=l.upperLength+l.lowerLength);
+ near(Math.hypot(l.knee.x-l.ankle.x,l.knee.y-l.ankle.y),l.lowerLength);
  }
  }
 });
@@ -106,7 +106,7 @@ test('all gait phases remain reachable through full bow envelope',()=>{
  for(let d=0;d<=64;d+=2)for(let t=0;t<=2600;t+=100){
  const c=createRigController({species:'dog'}); c.sample({...props(),action:'stretch',actionStartedAt:1},0);
  const pose=c.sample({...props(d),action:'stretch',actionStartedAt:1,actionElapsed:t},t);
- for(const leg of pose.legs){ assert.ok(Math.hypot(leg.foot.x-leg.hip.x,leg.foot.y-leg.hip.y)<=leg.upperLength+leg.lowerLength, `distance at d${d} t${t} ${leg.id}`); near(Math.hypot(leg.knee.x-leg.foot.x,leg.knee.y-leg.foot.y),leg.lowerLength); }
+ for(const leg of pose.legs){ assert.ok(Math.hypot(leg.ankle.x-leg.hip.x,leg.ankle.y-leg.hip.y)<=leg.upperLength+leg.lowerLength, `distance at d${d} t${t} ${leg.id}`); near(Math.hypot(leg.knee.x-leg.ankle.x,leg.knee.y-leg.ankle.y),leg.lowerLength); }
  }
 });
 test('reversal releases contacts continuously and freezes the turn when paused',()=>{
@@ -132,7 +132,7 @@ test('moving turn supports retain exact world positions through release and repl
  const pose=c.sample(props(distance,256,{facing,moving:speed>0}),t);
  for(let i=0;i<4;i++){
  const leg=pose.legs[i];
- assert.ok(Math.hypot(leg.foot.x-leg.hip.x,leg.foot.y-leg.hip.y)<=leg.upperLength+leg.lowerLength+1e-6,`unreachable ${t} ${i}`);
+ assert.ok(Math.hypot(leg.ankle.x-leg.hip.x,leg.ankle.y-leg.hip.y)<=leg.upperLength+leg.lowerLength+1e-6,`unreachable ${t} ${i}`);
  if(before){const old=before.legs[i];assert.ok(Math.hypot(leg.foot.x-old.foot.x,leg.foot.y-old.foot.y)<9,`foot discontinuity ${t} ${i}`);
  if(old.planted&&leg.planted&&old.supportGeneration===leg.supportGeneration){near(leg.foot.x+facing*(distance-previousDistance),old.foot.x);near(leg.foot.y,226);}}
  }
@@ -164,7 +164,7 @@ test('trick during early mid and late turn carries every paw through flight and 
  near(pose.orientation,base.orientation);
  for(let i=0;i<4;i++){
  const leg=pose.legs[i];if(pose.airborne){assert.equal(leg.planted,false);near(leg.foot.y-pose.bodyY,base.legs[i].foot.y);}
- assert.ok(Math.hypot(leg.foot.x-leg.hip.x,leg.foot.y-leg.hip.y)<=leg.upperLength+leg.lowerLength+1e-6,`reach turn${turnTime} t${elapsed} ${i}`);
+ assert.ok(Math.hypot(leg.ankle.x-leg.hip.x,leg.ankle.y-leg.hip.y)<=leg.upperLength+leg.lowerLength+1e-6,`reach turn${turnTime} t${elapsed} ${i}`);
  if(previous)assert.ok(Math.hypot(leg.foot.x-previous.legs[i].foot.x,leg.foot.y-previous.legs[i].foot.y)<4,`jump turn${turnTime} t${elapsed} ${i}`);
  }previous=pose;
  }
@@ -192,6 +192,115 @@ test('stationary actions during frozen turn keep all leg endpoints within reach'
  const c=createRigController({species:'dog',random:()=>0});c.sample(props(),0);c.sample(props(16),100);
  const loc=props(16,256,{facing:-1,moving:false});for(let t=116;t<=100+turnTime;t+=16)c.sample(loc,t);
  for(let t=0;t<=2600;t+=16){const p=c.sample({...loc,action,actionStartedAt:1},100+turnTime+t);
- for(const l of p.legs)assert.ok(Math.hypot(l.foot.x-l.hip.x,l.foot.y-l.hip.y)<=l.upperLength+l.lowerLength+1e-6,`${action} turn${turnTime} time${t} ${l.id}`);}
+ for(const l of p.legs)assert.ok(Math.hypot(l.ankle.x-l.hip.x,l.ankle.y-l.hip.y)<=l.upperLength+l.lowerLength+1e-6,`${action} turn${turnTime} time${t} ${l.id}`);}
+ }
+});
+
+test('fore wrist and hind hock connect anatomical proximal chains to fixed soles',()=>{
+ for(const facing of [1,-1]){
+ const pose=createRigController({species:'dog'}).sample(props(0,256,{facing,moving:false}),0);
+ for(const leg of pose.legs){
+ assert.ok(leg.ankle, `${leg.kind} requires a wrist or hock`);
+ near(leg.orientation,facing);
+ const hind=leg.kind==='hind';
+ near(leg.ankle.y,leg.foot.y-(hind?21:9));
+ near(leg.ankle.x,leg.foot.x-(hind?8:2)*facing);
+ near(Math.hypot(leg.hip.x-leg.knee.x,leg.hip.y-leg.knee.y),leg.upperLength);
+ near(Math.hypot(leg.ankle.x-leg.knee.x,leg.ankle.y-leg.knee.y),leg.lowerLength);
+ near(Math.hypot(leg.foot.x-leg.ankle.x,leg.foot.y-leg.ankle.y),leg.pawLength);
+ }
+ }
+});
+
+test('wrists hocks and knees reverse continuously while soles keep support identity',()=>{
+ for(const speed of [0,.02,.05,.15]){
+ const c=createRigController({species:'dog',random:()=>0});let previous;
+ for(let t=0;t<=2500;t+=8){
+ const pose=c.sample(props(speed*t,256,{facing:t<400?1:-1,moving:speed>0}),t);
+ for(let i=0;i<4;i++){
+ const leg=pose.legs[i],hind=leg.kind==='hind';
+ near(leg.foot.x-leg.ankle.x,(hind?8:2)*leg.orientation);
+ near(leg.foot.y-leg.ankle.y,hind?21:9);
+ near(Math.hypot(leg.foot.x-leg.ankle.x,leg.foot.y-leg.ankle.y),leg.pawLength);
+ assert.ok(Math.hypot(leg.ankle.x-leg.hip.x,leg.ankle.y-leg.hip.y)<=leg.upperLength+leg.lowerLength);
+ if(previous){
+ const old=previous.legs[i];
+ for(const joint of ['ankle','knee'])assert.ok(Math.hypot(leg[joint].x-old[joint].x,leg[joint].y-old[joint].y)<9, `${joint} discontinuity ${speed} ${t} ${i}`);
+ assert.ok(Math.abs(leg.orientation-old.orientation)<.08);
+ }
+ }previous=pose;
+ }
+ }
+});
+test('all actions retain fixed short paw segments and reachable wrist hock endpoints',()=>{
+ for(const facing of [1,-1])for(const action of ['idle','pet','feed','groom','stretch','trick'])for(let d=0;d<=64;d++){
+ const c=createRigController({species:'cat',random:()=>0});c.sample({...props(0,256,{facing}),action},0);
+ for(let t=0;t<=3200;t+=8){
+ const p=c.sample({...props(d,256,{facing}),action},t);
+ for(const l of p.legs){
+ assert.ok(Math.hypot(l.ankle.x-l.hip.x,l.ankle.y-l.hip.y)<=l.upperLength+l.lowerLength, `${action} d${d} t${t} ${l.id}`);
+ near(Math.hypot(l.knee.x-l.hip.x,l.knee.y-l.hip.y),l.upperLength);
+ near(Math.hypot(l.knee.x-l.ankle.x,l.knee.y-l.ankle.y),l.lowerLength);
+ near(Math.hypot(l.foot.x-l.ankle.x,l.foot.y-l.ankle.y),l.pawLength);
+ }
+ }
+ }
+});
+test('groom after a stationary turn keeps the fully reversed wrist within minimum reach',()=>{
+ const c=createRigController({species:'dog',random:()=>0});
+ const base=props(0,256,{moving:false});c.sample(base,0);
+ const reversed=props(0,256,{facing:-1,moving:false});
+ for(let t=8;t<=592;t+=8)c.sample(reversed,t);
+ let pose;for(let elapsed=0;elapsed<=192;elapsed+=8)pose=c.sample({...reversed,action:'groom',actionStartedAt:1},592+elapsed);
+ const leg=pose.legs[1];near(leg.orientation,-1);
+ const distance=Math.hypot(leg.ankle.x-leg.hip.x,leg.ankle.y-leg.hip.y);
+ assert.ok(distance>=Math.abs(leg.upperLength-leg.lowerLength), `minimum wrist reach ${distance}`);
+ near(Math.hypot(leg.knee.x-leg.ankle.x,leg.knee.y-leg.ankle.y),leg.lowerLength);
+});
+test('composed turn care actions satisfy both proximal reach bounds',()=>{
+ for(const facing of [1,-1])for(const turnTime of [48,336,592,688])for(const action of ['pet','feed','stretch','groom','trick']){
+ const c=createRigController({species:'dog',random:()=>0});
+ c.sample(props(0,256,{facing,moving:false}),0);
+ const reversed=props(0,256,{facing:-facing,moving:false});for(let t=8;t<=turnTime;t+=8)c.sample(reversed,t);
+ for(let elapsed=0;elapsed<=3200;elapsed+=8){
+ const pose=c.sample({...reversed,action,actionStartedAt:1},turnTime+elapsed);
+ for(const l of pose.legs){
+ const distance=Math.hypot(l.ankle.x-l.hip.x,l.ankle.y-l.hip.y);
+ assert.ok(distance>=Math.abs(l.upperLength-l.lowerLength), `minimum ${action} turn${turnTime} t${elapsed} ${l.id}: ${distance}`);
+ assert.ok(distance<=l.upperLength+l.lowerLength, `maximum ${action} turn${turnTime} t${elapsed} ${l.id}: ${distance}`);
+ if(Math.abs(l.orientation)===1){
+ near(Math.hypot(l.knee.x-l.hip.x,l.knee.y-l.hip.y),l.upperLength);
+ near(Math.hypot(l.knee.x-l.ankle.x,l.knee.y-l.ankle.y),l.lowerLength);
+ }
+ }
+ }
+ }
+});
+test('raised grooming folds project the elbow near the wrist shoulder midpoint',()=>{
+ for(const facing of [1,-1])for(const turnTime of [0,592]){
+ const c=createRigController({species:'dog',random:()=>0});const base=props(0,256,{facing,moving:false});c.sample(base,0);
+ const loc=turnTime?props(0,256,{facing:-facing,moving:false}):base;
+ for(let t=8;t<=turnTime;t+=8)c.sample(loc,t);
+ let pose;for(let elapsed=0;elapsed<=600;elapsed+=8)pose=c.sample({...loc,action:'groom',actionStartedAt:1},turnTime+elapsed);
+ const l=pose.legs[1],mid={x:(l.hip.x+l.ankle.x)/2,y:(l.hip.y+l.ankle.y)/2};
+ assert.ok(Math.hypot(l.knee.x-mid.x,l.knee.y-mid.y)<=4.01, 'raised elbow should fold within its projected skin');
+ assert.ok(l.perspectiveFactor<1);near(l.skinLength,89);
+ near(l.upperLength,44.5*l.perspectiveFactor);near(l.lowerLength,44.5*l.perspectiveFactor);
+ }
+});
+test('groom projection enters and exits continuously in both ordinary and frozen turns',()=>{
+ for(const facing of [1,-1])for(const turnTime of [0,48,336,592,688]){
+ const c=createRigController({species:'cat',random:()=>0});const base=props(0,256,{facing,moving:false});c.sample(base,0);
+ const loc=turnTime?props(0,256,{facing:-facing,moving:false}):base;
+ for(let t=8;t<=turnTime;t+=8)c.sample(loc,t);
+ let previous;
+ for(let elapsed=0;elapsed<=2000;elapsed+=8){
+ const p=c.sample({...loc,action:'groom',actionStartedAt:1},turnTime+elapsed),l=p.legs[1];
+ if(elapsed===0||elapsed>=1800)near(l.perspectiveFactor,1);
+ assert.ok(l.perspectiveFactor>0&&l.perspectiveFactor<=1);
+ if(previous){const old=previous.legs[1];assert.ok(Math.hypot(l.knee.x-old.knee.x,l.knee.y-old.knee.y)<9, `groom elbow jump facing${facing} turn${turnTime} t${elapsed}`);}
+ for(const i of [0,2,3])near(p.legs[i].perspectiveFactor,1);
+ previous=p;
+ }
  }
 });

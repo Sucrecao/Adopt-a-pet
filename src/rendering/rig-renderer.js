@@ -1,11 +1,15 @@
+import { createLimbSkin } from './limb-skin.js';
+
 /** Matching bitmap parts are attached to solved joints; support paws stay flat. */
-export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyImage, perchImage, headImage, headMeta }) {
+export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyImage, perchImage, headImage, headMeta, limbImage, limbMeta }) {
   const context = canvas.getContext('2d');
   if (!context || !rigImage || rigMeta?.parts?.length !== 6) throw new Error('Incomplete pet rig');
   canvas.width = canvas.height = 256;
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
   canvas.dataset.renderer = 'rig-2d';
+  const limbSkin = createLimbSkin(canvas.ownerDocument, limbImage, limbMeta, species);
+  canvas.dataset.limbSkin = limbSkin ? 'connected-v2' : 'legacy-parts';
   let disposed = false, birdFlight = 0, previousNow, previousPose;
 
   function part(index, x, y, width, height, { angle = 0, anchorX = .5, anchorY = 0, mirror = 1, section, image = rigImage, meta = rigMeta } = {}) {
@@ -23,6 +27,7 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
       { angle: Math.atan2(end.y - start.y, end.x - start.x) - Math.PI / 2, anchorY: .13, section });
   }
   function leg(limb, layer = 'all') {
+    if (limbSkin && limb.ankle) { if (layer !== 'lower') limbSkin.draw(context, limb); return; }
     const fore = limb.kind === 'fore', upper = fore ? 1 : 3, lower = fore ? 2 : 4;
     const ankle = { x: limb.foot.x, y: limb.foot.y - 8 };
     if (layer !== 'lower') segment(upper, limb.hip, limb.knee, fore ? 23 : 29);
@@ -61,20 +66,120 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
       {index,x,y,width,height,options:{...options,mirror:-1},alpha:blend}]);
   }
   const articulatedHead = headImage && headMeta?.parts?.length === 6;
+  const dogRegistration = articulatedHead && species === 'dog' && headMeta?.version === 2 ? headMeta.registration : null;
+  canvas.dataset.headRig = dogRegistration ? 'registered-v2' : 'legacy-parts';
+  const headProfiles = new Map(), headGrids = new Map();
+  const headProfileCanvas = canvas.ownerDocument.createElement('canvas');
+  headProfileCanvas.width = headProfileCanvas.height = 256;
+  const headProfileContext = headProfileCanvas.getContext('2d');
+  function registeredHead(entries) {
+    const views = entries.filter(entry => entry.alpha > 0);
+    if (!views.length || views.some(view => !dogRegistration.features?.[view.index])) { blendedParts(entries); return; }
+    const rows = views.map(view => {
+      const key = `${view.index}:${view.options.mirror}`;
+      if (headGrids.has(key)) return headGrids.get(key);
+      if (!headProfiles.has(view.index)) {
+        const [sx,sy,width,height]=headMeta.parts[view.index],crop=canvas.ownerDocument.createElement('canvas');crop.width=width;crop.height=height;
+        crop.getContext('2d').drawImage(headImage,sx,sy,width,height,0,0,width,height);
+        const pixels=crop.getContext('2d').getImageData(0,0,width,height).data;
+        const contours=Array.from({length:height},(_,y)=>{let left=width,right=-1;for(let x=0;x<width;x++)if(pixels[(y*width+x)*4+3]>=16){left=Math.min(left,x);right=Math.max(right,x);}return right<left?null:[left/width,(right+1)/width];});
+        headProfiles.set(view.index,{texture:crop,contours});
+      }
+      const {texture,contours}=headProfiles.get(view.index);
+      const mark = dogRegistration.features[view.index], anchor = dogRegistration.anchors[view.index];
+      const eyeY = (mark.eyes[0][1] + mark.eyes[1][1]) / 2;
+      const featureRow = (point, halfWidth) => [0, Math.max(.001, point[0] - halfWidth), point[0], Math.min(.999, point[0] + halfWidth), 1].map(x => ({x,y:point[1]}));
+      const grid = [
+        [0,.25,.5,.75,1].map(x => ({x,y:0})),
+        [{x:0,y:eyeY},{x:mark.eyes[0][0],y:mark.eyes[0][1]},{x:(mark.eyes[0][0]+mark.eyes[1][0])/2,y:eyeY},{x:mark.eyes[1][0],y:mark.eyes[1][1]},{x:1,y:eyeY}],
+        featureRow(mark.nose,mark.noseHalfWidth), featureRow(mark.mouth,mark.mouthHalfWidth),
+        [0,.25,anchor[0],.75,1].map(x => ({x,y:anchor[1]})),
+        [0,.25,.5,.75,1].map(x => ({x,y:1})),
+      ];
+      // Opaque contour landmarks align the cheek/skull silhouette as well as
+      // the face. Outer border columns retain every source pixel and margin.
+      grid.forEach((row,index)=>{
+        const y=row[2].y,at=Math.min(texture.height-1,Math.max(0,Math.round(y*texture.height)));
+        let contour=contours[at];
+        if(!contour)for(let d=1;d<texture.height&&!contour;d++)contour=contours[Math.max(0,at-d)]||contours[Math.min(texture.height-1,at+d)];
+        const left=Math.min(contour?.[0]??0,(index===1?row[1].x:row[2].x)-.002),right=Math.max(contour?.[1]??1,(index===1?row[3].x:row[2].x)+.002);
+        if(index===2||index===3){row[1].x=Math.max(left+.001,Math.min(row[1].x,row[2].x-.001));row[3].x=Math.min(right-.001,Math.max(row[3].x,row[2].x+.001));}
+        else if(index===1){ /* Eye landmarks stay exact, even where fur alpha is sparse. */ }
+        else if(index===4){row[1].x=left+(anchor[0]-left)*.5;row[3].x=anchor[0]+(right-anchor[0])*.5;}
+        if(index===0||index===grid.length-1){row[1].x=left+(right-left)*.25;row[2].x=left+(right-left)*.5;row[3].x=left+(right-left)*.75;}
+        row.splice(1,0,{x:Math.max(.0001,left),y});row.splice(row.length-1,0,{x:Math.min(.9999,right),y});
+      });
+      if (view.options.mirror < 0) grid.forEach(row => row.reverse());
+      const sample = (values,index,u) => {
+        const slope = at => {
+          if(at===0)return values[1]-values[0];
+          if(at===values.length-1)return values[at]-values[at-1];
+          const before=values[at]-values[at-1],after=values[at+1]-values[at];
+          return before*after<=0?0:2*before*after/(before+after);
+        };
+        return (2*u*u*u-3*u*u+1)*values[index]+(u*u*u-2*u*u+u)*slope(index)
+          +(-2*u*u*u+3*u*u)*values[index+1]+(u*u*u-u*u)*slope(index+1);
+      };
+      // A monotone C1 surface removes the affine shear crease at facial rows.
+      // Exact eye/nose/mouth/neck landmarks remain vertices of the fixed grid.
+      const subdivisions=2;
+      const sampled = Array.from({length:(grid.length-1)*subdivisions+1},(_,r)=>
+        Array.from({length:(grid[0].length-1)*subdivisions+1},(_,c)=>{
+          const row=Math.min(grid.length-2,Math.floor(r/subdivisions)),v=r/subdivisions-row;
+          const column=Math.min(grid[0].length-2,Math.floor(c/subdivisions)),u=c/subdivisions-column;
+          return Object.fromEntries(['x','y'].map(axis=>{const values=grid.map(points=>sample(points.map(point=>point[axis]),column,u));const smooth=v*v*(3-2*v);return [axis,axis==='x'?values[row]*(1-smooth)+values[row+1]*smooth:sample(values,row,v)];}));
+        }));
+      headGrids.set(key,sampled);return sampled;
+    });
+    // Register each facial view to the same interpolated eyes/nose/mouth and
+    // neck root before mixing pixels. Full-profile endpoints remain untouched.
+    const target = rows[0].map((row,r) => row.map((_,c) => {
+      const point = views.reduce((sum,view,i) => {
+        const source = rows[i][r][c], anchor = dogRegistration.anchors[view.index];
+        sum.x += (source.x-anchor[0])*view.width*view.options.mirror*view.alpha;
+        sum.y += (source.y-anchor[1])*view.height*view.alpha; return sum;
+      },{x:0,y:0});
+      const angle=views[0].options.angle,cos=Math.cos(angle),sin=Math.sin(angle);
+      return {x:views[0].x+point.x*cos-point.y*sin,y:views[0].y+point.x*sin+point.y*cos};
+    }));
+    function triangle(texture, source, destination) {
+      const [s0,s1,s2]=source,[d0,d1,d2]=destination;
+      const ux=s1.x-s0.x,uy=s1.y-s0.y,vx=s2.x-s0.x,vy=s2.y-s0.y,det=ux*vy-uy*vx;
+      const dx=d1.x-d0.x,dy=d1.y-d0.y,ex=d2.x-d0.x,ey=d2.y-d0.y;
+      const a=(dx*vy-ex*uy)/det,c=(ex*ux-dx*vx)/det,b=(dy*vy-ey*uy)/det,d=(ey*ux-dy*vx)/det;
+      headProfileContext.save();headProfileContext.beginPath();
+      const winding=Math.sign(dx*ey-dy*ex)||1;
+      const normals=destination.map((point,i)=>{const next=destination[(i+1)%3],length=Math.hypot(next.x-point.x,next.y-point.y)||1;return {x:(next.y-point.y)/length*winding,y:-(next.x-point.x)/length*winding};});
+      destination.forEach((point,i)=>{const previous=normals[(i+2)%3],next=normals[i],expansion=.35/Math.max(.02,1+previous.x*next.x+previous.y*next.y);let ox=(previous.x+next.x)*expansion,oy=(previous.y+next.y)*expansion;const bound=Math.min(1,.75/(Math.hypot(ox,oy)||1));ox*=bound;oy*=bound;const x=point.x+ox,y=point.y+oy;i?headProfileContext.lineTo(x,y):headProfileContext.moveTo(x,y);});
+      headProfileContext.closePath();headProfileContext.clip();headProfileContext.transform(a,b,c,d,d0.x-a*s0.x-c*s0.y,d0.y-b*s0.x-d*s0.y);headProfileContext.drawImage(texture,0,0);headProfileContext.restore();
+    }
+    blendContext.clearRect(0,0,256,256);blendContext.globalCompositeOperation='lighter';
+    views.forEach((view,i)=>{
+      const texture=headProfiles.get(view.index).texture,source=rows[i].map(row=>row.map(point=>({x:point.x*texture.width,y:point.y*texture.height})));
+      headProfileContext.clearRect(0,0,256,256);
+      for(let r=0;r<source.length-1;r++)for(let c=0;c<source[r].length-1;c++){
+        triangle(texture,[source[r][c],source[r][c+1],source[r+1][c]],[target[r][c],target[r][c+1],target[r+1][c]]);
+        triangle(texture,[source[r][c+1],source[r+1][c+1],source[r+1][c]],[target[r][c+1],target[r+1][c+1],target[r+1][c]]);
+      }
+      blendContext.globalAlpha=view.alpha;blendContext.drawImage(headProfileCanvas,0,0);
+    });
+    blendContext.globalAlpha=1;context.drawImage(blendCanvas,0,0);
+  }
   function head(pose, x, y, width, height) {
     const orientation = pose.orientation ?? pose.facing;
     const profile = Math.abs(orientation) * 2;
     const lower = Math.floor(profile), mix = profile - lower;
     const indices = [3, 2, 1];
     const expression = pose.clip === 'pet' ? 4 : pose.clip === 'feed' ? 5 : null;
-    const expressionWeight = expression === null ? 0 : pose.expressionWeight;
+    const expressionWeight = expression === null ? 0 : pose.expressionWeight * (dogRegistration ? Math.abs(orientation) : 1);
     const entries=[];
-    const draw = (index, alpha) => entries.push({index,x,y,width,height,alpha,options:{image:headImage,meta:headMeta,anchorY:.8,
-      angle:pose.headAngle*(orientation<0?-1:1),mirror:index===3?1:orientation<0?-1:1}});
+    const draw = (index, alpha) => entries.push({index,x,y,width,height,alpha,options:{image:headImage,meta:headMeta,
+      anchorX:dogRegistration?.anchors?.[index]?.[0] ?? .5,anchorY:dogRegistration?.anchors?.[index]?.[1] ?? .8,
+      angle:pose.headAngle*(dogRegistration ? orientation : orientation<0?-1:1),mirror:index===3?1:orientation<0?-1:1}});
     draw(indices[lower], (1 - mix) * (1 - expressionWeight));
     if (lower < 2) draw(indices[lower + 1], mix * (1 - expressionWeight));
     if (expression !== null) draw(expression, expressionWeight);
-    blendedParts(entries);
+    if (dogRegistration) registeredHead(entries); else blendedParts(entries);
   }
   function quadruped(pose) {
     context.save(); context.globalAlpha = .88;
@@ -88,15 +193,28 @@ export function createRigRenderer(canvas, { species, rigImage, rigMeta, legacyIm
     near.forEach(limb => leg(limb, 'upper'));
     bodyTransform(pose.body, () => {
       if (articulatedHead) {
-        orientedPart(0, 128, 76, 180, 104,
+        const body = dogRegistration?.body ?? {x:128,y:76,width:180,height:104};
+        const face = dogRegistration?.head ?? {offsetX:52,y:131,width:91,height:104};
+        orientedPart(0, body.x, body.y, body.width, body.height,
           {anchorX:.5,image:headImage,meta:headMeta}, pose.orientation);
-        head(pose, 128 + 52 * pose.orientation, 131, 91, 104);
+        head(pose, 128 + face.offsetX * pose.orientation, face.y, face.width, face.height);
       } else {
         // A complete matching body is the fallback when supplemental parts fail.
         orientedPart(0, 128, 50, 180, 125, {anchorX:.5}, pose.orientation);
       }
     });
     near.forEach(limb => leg(limb, 'lower'));
+    if (limbSkin && pose.clip === 'groom') {
+      const elapsed = pose.elapsed || 0;
+      const smooth = value => { const x = Math.max(0, Math.min(1, value)); return x * x * (3 - 2 * x); };
+      context.save(); context.globalAlpha = smooth(elapsed / 300) * smooth((1800 - elapsed) / 300);
+      near.filter(limb => limb.kind === 'fore').forEach(limb => {
+        blendContext.clearRect(0,0,256,256); blendContext.globalCompositeOperation='source-over';
+        limbSkin.draw(blendContext,limb,{foreground:true});
+        context.drawImage(blendCanvas,0,0);
+      });
+      context.restore();
+    }
   }
   function bird(pose) {
     const flying = pose.clip === 'walk' || pose.airborne;

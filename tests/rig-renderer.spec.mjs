@@ -66,9 +66,10 @@ test('pet feed and parrot preen visibly articulate matching artwork', async ({ p
    const load=async(src)=>{const image=new Image();image.src=src;await image.decode();return image;};
    const rigImage=await load(`/pets/${species}-rig.png`),rigMeta=await(await fetch(`/pets/${species}-rig.json`)).json();
    const perchImage=species==='parrot'?await load('/pets/parrot-perch-rig.png'):undefined;
-   const headImage=await load(`/pets/${species}-head-rig.png`),headMeta=await(await fetch(`/pets/${species}-head-rig.json`)).json();
+   const headImage=await load(`/pets/${species}-head-rig${species==='dog'?'-v2':''}.png`),headMeta=await(await fetch(`/pets/${species}-head-rig${species==='dog'?'-v2':''}.json`)).json();
+   const limbImage=species==='parrot'?undefined:await load('/pets/quadruped-legs-v2.png'),limbMeta=species==='parrot'?undefined:await(await fetch('/pets/quadruped-legs-v2.json')).json();
    const canvas=document.createElement('canvas');
-   const renderer=createRigRenderer(canvas,{species,rigImage,rigMeta,perchImage,headImage,headMeta});
+   const renderer=createRigRenderer(canvas,{species,rigImage,rigMeta,perchImage,headImage,headMeta,limbImage,limbMeta});
    const frames={};
    for(const action of ['idle','pet','feed','groom']){
     const controller=createRigController({species,random:()=>0});
@@ -110,8 +111,9 @@ test('rendered reversal and front-facing midpoint have no silhouette cut or coll
  const result=await page.evaluate(async()=>{
   const {createRigController}=await import('/src/core/rig-motion.js');const {createRigRenderer}=await import('/src/rendering/rig-renderer.js');
   const load=async(src)=>{const image=new Image();image.src=src;await image.decode();return image;};
-  const species='dog',rigImage=await load('/pets/dog-rig.png'),rigMeta=await(await fetch('/pets/dog-rig.json')).json(),headImage=await load('/pets/dog-head-rig.png'),headMeta=await(await fetch('/pets/dog-head-rig.json')).json();
-  const canvas=document.createElement('canvas'),renderer=createRigRenderer(canvas,{species,rigImage,rigMeta,headImage,headMeta}),controller=createRigController({species,random:()=>0});
+  const species='dog',rigImage=await load('/pets/dog-rig.png'),rigMeta=await(await fetch('/pets/dog-rig.json')).json(),headImage=await load('/pets/dog-head-rig-v2.png'),headMeta=await(await fetch('/pets/dog-head-rig-v2.json')).json();
+  const limbImage=await load('/pets/quadruped-legs-v2.png'),limbMeta=await(await fetch('/pets/quadruped-legs-v2.json')).json();
+  const canvas=document.createElement('canvas'),renderer=createRigRenderer(canvas,{species,rigImage,rigMeta,headImage,headMeta,limbImage,limbMeta}),controller=createRigController({species,random:()=>0});
   let locomotion={epoch:1,distanceDip:0,spriteSizeDip:256,facing:1,moving:true};controller.sample({locomotion},0);locomotion.distanceDip=16;const before=controller.sample({locomotion},400);renderer.draw(before,400);
   const pixels=()=>new Uint8ClampedArray(canvas.getContext('2d').getImageData(0,0,256,256).data);const first=pixels();
   locomotion={...locomotion,facing:-1,moving:false};const start=controller.sample({locomotion},400.001);renderer.draw(start,400.001);const second=pixels();
