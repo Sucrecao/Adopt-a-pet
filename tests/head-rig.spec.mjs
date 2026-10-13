@@ -1,5 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { test, expect } from '@playwright/test';
+import {useLegacyPetResources} from './legacy-pet-fixture.mjs';
+test.beforeEach(async({page})=>useLegacyPetResources(page));
 
 test('dog v2 head registers its anatomical neck landmark instead of its crop bottom', async ({ page }) => {
   await page.goto('/');
@@ -18,7 +20,8 @@ test('dog v2 head registers its anatomical neck landmark instead of its crop bot
   expect(result.alpha).toBeGreaterThan(220);expect(result.green).toBeGreaterThan(150);
 });
 
-test('preview dog uses the production registered head and preserves the old pair when optional v2 fails', async ({ page }) => {
+test('fallback preview dog uses the production registered head and preserves the old pair when optional v2 fails', async ({ page }) => {
+  await page.route('**/pets/*-whole-v*', route => route.abort());
   await page.goto('/');await page.evaluate(()=>localStorage.clear());await page.reload();
   await page.getByRole('button',{name:/选择小狗/}).click();await page.getByRole('button',{name:/在预览中领养/}).click();
   const canvas=page.locator('.stage-pet canvas');

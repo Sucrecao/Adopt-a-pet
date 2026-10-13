@@ -4,7 +4,9 @@ const clamp = (n, min = 0, max = 100) => Math.max(min, Math.min(max, n));
 const finite = (n, fallback) => typeof n === 'number' && Number.isFinite(n) ? n : fallback;
 const actions = { pet: { happiness: 8, bond: 2 }, feed: { hunger: 18, happiness: 3, bond: 1 }, play: { energy: -8, happiness: 14, bond: 3 }, rest: {},
   stretch: { energy: -1, happiness: 4, bond: 1 }, trick: { energy: -3, happiness: 7, bond: 2 } };
-const durations = { pet: 2400, feed: 3200, play: 6000, rest: 30000, stretch: 2600, trick: 2800 };
+// Keep complete authored care time after the bounded800ms pose connection.
+// Rest already has ample time for its entry; playing uses its movement clock.
+const durations = { pet: 3200, feed: 4000, play: 6000, rest: 30000, stretch: 3400, trick: 3600 };
 const validName = name => typeof name === 'string' && name.trim().length > 0 && name.trim().length <= 24;
 const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 

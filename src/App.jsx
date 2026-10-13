@@ -6,6 +6,7 @@ import { createState } from './core/state.js';
 import { bridge } from './bridge.js';
 import Pet, { useReducedMotion } from './Pet.jsx';
 import { advanceMotion } from './core/motion.js';
+import { gaitSpeedDip } from './core/gait.js';
 
 const actions = [
   { id: 'pet', label: '抚摸', icon: Hand, detail: '挠挠小脑袋' },
@@ -81,6 +82,7 @@ function Stage({ pet, state, speech, onInteract }) {
   const [toy, setToy] = useState({ x: 70, y: 68 });
   const target = useRef({ x: 52, y: 68 });
   const turnRemaining = useRef(0), turnEpoch = useRef(0);
+  const playbackReady = useRef(true);
   const drag = useRef(null);
   const action = state.action?.until > Date.now() ? state.action.type : 'idle';
   function clampPosition(point) {
@@ -107,7 +109,7 @@ function Stage({ pet, state, speech, onInteract }) {
     positionRef.current = { ...target.current, vx: 0, vy: 0 };
     setPosition(target.current);
     setWalking(false);
-    locomotionRef.current = { ...locomotionRef.current, epoch: locomotionRef.current.epoch + 1, distanceDip: 0, spriteSizeDip: 210 * state.settings.size, moving: false };
+    locomotionRef.current = { ...locomotionRef.current, epoch: locomotionRef.current.epoch + 1, distanceDip: 0, spriteSizeDip: 210 * state.settings.size, moving: false, intentMoving: false };
   }, [pet.id, state.settings.movement, state.settings.size]);
   useLayoutEffect(() => {
     let measuredDimensions;
@@ -122,7 +124,7 @@ function Stage({ pet, state, speech, onInteract }) {
       positionRef.current = { ...next, vx: 0, vy: 0 };
       setPosition(next);
       setWalking(false);
-      locomotionRef.current = { ...locomotionRef.current, epoch: locomotionRef.current.epoch + 1, distanceDip: 0, moving: false };
+      locomotionRef.current = { ...locomotionRef.current, epoch: locomotionRef.current.epoch + 1, distanceDip: 0, moving: false, intentMoving: false };
     }
     const resizeImmediately = () => flushSync(constrain);
     const resize = new ResizeObserver(constrain);
@@ -137,7 +139,7 @@ function Stage({ pet, state, speech, onInteract }) {
     positionRef.current.vx = 0; positionRef.current.vy = 0;
     if (stationary) {
       target.current = { x: positionRef.current.x, y: positionRef.current.y };
-      locomotionRef.current = { ...locomotionRef.current, moving: false, paused: state.settings.paused || reducedMotion };
+      locomotionRef.current = { ...locomotionRef.current, moving: false, intentMoving: false, paused: state.settings.paused || reducedMotion };
       setWalking(false); return;
     }
     locomotionRef.current = { ...locomotionRef.current, paused: false, dragging: false };
@@ -156,13 +158,14 @@ function Stage({ pet, state, speech, onInteract }) {
         const current = positionRef.current;
         const pixels = { x: current.x * width / 100, y: current.y * height / 100, vx: current.vx * width / 100, vy: current.vy * height / 100 };
         const destination = { x: target.current.x * width / 100, y: target.current.y * height / 100 };
+        const wantsMovement = Math.hypot(destination.x-pixels.x,destination.y-pixels.y)>2;
+        if(wantsMovement&&!locomotionRef.current.intentMoving) {
+          playbackReady.current=false;
+          locomotionRef.current.prepareEpoch=(locomotionRef.current.prepareEpoch??0)+1;
+        }
+        locomotionRef.current.intentMoving=wantsMovement;
         if (turnEpoch.current !== locomotionRef.current.epoch) { turnRemaining.current = 0; turnEpoch.current = locomotionRef.current.epoch; }
         const requestedFacing = Math.abs(destination.x - pixels.x) > 1 ? destination.x < pixels.x ? -1 : 1 : locomotionRef.current.facing;
-        if (pet.id !== 'parrot' && !turnRemaining.current && requestedFacing !== locomotionRef.current.facing) {
-          turnRemaining.current = 800;
-          locomotionRef.current = { ...locomotionRef.current, facing: requestedFacing, moving: false };
-          setFacing(requestedFacing);
-        }
         if (turnRemaining.current > 0) {
           turnRemaining.current = Math.max(0, turnRemaining.current - dt * 1000);
           positionRef.current = { ...current, vx: 0, vy: 0 };
@@ -171,7 +174,17 @@ function Stage({ pet, state, speech, onInteract }) {
           request = requestAnimationFrame(tick);
           return;
         }
-        const speed = (pet.id === 'parrot' ? 85 : pet.id === 'dog' ? 58 : 42) * (action === 'play' ? 1.7 : 1);
+        if(wantsMovement&&!playbackReady.current) {
+          positionRef.current={...current,vx:0,vy:0};locomotionRef.current.moving=false;setWalking(false);
+          request=requestAnimationFrame(tick);return;
+        }
+        if (pet.id !== 'parrot' && requestedFacing !== locomotionRef.current.facing) {
+          turnRemaining.current = 800;
+          locomotionRef.current = { ...locomotionRef.current, facing: requestedFacing, moving: false };
+          setFacing(requestedFacing);setWalking(false);
+          request=requestAnimationFrame(tick);return;
+        }
+        const speed = gaitSpeedDip(pet.id, action, anchorRef.current.querySelector('.stage-pet').clientWidth);
         const moved = advanceMotion(pixels, destination, speed, dt);
         const motion = { ...moved, x: moved.x / width * 100, y: moved.y / height * 100, vx: moved.vx / width * 100, vy: moved.vy / height * 100 };
         const next = { ...motion, ...clampPosition(motion) };
@@ -179,7 +192,7 @@ function Stage({ pet, state, speech, onInteract }) {
         if (moving && Math.abs(next.vx) > .4) setFacing(next.vx < 0 ? -1 : 1);
         const dx = (next.x - current.x) * width / 100, dy = (next.y - current.y) * height / 100;
         locomotionRef.current = { ...locomotionRef.current, distanceDip: locomotionRef.current.distanceDip + (pet.id === 'parrot' ? Math.hypot(dx, dy) : Math.abs(dx)),
-          spriteSizeDip: anchorRef.current.querySelector('.stage-pet').clientWidth, moving, dragging: false, facing: Math.abs(next.vx) > .4 ? next.vx < 0 ? -1 : 1 : locomotionRef.current.facing };
+          spriteSizeDip: anchorRef.current.querySelector('.stage-pet').clientWidth, moving, intentMoving: moving, dragging: false, facing: Math.abs(next.vx) > .4 ? next.vx < 0 ? -1 : 1 : locomotionRef.current.facing };
         positionRef.current = next;
         setPosition({ x: next.x, y: next.y });
         setWalking(moving);
@@ -194,7 +207,7 @@ function Stage({ pet, state, speech, onInteract }) {
     return clampPosition({ x: (event.clientX - rect.left - stageRef.current.clientLeft) / stageRef.current.clientWidth * 100, y: (event.clientY - rect.top - stageRef.current.clientTop) / stageRef.current.clientHeight * 100 });
   }
   function move(event) {
-    if (drag.current) { const next = point(event); setPosition(next); positionRef.current = { ...next, vx: 0, vy: 0 }; target.current = next; locomotionRef.current = { ...locomotionRef.current, epoch: locomotionRef.current.epoch + 1, distanceDip: 0, dragging: true, moving: false }; }
+    if (drag.current) { const next = point(event); setPosition(next); positionRef.current = { ...next, vx: 0, vy: 0 }; target.current = next; locomotionRef.current = { ...locomotionRef.current, epoch: locomotionRef.current.epoch + 1, distanceDip: 0, dragging: true, moving: false, intentMoving: false }; }
     else if (action === 'play' && !state.settings.paused && !reducedMotion) { const next = point(event); setToy(next); target.current = pet.id === 'parrot' ? next : { x: next.x, y: positionRef.current.y }; }
   }
   return <div ref={stageRef} style={{ '--stage-pet-size': `${210 * state.settings.size}px` }} className={`desktop-stage ${state.settings.movement === 'edge' ? 'edge-mode' : ''}`} onPointerMove={move}>
@@ -206,7 +219,7 @@ function Stage({ pet, state, speech, onInteract }) {
     <div ref={anchorRef} className="stage-pet-anchor" style={{ left: `${position.x}%`, top: `${position.y}%` }}>
       {(speech || action === 'rest') && <div className="speech-bubble" role="status">{speech || 'Z z z …'}{action === 'pet' && <Heart size={14} fill="currentColor" />}</div>}
       <div className="pet-shadow" />
-      <Pet pet={pet} size={210 * state.settings.size} locomotionRef={locomotionRef} walking={walking && !dragging} facing={facing} action={action} paused={state.settings.paused || dragging} actionStartedAt={state.lastInteraction} className="stage-pet" tabIndex={0} aria-label={`抚摸${state.name || pet.defaultName}`} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onInteract('pet'); } }} onDoubleClick={() => onInteract('pet')} onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); drag.current = { x: event.clientX, y: event.clientY }; setDragging(true); setWalking(false); }} onPointerUp={event => { if (drag.current && Math.hypot(event.clientX - drag.current.x, event.clientY - drag.current.y) < 7) onInteract('pet'); drag.current = null; setDragging(false); locomotionRef.current = { ...locomotionRef.current, dragging: false }; event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={() => { drag.current = null; setDragging(false); locomotionRef.current = { ...locomotionRef.current, dragging: false }; }} />
+      <Pet pet={pet} size={210 * state.settings.size} locomotionRef={locomotionRef} onPlaybackReady={packet => { playbackReady.current=packet.ready; }} walking={walking && !dragging} facing={facing} action={action} paused={state.settings.paused || dragging} actionStartedAt={state.lastInteraction} className="stage-pet" tabIndex={0} aria-label={`抚摸${state.name || pet.defaultName}`} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onInteract('pet'); } }} onDoubleClick={() => onInteract('pet')} onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); drag.current = { x: event.clientX, y: event.clientY }; setDragging(true); setWalking(false); }} onPointerUp={event => { if (drag.current && Math.hypot(event.clientX - drag.current.x, event.clientY - drag.current.y) < 7) onInteract('pet'); drag.current = null; setDragging(false); locomotionRef.current = { ...locomotionRef.current, dragging: false }; event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={() => { drag.current = null; setDragging(false); locomotionRef.current = { ...locomotionRef.current, dragging: false }; }} />
       <div className="stage-name">{state.name || pet.defaultName}<span>{state.adopted ? '你的伙伴' : '等待领养'}</span></div>
     </div>
     {action === 'play' && <div className={`stage-toy toy-${pet.id}`} style={{ left: `${toy.x}%`, top: `${toy.y}%` }}>{pet.id === 'cat' ? '〰' : pet.id === 'parrot' ? <Sparkles size={24} /> : <Circle size={28} fill="#f2a9b8" />}</div>}
@@ -219,6 +232,7 @@ function PetOverlay({ state, dispatch }) {
   const pet = PETS.find(item => item.id === state.species) || PETS[0];
   const spriteRef = useRef(null), toolbarRef = useRef(null);
   const locomotionRef = useRef(state.motion || {});
+  const motionPaintRef = useRef(null);
   const reducedMotion = useReducedMotion();
   const [speech, setSpeech] = useState('');
   const [toolbar, setToolbar] = useState(false);
@@ -226,7 +240,10 @@ function PetOverlay({ state, dispatch }) {
   const drag = useRef(null);
   const speechTimer = useRef(null);
   const action = state.action?.until > Date.now() ? state.action.type : 'idle';
-  useEffect(() => bridge.onMotion(motion => { locomotionRef.current = motion; }), []);
+  useEffect(() => bridge.onMotion(motion => {
+    locomotionRef.current = motion;
+    motionPaintRef.current?.();
+  }), []);
   useEffect(() => {
     if (state.motion && (state.motion.epoch !== locomotionRef.current.epoch || state.motion.distanceDip >= (locomotionRef.current.distanceDip || 0))) locomotionRef.current = state.motion;
   }, [state.motion]);
@@ -264,7 +281,7 @@ function PetOverlay({ state, dispatch }) {
     {speech && <div className="overlay-speech" role="status">{speech}</div>}
     <div ref={spriteRef} className="overlay-sprite-box">
       {pet.id !== 'parrot' && <div className="overlay-ground-shadow" />}
-      <Pet pet={pet} size="100%" locomotionRef={locomotionRef} action={action} paused={state.settings.paused || dragging || state.motion?.dragging} actionStartedAt={state.lastInteraction} walking={Boolean(state.motion?.moving) && !state.settings.paused && !dragging && (action === 'idle' || action === 'play') && !state.motion?.dragging} facing={state.motion?.facing === -1 ? -1 : 1} className="overlay-sprite" tabIndex={0} aria-label={`抚摸${state.name}`} onKeyDown={event => { if (event.key === 'Enter') interact('pet'); }} onDoubleClick={() => interact('pet')} onContextMenu={event => { event.preventDefault(); setToolbar(value => !value); }} onPointerDown={event => { if (event.button !== 0) return; drag.current = { x: event.clientX, y: event.clientY, active: false }; setDragging(true); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (!drag.current) return; if (!drag.current.active && Math.hypot(event.clientX - drag.current.x, event.clientY - drag.current.y) > 4) { drag.current.active = true; bridge.beginDrag(); } }} onPointerUp={event => { if (drag.current?.active) bridge.endDrag(); else if (drag.current) interact('pet'); drag.current = null; setDragging(false); event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={() => { bridge.endDrag(); drag.current = null; setDragging(false); }} />
+      <Pet pet={pet} size="100%" locomotionRef={locomotionRef} motionPaintRef={motionPaintRef} onPlaybackReady={packet => bridge.setPlaybackReady(packet).catch(() => {})} action={action} paused={state.settings.paused || dragging || state.motion?.dragging} actionStartedAt={state.lastInteraction} walking={Boolean(state.motion?.moving) && !state.settings.paused && !dragging && (action === 'idle' || action === 'play') && !state.motion?.dragging} facing={state.motion?.facing === -1 ? -1 : 1} className="overlay-sprite" tabIndex={0} aria-label={`抚摸${state.name}`} onKeyDown={event => { if (event.key === 'Enter') interact('pet'); }} onDoubleClick={() => interact('pet')} onContextMenu={event => { event.preventDefault(); setToolbar(value => !value); }} onPointerDown={event => { if (event.button !== 0) return; drag.current = { x: event.clientX, y: event.clientY, active: false }; setDragging(true); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (!drag.current) return; if (!drag.current.active && Math.hypot(event.clientX - drag.current.x, event.clientY - drag.current.y) > 4) { drag.current.active = true; bridge.beginDrag(); } }} onPointerUp={event => { if (drag.current?.active) bridge.endDrag(); else if (drag.current) interact('pet'); drag.current = null; setDragging(false); event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={() => { bridge.endDrag(); drag.current = null; setDragging(false); }} />
     </div>
     <div ref={toolbarRef} className={`overlay-toolbar ${toolbar ? 'visible' : ''}`} aria-label="伙伴互动">
       {actions.map(({ id, label, icon: Icon }) => <button key={id} title={label} aria-label={label} onClick={() => interact(id)}><Icon size={16} /></button>)}
@@ -316,7 +333,7 @@ export default function App() {
       <div className="sidebar-section">你的陪伴空间</div>
       <nav aria-label="主导航"><button className={nav === 'home' ? 'active' : ''} onClick={() => navigate('home')}><Home size={18} />我的小伙伴<ChevronRight size={14} /></button><button className={nav === 'settings' ? 'active' : ''} onClick={() => navigate('settings')}><Settings2 size={18} />桌面设置</button></nav>
       <div className="sidebar-note"><div className="tiny-paws"><PawPrint size={17} /><PawPrint size={13} /></div><p>忙碌的日子里，<br />也有一份小小的陪伴。</p><span>A little friend. A lot of joy.</span></div>
-      <div className="sidebar-bottom"><span className="local-indicator"><i />陪伴留在这台电脑</span><span className="version">PawPal · v0.3.5</span></div>
+      <div className="sidebar-bottom"><span className="local-indicator"><i />陪伴留在这台电脑</span><span className="version">PawPal · v0.4.4</span></div>
     </aside>
     <main className="main-content">
       <header className="page-header"><div><div className="eyebrow">YOUR LITTLE COMPANION</div><h1>让桌面，多一点可爱<span className="headline-star">✳</span></h1><p>选一位小伙伴，让它陪你工作、发呆，和度过每个小日子。</p></div><span className={`environment-badge ${bridge.isDesktop ? 'desktop' : ''}`}><Monitor size={14} />{bridge.isDesktop ? '桌面模式' : '浏览器预览'}</span></header>

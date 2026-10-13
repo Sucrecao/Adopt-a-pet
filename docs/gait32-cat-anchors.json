@@ -1,0 +1,1511 @@
+{
+  "cat": {
+    "asset": "pets/cat-whole-v3-gait.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "columns": 8,
+    "rows": 4,
+    "sha256": "da8c790d8bdce190169a45e9af87cd55bcd30c246873c85c1dc41816205add55",
+    "method": "Near-eye landmark is the centroid of the larger leftmost dark pupil/iris component (RGB channels <90, alpha >180) in the verified face ROI. Foot baseline is the last lower-body row with >=8 opaque pixels (alpha >=160), plus one. All coordinates are global source pixels.",
+    "gaitEyes": {
+      "96": [
+        174.315,
+        126.13
+      ],
+      "97": [
+        395.383,
+        128.447
+      ],
+      "98": [
+        615.328,
+        128.803
+      ],
+      "99": [
+        835.585,
+        128.547
+      ],
+      "100": [
+        1057.255,
+        128.882
+      ],
+      "101": [
+        1279.857,
+        127.49
+      ],
+      "102": [
+        1501.164,
+        128.115
+      ],
+      "103": [
+        1716.891,
+        126.218
+      ],
+      "104": [
+        172.741,
+        316.983
+      ],
+      "105": [
+        394.911,
+        316.393
+      ],
+      "106": [
+        616.221,
+        316.61
+      ],
+      "107": [
+        837.806,
+        315.448
+      ],
+      "108": [
+        1059.939,
+        317.204
+      ],
+      "109": [
+        1282.904,
+        316.827
+      ],
+      "110": [
+        1506.123,
+        317.86
+      ],
+      "111": [
+        1723.635,
+        317.269
+      ],
+      "112": [
+        176.571,
+        526.976
+      ],
+      "113": [
+        395.28,
+        527.2
+      ],
+      "114": [
+        618.792,
+        527.792
+      ],
+      "115": [
+        841.269,
+        527.096
+      ],
+      "116": [
+        1059.566,
+        527.925
+      ],
+      "117": [
+        1282.885,
+        527.904
+      ],
+      "118": [
+        1504.6,
+        528.236
+      ],
+      "119": [
+        1721.121,
+        527.727
+      ],
+      "120": [
+        172.328,
+        724.052
+      ],
+      "121": [
+        395.222,
+        723.741
+      ],
+      "122": [
+        616.85,
+        723.817
+      ],
+      "123": [
+        838.781,
+        723.984
+      ],
+      "124": [
+        1060.209,
+        723.279
+      ],
+      "125": [
+        1280.556,
+        723.444
+      ],
+      "126": [
+        1502.233,
+        725.233
+      ],
+      "127": [
+        1721.836,
+        723.345
+      ]
+    },
+    "gaitFarEyes": {
+      "96": [
+        193.765,
+        125.618
+      ],
+      "97": [
+        414.571,
+        127.629
+      ],
+      "98": [
+        636.0,
+        126.806
+      ],
+      "99": [
+        855.969,
+        127.625
+      ],
+      "100": [
+        1078.364,
+        126.545
+      ],
+      "101": [
+        1300.111,
+        126.139
+      ],
+      "102": [
+        1521.576,
+        126.333
+      ],
+      "103": [
+        1736.788,
+        125.788
+      ],
+      "104": [
+        192.371,
+        314.943
+      ],
+      "105": [
+        414.939,
+        315.303
+      ],
+      "106": [
+        636.312,
+        314.562
+      ],
+      "107": [
+        858.0,
+        314.516
+      ],
+      "108": [
+        1079.65,
+        316.425
+      ],
+      "109": [
+        1302.226,
+        315.71
+      ],
+      "110": [
+        1524.235,
+        316.382
+      ],
+      "111": [
+        1743.148,
+        315.407
+      ],
+      "112": [
+        195.486,
+        526.343
+      ],
+      "113": [
+        415.341,
+        526.146
+      ],
+      "114": [
+        638.029,
+        526.265
+      ],
+      "115": [
+        860.5,
+        525.5
+      ],
+      "116": [
+        1080.31,
+        527.429
+      ],
+      "117": [
+        1303.0,
+        526.806
+      ],
+      "118": [
+        1524.686,
+        527.457
+      ],
+      "119": [
+        1741.486,
+        526.286
+      ],
+      "120": [
+        192.567,
+        721.133
+      ],
+      "121": [
+        415.0,
+        721.588
+      ],
+      "122": [
+        636.628,
+        722.186
+      ],
+      "123": [
+        858.395,
+        722.047
+      ],
+      "124": [
+        1079.824,
+        722.412
+      ],
+      "125": [
+        1301.655,
+        721.379
+      ],
+      "126": [
+        1521.914,
+        722.743
+      ],
+      "127": [
+        1741.441,
+        721.353
+      ]
+    },
+    "gaitFootY": {
+      "96": 215,
+      "97": 217,
+      "98": 216,
+      "99": 217,
+      "100": 216,
+      "101": 216,
+      "102": 216,
+      "103": 216,
+      "104": 404,
+      "105": 410,
+      "106": 406,
+      "107": 406,
+      "108": 411,
+      "109": 405,
+      "110": 411,
+      "111": 411,
+      "112": 614,
+      "113": 616,
+      "114": 619,
+      "115": 620,
+      "116": 620,
+      "117": 620,
+      "118": 620,
+      "119": 620,
+      "120": 809,
+      "121": 815,
+      "122": 816,
+      "123": 814,
+      "124": 815,
+      "125": 815,
+      "126": 815,
+      "127": 814
+    },
+    "frames": [
+      {
+        "localFrame": 0,
+        "globalFrame": 96,
+        "contour": [
+          50,
+          88,
+          206,
+          216
+        ],
+        "cropSuggestion": [
+          47,
+          85,
+          162,
+          134
+        ],
+        "nearEye": [
+          174.315,
+          126.13
+        ],
+        "farEye": [
+          193.765,
+          125.618
+        ],
+        "supportFootBaselineY": 215,
+        "nearEyeDarkBounds": [
+          170,
+          122,
+          179,
+          131
+        ],
+        "nearEyePixels": 54,
+        "supportHindFootBaselineY": 208,
+        "rawLowestPawGroundedEyeY": 108.9240510366826,
+        "suggestedTargetEyeY": 108.514041
+      },
+      {
+        "localFrame": 1,
+        "globalFrame": 97,
+        "contour": [
+          270,
+          89,
+          427,
+          218
+        ],
+        "cropSuggestion": [
+          267,
+          86,
+          163,
+          135
+        ],
+        "nearEye": [
+          395.383,
+          128.447
+        ],
+        "farEye": [
+          414.571,
+          127.629
+        ],
+        "supportFootBaselineY": 217,
+        "nearEyeDarkBounds": [
+          391,
+          125,
+          400,
+          133
+        ],
+        "nearEyePixels": 47,
+        "supportHindFootBaselineY": 210,
+        "rawLowestPawGroundedEyeY": 109.34166188197766,
+        "suggestedTargetEyeY": 108.725547
+      },
+      {
+        "localFrame": 2,
+        "globalFrame": 98,
+        "contour": [
+          494,
+          89,
+          647,
+          217
+        ],
+        "cropSuggestion": [
+          491,
+          86,
+          159,
+          134
+        ],
+        "nearEye": [
+          615.328,
+          128.803
+        ],
+        "farEye": [
+          636.0,
+          126.806
+        ],
+        "supportFootBaselineY": 216,
+        "nearEyeDarkBounds": [
+          611,
+          125,
+          621,
+          134
+        ],
+        "nearEyePixels": 61,
+        "supportHindFootBaselineY": 209,
+        "rawLowestPawGroundedEyeY": 111.12803508771928,
+        "suggestedTargetEyeY": 108.967353
+      },
+      {
+        "localFrame": 3,
+        "globalFrame": 99,
+        "contour": [
+          713,
+          88,
+          869,
+          218
+        ],
+        "cropSuggestion": [
+          710,
+          85,
+          162,
+          136
+        ],
+        "nearEye": [
+          835.585,
+          128.547
+        ],
+        "farEye": [
+          855.969,
+          127.625
+        ],
+        "supportFootBaselineY": 217,
+        "nearEyeDarkBounds": [
+          831,
+          125,
+          841,
+          133
+        ],
+        "nearEyePixels": 53,
+        "supportHindFootBaselineY": 209,
+        "rawLowestPawGroundedEyeY": 109.47340031897924,
+        "suggestedTargetEyeY": 108.966365
+      },
+      {
+        "localFrame": 4,
+        "globalFrame": 100,
+        "contour": [
+          933,
+          88,
+          1091,
+          217
+        ],
+        "cropSuggestion": [
+          930,
+          85,
+          164,
+          135
+        ],
+        "nearEye": [
+          1057.255,
+          128.882
+        ],
+        "farEye": [
+          1078.364,
+          126.545
+        ],
+        "supportFootBaselineY": 216,
+        "nearEyeDarkBounds": [
+          1054,
+          125,
+          1062,
+          134
+        ],
+        "nearEyePixels": 51,
+        "supportHindFootBaselineY": 208,
+        "rawLowestPawGroundedEyeY": 111.23210845295056,
+        "suggestedTargetEyeY": 109.205997
+      },
+      {
+        "localFrame": 5,
+        "globalFrame": 101,
+        "contour": [
+          1156,
+          88,
+          1312,
+          217
+        ],
+        "cropSuggestion": [
+          1153,
+          85,
+          162,
+          135
+        ],
+        "nearEye": [
+          1279.857,
+          127.49
+        ],
+        "farEye": [
+          1300.111,
+          126.139
+        ],
+        "supportFootBaselineY": 216,
+        "nearEyeDarkBounds": [
+          1276,
+          124,
+          1285,
+          132
+        ],
+        "nearEyePixels": 49,
+        "supportHindFootBaselineY": 209,
+        "rawLowestPawGroundedEyeY": 109.39830940988834,
+        "suggestedTargetEyeY": 108.893975
+      },
+      {
+        "localFrame": 6,
+        "globalFrame": 102,
+        "contour": [
+          1377,
+          88,
+          1533,
+          217
+        ],
+        "cropSuggestion": [
+          1374,
+          85,
+          162,
+          135
+        ],
+        "nearEye": [
+          1501.164,
+          128.115
+        ],
+        "farEye": [
+          1521.576,
+          126.333
+        ],
+        "supportFootBaselineY": 216,
+        "nearEyeDarkBounds": [
+          1497,
+          124,
+          1506,
+          133
+        ],
+        "nearEyePixels": 61,
+        "supportHindFootBaselineY": 209,
+        "rawLowestPawGroundedEyeY": 110.22167464114833,
+        "suggestedTargetEyeY": 108.838842
+      },
+      {
+        "localFrame": 7,
+        "globalFrame": 103,
+        "contour": [
+          1596,
+          88,
+          1748,
+          217
+        ],
+        "cropSuggestion": [
+          1593,
+          85,
+          158,
+          135
+        ],
+        "nearEye": [
+          1716.891,
+          126.218
+        ],
+        "farEye": [
+          1736.788,
+          125.788
+        ],
+        "supportFootBaselineY": 216,
+        "nearEyeDarkBounds": [
+          1711,
+          123,
+          1722,
+          131
+        ],
+        "nearEyePixels": 55,
+        "supportHindFootBaselineY": 208,
+        "rawLowestPawGroundedEyeY": 107.72259649122806,
+        "suggestedTargetEyeY": 108.617851
+      },
+      {
+        "localFrame": 8,
+        "globalFrame": 104,
+        "contour": [
+          51,
+          276,
+          204,
+          406
+        ],
+        "cropSuggestion": [
+          48,
+          273,
+          159,
+          136
+        ],
+        "nearEye": [
+          172.741,
+          316.983
+        ],
+        "farEye": [
+          192.371,
+          314.943
+        ],
+        "supportFootBaselineY": 404,
+        "nearEyeDarkBounds": [
+          168,
+          313,
+          178,
+          322
+        ],
+        "nearEyePixels": 58,
+        "supportHindFootBaselineY": 398,
+        "rawLowestPawGroundedEyeY": 111.36516427432217,
+        "suggestedTargetEyeY": 108.265912
+      },
+      {
+        "localFrame": 9,
+        "globalFrame": 105,
+        "contour": [
+          272,
+          276,
+          426,
+          411
+        ],
+        "cropSuggestion": [
+          269,
+          273,
+          160,
+          141
+        ],
+        "nearEye": [
+          394.911,
+          316.393
+        ],
+        "farEye": [
+          414.939,
+          315.303
+        ],
+        "supportFootBaselineY": 410,
+        "nearEyeDarkBounds": [
+          389,
+          313,
+          400,
+          322
+        ],
+        "nearEyePixels": 56,
+        "supportHindFootBaselineY": 398,
+        "rawLowestPawGroundedEyeY": 102.68360127591701,
+        "suggestedTargetEyeY": 108.19642
+      },
+      {
+        "localFrame": 10,
+        "globalFrame": 106,
+        "contour": [
+          494,
+          275,
+          648,
+          407
+        ],
+        "cropSuggestion": [
+          491,
+          272,
+          160,
+          138
+        ],
+        "nearEye": [
+          616.221,
+          316.61
+        ],
+        "farEye": [
+          636.312,
+          314.562
+        ],
+        "supportFootBaselineY": 406,
+        "nearEyeDarkBounds": [
+          610,
+          312,
+          622,
+          322
+        ],
+        "nearEyePixels": 77,
+        "supportHindFootBaselineY": 400,
+        "rawLowestPawGroundedEyeY": 108.23901116427433,
+        "suggestedTargetEyeY": 107.891445
+      },
+      {
+        "localFrame": 11,
+        "globalFrame": 107,
+        "contour": [
+          716,
+          275,
+          869,
+          407
+        ],
+        "cropSuggestion": [
+          713,
+          272,
+          159,
+          138
+        ],
+        "nearEye": [
+          837.806,
+          315.448
+        ],
+        "farEye": [
+          858.0,
+          314.516
+        ],
+        "supportFootBaselineY": 406,
+        "nearEyeDarkBounds": [
+          831,
+          312,
+          844,
+          320
+        ],
+        "nearEyePixels": 67,
+        "supportHindFootBaselineY": 400,
+        "rawLowestPawGroundedEyeY": 106.70821052631575,
+        "suggestedTargetEyeY": 107.506374
+      },
+      {
+        "localFrame": 12,
+        "globalFrame": 108,
+        "contour": [
+          934,
+          276,
+          1091,
+          411
+        ],
+        "cropSuggestion": [
+          931,
+          273,
+          163,
+          141
+        ],
+        "nearEye": [
+          1059.939,
+          317.204
+        ],
+        "farEye": [
+          1079.65,
+          316.425
+        ],
+        "supportFootBaselineY": 411,
+        "nearEyeDarkBounds": [
+          1055,
+          314,
+          1065,
+          323
+        ],
+        "nearEyePixels": 49,
+        "supportHindFootBaselineY": 400,
+        "rawLowestPawGroundedEyeY": 102.43461562998405,
+        "suggestedTargetEyeY": 107.688041
+      },
+      {
+        "localFrame": 13,
+        "globalFrame": 109,
+        "contour": [
+          1155,
+          276,
+          1313,
+          406
+        ],
+        "cropSuggestion": [
+          1152,
+          273,
+          164,
+          136
+        ],
+        "nearEye": [
+          1282.904,
+          316.827
+        ],
+        "farEye": [
+          1302.226,
+          315.71
+        ],
+        "supportFootBaselineY": 405,
+        "nearEyeDarkBounds": [
+          1279,
+          313,
+          1287,
+          322
+        ],
+        "nearEyePixels": 52,
+        "supportHindFootBaselineY": 400,
+        "rawLowestPawGroundedEyeY": 109.84226794258372,
+        "suggestedTargetEyeY": 107.570597
+      },
+      {
+        "localFrame": 14,
+        "globalFrame": 110,
+        "contour": [
+          1376,
+          276,
+          1535,
+          412
+        ],
+        "cropSuggestion": [
+          1373,
+          273,
+          165,
+          142
+        ],
+        "nearEye": [
+          1506.123,
+          317.86
+        ],
+        "farEye": [
+          1524.235,
+          316.382
+        ],
+        "supportFootBaselineY": 411,
+        "nearEyeDarkBounds": [
+          1502,
+          314,
+          1511,
+          323
+        ],
+        "nearEyePixels": 57,
+        "supportHindFootBaselineY": 401,
+        "rawLowestPawGroundedEyeY": 103.29881977671452,
+        "suggestedTargetEyeY": 107.728617
+      },
+      {
+        "localFrame": 15,
+        "globalFrame": 111,
+        "contour": [
+          1597,
+          276,
+          1754,
+          412
+        ],
+        "cropSuggestion": [
+          1594,
+          273,
+          163,
+          142
+        ],
+        "nearEye": [
+          1723.635,
+          317.269
+        ],
+        "farEye": [
+          1743.148,
+          315.407
+        ],
+        "supportFootBaselineY": 411,
+        "nearEyeDarkBounds": [
+          1718,
+          314,
+          1730,
+          322
+        ],
+        "nearEyePixels": 52,
+        "supportHindFootBaselineY": 402,
+        "rawLowestPawGroundedEyeY": 102.52024561403508,
+        "suggestedTargetEyeY": 107.497152
+      },
+      {
+        "localFrame": 16,
+        "globalFrame": 112,
+        "contour": [
+          51,
+          487,
+          206,
+          615
+        ],
+        "cropSuggestion": [
+          48,
+          484,
+          161,
+          134
+        ],
+        "nearEye": [
+          176.571,
+          526.976
+        ],
+        "farEye": [
+          195.486,
+          526.343
+        ],
+        "supportFootBaselineY": 614,
+        "nearEyeDarkBounds": [
+          172,
+          524,
+          181,
+          531
+        ],
+        "nearEyePixels": 42,
+        "supportHindFootBaselineY": 607,
+        "rawLowestPawGroundedEyeY": 111.35594258373204,
+        "suggestedTargetEyeY": 107.396834
+      },
+      {
+        "localFrame": 17,
+        "globalFrame": 113,
+        "contour": [
+          273,
+          487,
+          426,
+          617
+        ],
+        "cropSuggestion": [
+          270,
+          484,
+          159,
+          136
+        ],
+        "nearEye": [
+          395.28,
+          527.2
+        ],
+        "farEye": [
+          415.341,
+          526.146
+        ],
+        "supportFootBaselineY": 616,
+        "nearEyeDarkBounds": [
+          390,
+          524,
+          400,
+          532
+        ],
+        "nearEyePixels": 50,
+        "supportHindFootBaselineY": 609,
+        "rawLowestPawGroundedEyeY": 109.01626794258378,
+        "suggestedTargetEyeY": 107.508811
+      },
+      {
+        "localFrame": 18,
+        "globalFrame": 114,
+        "contour": [
+          494,
+          486,
+          648,
+          620
+        ],
+        "cropSuggestion": [
+          491,
+          483,
+          160,
+          140
+        ],
+        "nearEye": [
+          618.792,
+          527.792
+        ],
+        "farEye": [
+          638.029,
+          526.265
+        ],
+        "supportFootBaselineY": 619,
+        "nearEyeDarkBounds": [
+          615,
+          524,
+          624,
+          533
+        ],
+        "nearEyePixels": 53,
+        "supportHindFootBaselineY": 613,
+        "rawLowestPawGroundedEyeY": 105.84400637958535,
+        "suggestedTargetEyeY": 107.272275
+      },
+      {
+        "localFrame": 19,
+        "globalFrame": 115,
+        "contour": [
+          719,
+          486,
+          871,
+          621
+        ],
+        "cropSuggestion": [
+          716,
+          483,
+          158,
+          141
+        ],
+        "nearEye": [
+          841.269,
+          527.096
+        ],
+        "farEye": [
+          860.5,
+          525.5
+        ],
+        "supportFootBaselineY": 620,
+        "nearEyeDarkBounds": [
+          837,
+          523,
+          846,
+          533
+        ],
+        "nearEyePixels": 52,
+        "supportHindFootBaselineY": 610,
+        "rawLowestPawGroundedEyeY": 103.60972248803827,
+        "suggestedTargetEyeY": 107.329383
+      },
+      {
+        "localFrame": 20,
+        "globalFrame": 116,
+        "contour": [
+          936,
+          487,
+          1092,
+          621
+        ],
+        "cropSuggestion": [
+          933,
+          484,
+          162,
+          140
+        ],
+        "nearEye": [
+          1059.566,
+          527.925
+        ],
+        "farEye": [
+          1080.31,
+          527.429
+        ],
+        "supportFootBaselineY": 620,
+        "nearEyeDarkBounds": [
+          1054,
+          525,
+          1065,
+          532
+        ],
+        "nearEyePixels": 53,
+        "supportHindFootBaselineY": 612,
+        "rawLowestPawGroundedEyeY": 104.70183413078142,
+        "suggestedTargetEyeY": 107.907913
+      },
+      {
+        "localFrame": 21,
+        "globalFrame": 117,
+        "contour": [
+          1159,
+          487,
+          1314,
+          621
+        ],
+        "cropSuggestion": [
+          1156,
+          484,
+          161,
+          140
+        ],
+        "nearEye": [
+          1282.885,
+          527.904
+        ],
+        "farEye": [
+          1303.0,
+          526.806
+        ],
+        "supportFootBaselineY": 620,
+        "nearEyeDarkBounds": [
+          1278,
+          524,
+          1288,
+          533
+        ],
+        "nearEyePixels": 52,
+        "supportHindFootBaselineY": 611,
+        "rawLowestPawGroundedEyeY": 104.67416905901115,
+        "suggestedTargetEyeY": 107.628957
+      },
+      {
+        "localFrame": 22,
+        "globalFrame": 118,
+        "contour": [
+          1378,
+          487,
+          1535,
+          621
+        ],
+        "cropSuggestion": [
+          1375,
+          484,
+          163,
+          140
+        ],
+        "nearEye": [
+          1504.6,
+          528.236
+        ],
+        "farEye": [
+          1524.686,
+          527.457
+        ],
+        "supportFootBaselineY": 620,
+        "nearEyeDarkBounds": [
+          1499,
+          525,
+          1510,
+          533
+        ],
+        "nearEyePixels": 55,
+        "supportHindFootBaselineY": 611,
+        "rawLowestPawGroundedEyeY": 105.11154066985644,
+        "suggestedTargetEyeY": 107.406121
+      },
+      {
+        "localFrame": 23,
+        "globalFrame": 119,
+        "contour": [
+          1597,
+          486,
+          1752,
+          621
+        ],
+        "cropSuggestion": [
+          1594,
+          483,
+          161,
+          141
+        ],
+        "nearEye": [
+          1721.121,
+          527.727
+        ],
+        "farEye": [
+          1741.486,
+          526.286
+        ],
+        "supportFootBaselineY": 620,
+        "nearEyeDarkBounds": [
+          1716,
+          524,
+          1727,
+          533
+        ],
+        "nearEyePixels": 66,
+        "supportHindFootBaselineY": 610,
+        "rawLowestPawGroundedEyeY": 104.4409920255183,
+        "suggestedTargetEyeY": 107.484637
+      },
+      {
+        "localFrame": 24,
+        "globalFrame": 120,
+        "contour": [
+          50,
+          683,
+          204,
+          810
+        ],
+        "cropSuggestion": [
+          47,
+          680,
+          160,
+          133
+        ],
+        "nearEye": [
+          172.328,
+          724.052
+        ],
+        "farEye": [
+          192.567,
+          721.133
+        ],
+        "supportFootBaselineY": 809,
+        "nearEyeDarkBounds": [
+          168,
+          720,
+          178,
+          729
+        ],
+        "nearEyePixels": 58,
+        "supportHindFootBaselineY": 803,
+        "rawLowestPawGroundedEyeY": 114.09083253588518,
+        "suggestedTargetEyeY": 107.56256
+      },
+      {
+        "localFrame": 25,
+        "globalFrame": 121,
+        "contour": [
+          270,
+          683,
+          426,
+          816
+        ],
+        "cropSuggestion": [
+          267,
+          680,
+          162,
+          139
+        ],
+        "nearEye": [
+          395.222,
+          723.741
+        ],
+        "farEye": [
+          415.0,
+          721.588
+        ],
+        "supportFootBaselineY": 815,
+        "nearEyeDarkBounds": [
+          391,
+          720,
+          400,
+          729
+        ],
+        "nearEyePixels": 54,
+        "supportHindFootBaselineY": 805,
+        "rawLowestPawGroundedEyeY": 105.77681977671448,
+        "suggestedTargetEyeY": 107.596747
+      },
+      {
+        "localFrame": 26,
+        "globalFrame": 122,
+        "contour": [
+          494,
+          683,
+          648,
+          817
+        ],
+        "cropSuggestion": [
+          491,
+          680,
+          160,
+          140
+        ],
+        "nearEye": [
+          616.85,
+          723.817
+        ],
+        "farEye": [
+          636.628,
+          722.186
+        ],
+        "supportFootBaselineY": 816,
+        "nearEyeDarkBounds": [
+          612,
+          720,
+          622,
+          729
+        ],
+        "nearEyePixels": 60,
+        "supportHindFootBaselineY": 803,
+        "rawLowestPawGroundedEyeY": 104.55955661881977,
+        "suggestedTargetEyeY": 107.750156
+      },
+      {
+        "localFrame": 27,
+        "globalFrame": 123,
+        "contour": [
+          712,
+          684,
+          870,
+          815
+        ],
+        "cropSuggestion": [
+          709,
+          681,
+          164,
+          137
+        ],
+        "nearEye": [
+          838.781,
+          723.984
+        ],
+        "farEye": [
+          858.395,
+          722.047
+        ],
+        "supportFootBaselineY": 814,
+        "nearEyeDarkBounds": [
+          834,
+          720,
+          844,
+          729
+        ],
+        "nearEyePixels": 64,
+        "supportHindFootBaselineY": 803,
+        "rawLowestPawGroundedEyeY": 107.41432854864438,
+        "suggestedTargetEyeY": 107.823205
+      },
+      {
+        "localFrame": 28,
+        "globalFrame": 124,
+        "contour": [
+          933,
+          683,
+          1091,
+          816
+        ],
+        "cropSuggestion": [
+          930,
+          680,
+          164,
+          139
+        ],
+        "nearEye": [
+          1060.209,
+          723.279
+        ],
+        "farEye": [
+          1079.824,
+          722.412
+        ],
+        "supportFootBaselineY": 815,
+        "nearEyeDarkBounds": [
+          1057,
+          720,
+          1065,
+          728
+        ],
+        "nearEyePixels": 43,
+        "supportHindFootBaselineY": 805,
+        "rawLowestPawGroundedEyeY": 105.16818819776712,
+        "suggestedTargetEyeY": 108.047358
+      },
+      {
+        "localFrame": 29,
+        "globalFrame": 125,
+        "contour": [
+          1155,
+          684,
+          1313,
+          816
+        ],
+        "cropSuggestion": [
+          1152,
+          681,
+          164,
+          138
+        ],
+        "nearEye": [
+          1280.556,
+          723.444
+        ],
+        "farEye": [
+          1301.655,
+          721.379
+        ],
+        "supportFootBaselineY": 815,
+        "nearEyeDarkBounds": [
+          1275,
+          719,
+          1286,
+          729
+        ],
+        "nearEyePixels": 63,
+        "supportHindFootBaselineY": 805,
+        "rawLowestPawGroundedEyeY": 105.3855566188197,
+        "suggestedTargetEyeY": 107.809899
+      },
+      {
+        "localFrame": 30,
+        "globalFrame": 126,
+        "contour": [
+          1376,
+          684,
+          1533,
+          816
+        ],
+        "cropSuggestion": [
+          1373,
+          681,
+          163,
+          138
+        ],
+        "nearEye": [
+          1502.233,
+          725.233
+        ],
+        "farEye": [
+          1521.914,
+          722.743
+        ],
+        "supportFootBaselineY": 815,
+        "nearEyeDarkBounds": [
+          1498,
+          721,
+          1508,
+          730
+        ],
+        "nearEyePixels": 60,
+        "supportHindFootBaselineY": 806,
+        "rawLowestPawGroundedEyeY": 107.74235725677823,
+        "suggestedTargetEyeY": 108.07746
+      },
+      {
+        "localFrame": 31,
+        "globalFrame": 127,
+        "contour": [
+          1601,
+          683,
+          1752,
+          816
+        ],
+        "cropSuggestion": [
+          1598,
+          680,
+          157,
+          139
+        ],
+        "nearEye": [
+          1721.836,
+          723.345
+        ],
+        "farEye": [
+          1741.441,
+          721.353
+        ],
+        "supportFootBaselineY": 814,
+        "nearEyeDarkBounds": [
+          1717,
+          719,
+          1727,
+          729
+        ],
+        "nearEyePixels": 55,
+        "supportHindFootBaselineY": 809,
+        "rawLowestPawGroundedEyeY": 106.57251993620417,
+        "suggestedTargetEyeY": 108.323152
+      }
+    ],
+    "registrationSuggestion": {
+      "pixelsPerSourcePixel": 1.317384370015949,
+      "pageScale": 1.1411327501993622,
+      "basis": "Match existing v2 gait median contour height 147 source px \u00d7 existing motion page factor. Apply one uniform scale to all32 frames. Use near-eye x as stable horizontal landmark; foot baseline or fixed eye y can be chosen after verifying grounded contact.",
+      "targetNearEye": [
+        184,
+        106
+      ],
+      "targetGroundY": 226,
+      "headYMethod": "Circular nine-sample mean of the lowest-paw-grounded near-eye Y; recenter at108; damp departures from cycle mean by0.45. These are whole-frame destination anchor targets, not source coordinates or anatomy edits.",
+      "headYTotalBob": 1.933722000000003,
+      "headYMaxAdjacentJump": 0.5785299999999864,
+      "groundContactLimitation": "Lowest forepaw source depth varies with generator pose anatomy. With stable smoothed eye targets it ranges about219\u2013232 logicalpx; hind-foot positions are supplied for inspection. Do not separately move, distort or blend paws to enforce another ground plane."
+    },
+    "gaitHindFootY": {
+      "96": 208,
+      "97": 210,
+      "98": 209,
+      "99": 209,
+      "100": 208,
+      "101": 209,
+      "102": 209,
+      "103": 208,
+      "104": 398,
+      "105": 398,
+      "106": 400,
+      "107": 400,
+      "108": 400,
+      "109": 400,
+      "110": 401,
+      "111": 402,
+      "112": 607,
+      "113": 609,
+      "114": 613,
+      "115": 610,
+      "116": 612,
+      "117": 611,
+      "118": 611,
+      "119": 610,
+      "120": 803,
+      "121": 805,
+      "122": 803,
+      "123": 803,
+      "124": 805,
+      "125": 805,
+      "126": 806,
+      "127": 809
+    },
+    "gaitHeadY": {
+      "96": 108.514041,
+      "97": 108.725547,
+      "98": 108.967353,
+      "99": 108.966365,
+      "100": 109.205997,
+      "101": 108.893975,
+      "102": 108.838842,
+      "103": 108.617851,
+      "104": 108.265912,
+      "105": 108.19642,
+      "106": 107.891445,
+      "107": 107.506374,
+      "108": 107.688041,
+      "109": 107.570597,
+      "110": 107.728617,
+      "111": 107.497152,
+      "112": 107.396834,
+      "113": 107.508811,
+      "114": 107.272275,
+      "115": 107.329383,
+      "116": 107.907913,
+      "117": 107.628957,
+      "118": 107.406121,
+      "119": 107.484637,
+      "120": 107.56256,
+      "121": 107.596747,
+      "122": 107.750156,
+      "123": 107.823205,
+      "124": 108.047358,
+      "125": 107.809899,
+      "126": 108.07746,
+      "127": 108.323152
+    }
+  }
+}

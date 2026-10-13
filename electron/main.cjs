@@ -5,19 +5,20 @@ const { pathToFileURL } = require('node:url');
 const { isValidCommand, isTrustedSender, isValidHitRegions, isValidPoint } = require('./security.cjs');
 
 if (process.env.PAWPAL_TEST_USER_DATA) app.setPath('userData', process.env.PAWPAL_TEST_USER_DATA);
-let panel, petWindow, tray, state, storePath, transition, normalizeState, clampWindow, chooseTarget, advanceMotion;
+let panel, petWindow, tray, state, storePath, transition, normalizeState, clampWindow, chooseTarget, advanceMotion, desktopSpriteSize, gaitSpeedDip;
 let quitting = false, hidden = false, regions = [], ignoring = null, target = null, wanderAt = 0, saveTimer;
 let dragging = null, moving = false, facing = 'right';
 let motion = null, lastMovementAt = null, turnRemainingMs = 0;
 let motionEpoch = 0, distanceDip = 0, reducedMotion = false;
+let playbackReady = true, playbackReadyKnown = false, movementWanted = false, prepareEpoch = 0;
 const timers = [];
 const devURL = !app.isPackaged ? process.env.VITE_DEV_SERVER_URL : undefined;
 const preload = path.join(__dirname, 'preload.cjs');
 
 function motionSnapshot() {
   const bounds = petWindow && !petWindow.isDestroyed() ? petWindow.getBounds() : null;
-  return { epoch: motionEpoch, distanceDip, spriteSizeDip: (bounds?.width ?? 340 * (state?.settings.size ?? 1)) * 0.76,
-    facing: facing === 'left' ? -1 : 1, moving, dragging: Boolean(dragging),
+  return { epoch: motionEpoch, distanceDip, spriteSizeDip: desktopSpriteSize(bounds?.width ?? 340 * (state?.settings.size ?? 1)),
+    facing: facing === 'left' ? -1 : 1, moving, intentMoving: movementWanted || moving, prepareEpoch, dragging: Boolean(dragging),
     paused: Boolean(state?.settings.paused || reducedMotion) };
 }
 function emitMotion() {
@@ -71,7 +72,7 @@ function resetMotion() {
   const bounds = petWindow && !petWindow.isDestroyed() ? petWindow.getBounds() : null;
   motion = bounds ? { x: bounds.x, y: bounds.y, vx: 0, vy: 0, arrived: true } : null;
   lastMovementAt = Date.now();
-  target = null; moving = false; turnRemainingMs = 0;
+  target = null; moving = false; movementWanted = false; playbackReady = true; turnRemainingMs = 0;
   motionEpoch++; distanceDip = 0;
   emitMotion();
 }
@@ -162,7 +163,7 @@ function movementTick() {
   if (['rest', 'pet', 'feed', 'stretch', 'trick'].includes(action) ||
       (action !== 'play' && hitAt(screen.getCursorScreenPoint(), bounds))) {
     motion = { ...motion, vx: 0, vy: 0 };
-    if (moving) { moving = false; emitMotion(); publish(); }
+    if (moving || movementWanted) { moving = false; movementWanted = false; emitMotion(); publish(); }
     return;
   }
   if (action === 'play') {
@@ -174,7 +175,14 @@ function movementTick() {
   const boundedTarget = clampWindow({ ...bounds, ...target }, area);
   target = { x: boundedTarget.x, y: state.species === 'parrot' ? boundedTarget.y : bounds.y };
   const dx = target.x - motion.x;
-  const speed = (state.species === 'parrot' ? 85 : state.species === 'dog' ? 58 : 42) * (action === 'play' ? 1.7 : 1);
+  const nearBehind = state.species !== 'parrot' && Math.abs(dx) <= 6
+    && dx * (facing === 'left' ? -1 : 1) <= 0;
+  const wasMovementWanted = movementWanted;
+  const wantsMovement = !nearBehind && Math.hypot(dx, state.species === 'parrot' ? target.y - motion.y : 0) > 2;
+  const newlyRequested = wantsMovement && !movementWanted;
+  movementWanted = wantsMovement;
+  if(newlyRequested && playbackReadyKnown) { prepareEpoch++; playbackReady = false; }
+  const speed = gaitSpeedDip(state.species, action, desktopSpriteSize(bounds.width));
   // Grounded turns finish their foot transfers before the root can translate.
   // Facing is the requested heading; velocity can still point the old way while braking.
   const requestedFacing = Math.abs(dx) > 6 ? (dx > 0 ? 'right' : 'left') : facing;
@@ -183,7 +191,28 @@ function movementTick() {
     const stationaryAction = ['rest', 'pet', 'feed', 'stretch', 'trick'].includes(state.action.type);
     const activeElapsed = stationaryAction && previousMovementAt < state.action.until ? 0 : elapsed;
     turnRemainingMs = Math.max(0, turnRemainingMs - activeElapsed * 1000);
-    if (turnRemainingMs) return;
+    if (turnRemainingMs) {
+      // The root stays still, but a changed chase intent must reach playback.
+      // Otherwise it can prepare another step after a cancelled turn finishes.
+      if (wasMovementWanted !== movementWanted) { emitMotion(); publish(); }
+      return;
+    }
+  }
+  if (nearBehind) {
+    // A tiny chase correction must not move the window backwards while the
+    // distance-driven feet and heading still describe a forward walk.
+    motion = { ...motion, x: bounds.x, y: bounds.y, vx: 0, vy: 0, arrived: true };
+    target = null; wanderAt = now + 4500 + Math.random() * 6500;
+    const changed = moving || wasMovementWanted;
+    moving = false; movementWanted = false;
+    if (changed) { emitMotion(); publish(); }
+    return;
+  }
+  if(wantsMovement && playbackReadyKnown && !playbackReady) {
+    motion = { ...motion, vx: 0, vy: 0 };
+    moving = false;
+    if(newlyRequested) { emitMotion(); publish(); }
+    return;
   }
   if (state.species !== 'parrot' && !turnRemainingMs && requestedFacing !== facing) {
     facing = requestedFacing; moving = false;
@@ -201,6 +230,7 @@ function movementTick() {
   const nextMoving = !motion.arrived;
   const changed = moving !== nextMoving || facing !== nextFacing;
   moving = nextMoving; facing = state.species === 'parrot' ? nextFacing : facing;
+  if(motion.arrived)movementWanted = false;
   const position = rounded({ x: motion.x, y: motion.y });
   petWindow.setPosition(position.x, position.y);
   // Count accepted native DIP travel, never the floating integrator's proposal.
@@ -244,6 +274,11 @@ function registerIPC() {
     return callback(event, ...args);
   });
   handle('companion:state', () => snapshot());
+  handle('companion:playback-ready', (event, value) => {
+    if(event.sender !== petWindow?.webContents || !value || typeof value.ready !== 'boolean'
+      || !Number.isInteger(value.epoch) || value.epoch !== prepareEpoch) return false;
+    playbackReadyKnown = true; playbackReady = value.ready; return true;
+  });
   handle('companion:reduced-motion', (_event, value) => {
     if (typeof value !== 'boolean') throw new Error('操作参数无效');
     if (reducedMotion !== value) {
@@ -260,6 +295,12 @@ function registerIPC() {
     if (previous.settings.paused !== state.settings.paused && turnRemainingMs) lastMovementAt = Date.now();
     if (command.type === 'interact' && state.lastInteraction !== previous.lastInteraction) {
       if (turnRemainingMs) { lastMovementAt = Date.now(); moving = false; emitMotion(); }
+      else if (state.species !== 'parrot' && state.action.type === 'play' && (previous.action.until <= Date.now() || ['idle','play'].includes(previous.action.type))) {
+        // Roaming and play share the current walk/first-step preparation. A
+        // new chase target does not require a zero-distance stop packet that
+        // would settle the barely lifted paw and prepare it a second time.
+        target = null;
+      }
       else resetMotion();
       wanderAt = state.action.type === 'play' ? 0 : state.action.until;
     }
@@ -299,6 +340,7 @@ else {
     ({ transition, normalizeState } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/state.js')).href));
     ({ clampWindow, chooseTarget } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/geometry.js')).href));
     ({ advanceMotion } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/motion.js')).href));
+    ({ desktopSpriteSize, gaitSpeedDip } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/gait.js')).href));
     storePath = path.join(app.getPath('userData'), 'companion.json');
     try { state = normalizeState(JSON.parse(fs.readFileSync(storePath, 'utf8'))); }
     catch { state = normalizeState(null); }

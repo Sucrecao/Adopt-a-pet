@@ -1,0 +1,2770 @@
+{
+  "version": 1,
+  "baseVersion": 4,
+  "canonicalFrameSize": 256,
+  "flowSize": 32,
+  "meshVertices": 33,
+  "opencv": "4.13.0",
+  "numpy": "2.0.2",
+  "sourcePngSha256": {
+    "public/pets/cat-cohesive-v2.png": "6cbb315f9be440ca8d40a4887174c1019b56224e1475f64b894ab13eb3a369da",
+    "public/pets/cat-head-rig.png": "ec639726b26f9b39d9d792447dfd34e7bd47a58d6a1a2748141932805935c065",
+    "public/pets/cat-limbs-v3.png": "9d340f21985b921d65f497ef20436a902c7f66867127f683ece06f2a0cc39d7b",
+    "public/pets/cat-motion.png": "190281525cc19104fc023b62586d1a5ddf27ede2deab4434c2819f7ac612c94a",
+    "public/pets/cat-rig.png": "9be1808b70db382d4ca89ce41b6496b8b38c21647a6a7e483de226cd8ed12541",
+    "public/pets/cat-whole-v1.png": "1b6e4c2d3ce8e11d9289248415e02d5cfba6ff3923e5e5898c378263b920bdb6",
+    "public/pets/cat-whole-v2-care.png": "87c23c9aef8d79331bd8e18b16d7f029bdf1990b65f9838dd5db2770086f8401",
+    "public/pets/cat-whole-v2-motion.png": "0774a3b571f0e655acd73978f009f64ef6fc1b098577cdab128faa5e6b1f4a19",
+    "public/pets/cat-whole-v3-gait.png": "da8c790d8bdce190169a45e9af87cd55bcd30c246873c85c1dc41816205add55",
+    "public/pets/cat.png": "0d978c5d45ba70bc5dbfacd7575c9f1f45cbfdbed848024d5edfe7c6072fa581",
+    "public/pets/dog-cohesive-v3.png": "94ed8e1c5bab25d040fe5b1926a656a5bc175ae0d2c87f45e63f9d655914663a",
+    "public/pets/dog-head-rig-v2.png": "5b25064f993afd20cb0beb195b69c417c1dc1e6c6f198f3dcac6cfe8a4dc5554",
+    "public/pets/dog-head-rig.png": "f95c449338e8f50d8b7affbe41662dd022f681b0becd4f2ca0d73e05ac97d9f0",
+    "public/pets/dog-motion.png": "d1ad3d760b8e6b7be973a6306a86cdba045440a168bacf6fc6998ddd82451d14",
+    "public/pets/dog-rig.png": "425ea1adb224c56b6564dc96528cbf6b697b838d66199ee7da2a1529947c36f9",
+    "public/pets/dog-whole-v1.png": "1eddc3920ae529dcfb53825e6c4db3158c35c0b5b3545595b6f50d9aac8ce964",
+    "public/pets/dog-whole-v2-care.png": "c5d8ad124e2b3088eeb039f673e4dcc014a783face1de8fea64a536644fbed4b",
+    "public/pets/dog-whole-v2-motion.png": "e7abd36dc8550ab08a5f3b7ffd70f44b6604a6904bf296395ff96b370b5b25d0",
+    "public/pets/dog-whole-v3-gait.png": "3424795b9c90d1ce12a654b3ff47cfb7174e0b615a14da94b7d21e19902e08ae",
+    "public/pets/dog.png": "99b33392e606b46850f3c31744828e1c61ffc9309ffd0ef0b1be7bd625c0c8b2",
+    "public/pets/parrot-head-rig.png": "792da589cfa5aa7d9d82fdbbd0a55b119f0050fe841a6803fdc5eee49c3f2521",
+    "public/pets/parrot-motion.png": "1e7616d8eb71e40db0256af57bdd8c88282a73b09f0a369ba7c4f583d2d2a471",
+    "public/pets/parrot-perch-rig.png": "43668009c2664f4cbd03478ea0c70e8fe3a20c76ff0f58d1801386a508d5cfea",
+    "public/pets/parrot-rig.png": "58852adce473273aeee77afc16497c3b5dd342e70733df73af46cfa8a13fa6fe",
+    "public/pets/parrot-whole-v1.png": "cfba5e1e33577a017c06a765742691a57c1247458c4f632ae35c2525b91582a6",
+    "public/pets/parrot-whole-v2-care-targeted-candidate.png": "3588d7f14b3ba281e678bf3f713efc6786f169a947034671f178f081cefafb60",
+    "public/pets/parrot-whole-v2-care.png": "3588d7f14b3ba281e678bf3f713efc6786f169a947034671f178f081cefafb60",
+    "public/pets/parrot-whole-v2-motion-targeted-candidate.png": "2dc8b44d77677c1855f6a2507d92966b4de9dbfaadfa3cec902ade3e70f51c3d",
+    "public/pets/parrot-whole-v2-motion.png": "2dc8b44d77677c1855f6a2507d92966b4de9dbfaadfa3cec902ade3e70f51c3d",
+    "public/pets/parrot-whole-v3-gait.png": "0e66eaf7f4947b72c446824659291923166e7163157b8ac9e9c9db77493977f6",
+    "public/pets/parrot.png": "b2cb56be6d2ab82eabf8ee3da3591c3366151bb2cbe3a92924871910ae9c470c",
+    "public/pets/quadruped-legs-v2.png": "cd1ac39dcafad81f1db8ddb773172dca2aa9f5ecd94890e7dd0943a06958587f"
+  },
+  "sourceV4Sha256": {
+    "scripts/generate-whole-flow.py": "8b2acabc83ccd4173f3c4cbc47c23dacb92e461ad5bec8b8622c9b0bf9eadbb4",
+    "docs/whole-flow-qa.json": "60fdff2448d7378b9f65b1b0a06b5dec6fc60702fb9236bacccec8829c249dc2",
+    "public/pets/cat-whole-v4.json": "cc3917db105a8aa8cfb1cc17ec946fd09c3a07b888edef0ca4e94be095fde617",
+    "public/pets/cat-whole-v4-flow.bin": "f30eee05121a87aa9406279a18b76d33a1e6bf837ce46c8155f03b671934c95d",
+    "public/pets/dog-whole-v4.json": "ca3c265bdb9f5440fc91f20bfc08c4d5231c5db86a0fb502bf111d01d845cfb4",
+    "public/pets/dog-whole-v4-flow.bin": "407881a1591b59e5995889c5dc415f16369acaaeecb8f33eb8f4cb424bece8bf",
+    "public/pets/parrot-whole-v4.json": "bd2f1ead59a420c32661c16f8f8fd9e731850c56152fbea60c9de7862b2a7bf9",
+    "public/pets/parrot-whole-v4-flow.bin": "d6704dba7ffa68bb0b3897e2d5b9953a1aec037ebc2b698a23d68d197dca40cf"
+  },
+  "visualAcceptance": {
+    "acceptedNewPairs": 61,
+    "rejectedSourcePairs": 7,
+    "status": "all stored new fields independently accepted; rejected optional ports use intact source frames"
+  },
+  "foldValidation": "Analytic minimum over all t in[0,1] of quantized33x33 foreground triangles",
+  "species": {
+    "cat": {
+      "copiedPairCount": 73,
+      "pairCount": 93,
+      "binaryBytes": 380928,
+      "binarySha256": "7fc546b4bacc09f03a450999c9ad82b4dea691e4aa3ef5a9c69310e44a608a99",
+      "newPairs": [
+        {
+          "pair": [
+            0,
+            48
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.118597,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9793096780776978
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 24,
+              "medianPx": 0.9785155057907104
+            },
+            {
+              "inliers": 20,
+              "medianPx": 0.9793096780776978
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.75
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8212890625
+            }
+          ],
+          "maxDisplacementComponentPx": 8.149256706237793,
+          "clippedComponents": 0,
+          "candidateTileSha256": "6e667fe870fc4b185153d4c0af0ff9188ddba0cac8e6db4f9f1190109bf3a8ad"
+        },
+        {
+          "pair": [
+            0,
+            55
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098632,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8835670948028564
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 21,
+              "medianPx": 0.8835670948028564
+            },
+            {
+              "inliers": 21,
+              "medianPx": 0.8568711876869202
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.619140625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.78515625
+            }
+          ],
+          "maxDisplacementComponentPx": 6.330644607543945,
+          "clippedComponents": 0,
+          "candidateTileSha256": "7adbadd011fcec350bcc54dcee9edea7a647985e1ba4c7cb85d3ca58c70e9e04"
+        },
+        {
+          "pair": [
+            0,
+            56
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.102977,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9494266510009766
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 17,
+              "medianPx": 0.9329138398170471
+            },
+            {
+              "inliers": 21,
+              "medianPx": 0.9494266510009766
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.775390625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7568359375
+            }
+          ],
+          "maxDisplacementComponentPx": 7.2757463455200195,
+          "clippedComponents": 0,
+          "candidateTileSha256": "3f78aa5119843d0cff04b737088aca560426eda74fbbb8f2c95c8b46b34dd4c0"
+        },
+        {
+          "pair": [
+            0,
+            63
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.100991,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.0349645614624023
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 25,
+              "medianPx": 1.0349645614624023
+            },
+            {
+              "inliers": 30,
+              "medianPx": 1.0268018245697021
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.791015625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.78515625
+            }
+          ],
+          "maxDisplacementComponentPx": 4.016382694244385,
+          "clippedComponents": 0,
+          "candidateTileSha256": "1cb26dd12226cba3d7674fe5b50bc64b6d3cd8774d2a204353e1285715daa49f"
+        },
+        {
+          "pair": [
+            0,
+            64
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.101451,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8456518650054932
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 23,
+              "medianPx": 0.7967705726623535
+            },
+            {
+              "inliers": 26,
+              "medianPx": 0.8456518650054932
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6787109375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.681640625
+            }
+          ],
+          "maxDisplacementComponentPx": 5.879108428955078,
+          "clippedComponents": 0,
+          "candidateTileSha256": "cae3ef48067fa18df275f475b96c8a8d8410d6cdbb21a5ba9ba156c6944c0d37"
+        },
+        {
+          "pair": [
+            0,
+            71
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.09923,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.0191854238510132
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 25,
+              "medianPx": 0.9562847018241882
+            },
+            {
+              "inliers": 24,
+              "medianPx": 1.0191854238510132
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.79296875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7646484375
+            }
+          ],
+          "maxDisplacementComponentPx": 6.240030765533447,
+          "clippedComponents": 0,
+          "candidateTileSha256": "41bda69bd4fd10481365645b14d65323e263f5cb3faaf79fee78fc55862f7a5c"
+        },
+        {
+          "pair": [
+            0,
+            72
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098974,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.103560447692871
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 22,
+              "medianPx": 1.103560447692871
+            },
+            {
+              "inliers": 21,
+              "medianPx": 0.9819855690002441
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.759765625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8154296875
+            }
+          ],
+          "maxDisplacementComponentPx": 6.26992130279541,
+          "clippedComponents": 0,
+          "candidateTileSha256": "701289847c22a257602e403d3922ed47d790c21593eec8e2d569e8fa56280655"
+        },
+        {
+          "pair": [
+            0,
+            79
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098859,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.100243330001831
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 22,
+              "medianPx": 1.0210113525390625
+            },
+            {
+              "inliers": 22,
+              "medianPx": 1.100243330001831
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7890625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7373046875
+            }
+          ],
+          "maxDisplacementComponentPx": 4.673943042755127,
+          "clippedComponents": 0,
+          "candidateTileSha256": "8cb39f49ca85f11d8856fc811c6a375bc6714bf5cd047a57c8201efcc68bf23c"
+        },
+        {
+          "pair": [
+            0,
+            80
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098136,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.0938249826431274
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 20,
+              "medianPx": 1.0778536796569824
+            },
+            {
+              "inliers": 20,
+              "medianPx": 1.0938249826431274
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.765625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.845703125
+            }
+          ],
+          "maxDisplacementComponentPx": 7.301931381225586,
+          "clippedComponents": 0,
+          "candidateTileSha256": "bc7734e79eade2740db72fdfed5059812158baf57e3ab2ba53db533b31cd56da"
+        },
+        {
+          "pair": [
+            0,
+            89
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098348,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.1531705856323242
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 20,
+              "medianPx": 1.1509119272232056
+            },
+            {
+              "inliers": 18,
+              "medianPx": 1.1531705856323242
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.580078125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.634765625
+            }
+          ],
+          "maxDisplacementComponentPx": 11.396018981933594,
+          "clippedComponents": 0,
+          "candidateTileSha256": "f497280798d000c8a0b824001743d2cfbb71c28e56966a73649e8cca4ed486d1"
+        },
+        {
+          "pair": [
+            0,
+            95
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.101095,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7665584683418274
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 22,
+              "medianPx": 0.6788339614868164
+            },
+            {
+              "inliers": 22,
+              "medianPx": 0.7665584683418274
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.763671875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8515625
+            }
+          ],
+          "maxDisplacementComponentPx": 10.80327033996582,
+          "clippedComponents": 0,
+          "candidateTileSha256": "a8a7342a3832f4f8a5f2b0c11a03e184556856e64abd69aaee4ddbdef1c17e7d"
+        },
+        {
+          "pair": [
+            0,
+            2
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.099286,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8197335004806519
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 20,
+              "medianPx": 0.8197335004806519
+            },
+            {
+              "inliers": 14,
+              "medianPx": 0.7864807844161987
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8203125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8779296875
+            }
+          ],
+          "maxDisplacementComponentPx": 8.456754684448242,
+          "clippedComponents": 0,
+          "candidateTileSha256": "7f8899cf6d2b17d0e593468ee4204c674bb916324c709c846240b133fb8c41a9"
+        },
+        {
+          "pair": [
+            0,
+            3
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098034,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7123621702194214
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 18,
+              "medianPx": 0.7123621702194214
+            },
+            {
+              "inliers": 19,
+              "medianPx": 0.6749384999275208
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7880859375
+            }
+          ],
+          "maxDisplacementComponentPx": 7.462481498718262,
+          "clippedComponents": 0,
+          "candidateTileSha256": "d51e058383ac535703faa82ed683564d37e28988a0760fa1bad8c19da89586a1"
+        },
+        {
+          "pair": [
+            0,
+            4
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098431,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6302733421325684
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 17,
+              "medianPx": 0.47485634684562683
+            },
+            {
+              "inliers": 15,
+              "medianPx": 0.6302733421325684
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.783203125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.79296875
+            }
+          ],
+          "maxDisplacementComponentPx": 9.347384452819824,
+          "clippedComponents": 0,
+          "candidateTileSha256": "9d37b75462091c137ef5d21dd024e2ea73504d6ff3e7dc9fd6738a3691a0b99b"
+        },
+        {
+          "pair": [
+            0,
+            5
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098124,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.0000295639038086
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 18,
+              "medianPx": 1.0000295639038086
+            },
+            {
+              "inliers": 15,
+              "medianPx": 0.8752609491348267
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.849609375
+            }
+          ],
+          "maxDisplacementComponentPx": 4.832755088806152,
+          "clippedComponents": 0,
+          "candidateTileSha256": "e90cfab91c47a3ae841954d428b606f95057a7cc223bce2e388778dd505045de"
+        },
+        {
+          "pair": [
+            0,
+            6
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098544,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.99326491355896
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 23,
+              "medianPx": 0.917214035987854
+            },
+            {
+              "inliers": 26,
+              "medianPx": 0.99326491355896
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.787109375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.908203125
+            }
+          ],
+          "maxDisplacementComponentPx": 8.508950233459473,
+          "clippedComponents": 0,
+          "candidateTileSha256": "8a48a6ae2e37bb22236ecc56dd85eef19156ac293d518867167a9b7d03963abe"
+        },
+        {
+          "pair": [
+            0,
+            7
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098559,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6637222766876221
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 30,
+              "medianPx": 0.6227048635482788
+            },
+            {
+              "inliers": 31,
+              "medianPx": 0.6637222766876221
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8203125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.904296875
+            }
+          ],
+          "maxDisplacementComponentPx": 4.892885208129883,
+          "clippedComponents": 0,
+          "candidateTileSha256": "a5cd8d568452d8f5d2ce3c0701d2a0291e637c713eca1de243be6d3d668f6415"
+        },
+        {
+          "pair": [
+            0,
+            8
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.0979,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6145206689834595
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 33,
+              "medianPx": 0.6008152961730957
+            },
+            {
+              "inliers": 34,
+              "medianPx": 0.6145206689834595
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8203125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.93359375
+            }
+          ],
+          "maxDisplacementComponentPx": 4.301220893859863,
+          "clippedComponents": 0,
+          "candidateTileSha256": "40d39ae5b490ce7c549a206680e7b5fa6a8f2d1e3920cb7fc368c63ad981bd89"
+        },
+        {
+          "pair": [
+            0,
+            9
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.097727,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8766399621963501
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 28,
+              "medianPx": 0.7961325645446777
+            },
+            {
+              "inliers": 28,
+              "medianPx": 0.8766399621963501
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.904296875
+            }
+          ],
+          "maxDisplacementComponentPx": 4.775775909423828,
+          "clippedComponents": 0,
+          "candidateTileSha256": "7d6e491f715fdb7c81fd7f9505fab8a2bef961ba09a6286028b21ac75a5891a3"
+        },
+        {
+          "pair": [
+            0,
+            10
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098534,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9841979742050171
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 33,
+              "medianPx": 0.97037273645401
+            },
+            {
+              "inliers": 36,
+              "medianPx": 0.9841979742050171
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8779296875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.822265625
+            }
+          ],
+          "maxDisplacementComponentPx": 3.836369514465332,
+          "clippedComponents": 0,
+          "candidateTileSha256": "1a12c0143392a2c133df960aa5934e38fca6f57937363b047d150d268b5c9682"
+        },
+        {
+          "pair": [
+            0,
+            32
+          ],
+          "purpose": "turn-entry",
+          "visualStatus": "rejected",
+          "seconds": 0.608167,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0
+          },
+          "contourRefined": true,
+          "foregroundFeatureErrors": [
+            null,
+            null
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.08203125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4306640625
+            }
+          ],
+          "maxDisplacementComponentPx": 27.01926612854004,
+          "clippedComponents": 0,
+          "candidateTileSha256": "b032e00b197557155bb104ebd98ac28f754dd39a3062f03bbf0a8b31803bbf5e"
+        },
+        {
+          "pair": [
+            47,
+            128
+          ],
+          "purpose": "turn-exit",
+          "visualStatus": "rejected",
+          "seconds": 0.34687,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 12,
+            "maxPackedFeatureMedianPx": 0
+          },
+          "contourRefined": true,
+          "foregroundFeatureErrors": [
+            null,
+            null
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.109375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4033203125
+            }
+          ],
+          "maxDisplacementComponentPx": 26.647274017333984,
+          "clippedComponents": 0,
+          "candidateTileSha256": "7cc4efa49304b1f63276623c5488d46949240ce5ad4ddfafc7eebc349c680f04"
+        }
+      ],
+      "sourcePairs": [
+        [
+          39,
+          40
+        ],
+        [
+          91,
+          92
+        ],
+        [
+          0,
+          32
+        ],
+        [
+          47,
+          128
+        ]
+      ],
+      "generationSeconds": 3.248272,
+      "candidateBinarySha256": "9ced45d209957a594102b6e98c230836f938a246a28e422bfd0b48d5e433ffee",
+      "acceptedNewPairCount": 20,
+      "rejectedNewPairCount": 2
+    },
+    "dog": {
+      "copiedPairCount": 66,
+      "pairCount": 87,
+      "binaryBytes": 356352,
+      "binarySha256": "4ac8214c967fd699259bf24d3fc210f97b9632d5b2d7bcaaef31aebaf1bee559",
+      "newPairs": [
+        {
+          "pair": [
+            0,
+            48
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.101091,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.4133203029632568
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 23,
+              "medianPx": 1.4133203029632568
+            },
+            {
+              "inliers": 30,
+              "medianPx": 1.1748840808868408
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.734375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.732421875
+            }
+          ],
+          "maxDisplacementComponentPx": 6.2944159507751465,
+          "clippedComponents": 0,
+          "candidateTileSha256": "757316263ef9f1676c0447fe83fad1a0b00c9c396828c9798d948859461a17dd"
+        },
+        {
+          "pair": [
+            0,
+            55
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.099504,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7931959629058838
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 28,
+              "medianPx": 0.7807986736297607
+            },
+            {
+              "inliers": 36,
+              "medianPx": 0.7931959629058838
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.705078125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7412109375
+            }
+          ],
+          "maxDisplacementComponentPx": 9.572553634643555,
+          "clippedComponents": 0,
+          "candidateTileSha256": "deadbcaf393b23d14bf009bc7b47ff7b5e005df711a829be63456f467c64b5ec"
+        },
+        {
+          "pair": [
+            0,
+            56
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.097972,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8215467929840088
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 20,
+              "medianPx": 0.8110046982765198
+            },
+            {
+              "inliers": 20,
+              "medianPx": 0.8215467929840088
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.703125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7109375
+            }
+          ],
+          "maxDisplacementComponentPx": 7.232964515686035,
+          "clippedComponents": 0,
+          "candidateTileSha256": "39372616ef5f731bfc8dc486da9bdfa7062ad4db6d3f073587c97a968c12e32c"
+        },
+        {
+          "pair": [
+            0,
+            63
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098874,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6843356490135193
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 24,
+              "medianPx": 0.6335910558700562
+            },
+            {
+              "inliers": 25,
+              "medianPx": 0.6843356490135193
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.73828125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.716796875
+            }
+          ],
+          "maxDisplacementComponentPx": 9.814754486083984,
+          "clippedComponents": 0,
+          "candidateTileSha256": "8c40fb8924940ee1a1add57a4bfdd906aab397997c306fb08240d6c72f449c1e"
+        },
+        {
+          "pair": [
+            0,
+            64
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.099322,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9505565762519836
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 22,
+              "medianPx": 0.8918951749801636
+            },
+            {
+              "inliers": 24,
+              "medianPx": 0.9505565762519836
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.677734375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7109375
+            }
+          ],
+          "maxDisplacementComponentPx": 7.615767002105713,
+          "clippedComponents": 0,
+          "candidateTileSha256": "a1a57a13c8c39b09dde495ab781e37ffa90484fbf0e528856e045477a743cd64"
+        },
+        {
+          "pair": [
+            0,
+            71
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.100238,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9782418012619019
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 29,
+              "medianPx": 0.8817620873451233
+            },
+            {
+              "inliers": 30,
+              "medianPx": 0.9782418012619019
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6513671875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7109375
+            }
+          ],
+          "maxDisplacementComponentPx": 10.05459213256836,
+          "clippedComponents": 0,
+          "candidateTileSha256": "053009460b591261d7a30dbed7318491b958fe4d46c3ffa4e1b3dbd1118b8df4"
+        },
+        {
+          "pair": [
+            0,
+            72
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098742,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9227016568183899
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 27,
+              "medianPx": 0.7303038239479065
+            },
+            {
+              "inliers": 23,
+              "medianPx": 0.9227016568183899
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.724609375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7109375
+            }
+          ],
+          "maxDisplacementComponentPx": 8.709803581237793,
+          "clippedComponents": 0,
+          "candidateTileSha256": "982ba4af1ad6a43bc84d3ff4593be9f6c61c51a47cc10c9f9cddf3d0e451310a"
+        },
+        {
+          "pair": [
+            0,
+            79
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098867,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9655780792236328
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 20,
+              "medianPx": 0.9648569822311401
+            },
+            {
+              "inliers": 24,
+              "medianPx": 0.9655780792236328
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.732421875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.736328125
+            }
+          ],
+          "maxDisplacementComponentPx": 8.598699569702148,
+          "clippedComponents": 0,
+          "candidateTileSha256": "0dff52c9678ac15773c1bf8a9e1f94e9fa7c9d36f47e8595760205d6b6a69821"
+        },
+        {
+          "pair": [
+            0,
+            80
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098262,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9928730130195618
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 20,
+              "medianPx": 0.9479604959487915
+            },
+            {
+              "inliers": 24,
+              "medianPx": 0.9928730130195618
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8154296875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7333984375
+            }
+          ],
+          "maxDisplacementComponentPx": 8.448716163635254,
+          "clippedComponents": 0,
+          "candidateTileSha256": "6cd741a19df23288fd163e57b699e47e51037dba833bbede7f18e41b307c53c2"
+        },
+        {
+          "pair": [
+            0,
+            89
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.099691,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.2272355556488037
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 21,
+              "medianPx": 1.2272355556488037
+            },
+            {
+              "inliers": 26,
+              "medianPx": 0.8469018936157227
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7578125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.736328125
+            }
+          ],
+          "maxDisplacementComponentPx": 9.201139450073242,
+          "clippedComponents": 0,
+          "candidateTileSha256": "c583c83576334b0e34efafdb29c0a11cf762acd5b9b2bd3479873ec789fcdd90"
+        },
+        {
+          "pair": [
+            0,
+            95
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.100159,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7304041385650635
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 28,
+              "medianPx": 0.7304041385650635
+            },
+            {
+              "inliers": 27,
+              "medianPx": 0.7296602129936218
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6513671875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.759765625
+            }
+          ],
+          "maxDisplacementComponentPx": 9.161724090576172,
+          "clippedComponents": 0,
+          "candidateTileSha256": "6d2758d0814a044c1db9fe1a84aaade399734e3523fd0da484687de806e8d37f"
+        },
+        {
+          "pair": [
+            0,
+            2
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.102476,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6869272589683533
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 40,
+              "medianPx": 0.6869272589683533
+            },
+            {
+              "inliers": 41,
+              "medianPx": 0.5890302062034607
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8779296875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8203125
+            }
+          ],
+          "maxDisplacementComponentPx": 4.008179664611816,
+          "clippedComponents": 0,
+          "candidateTileSha256": "35b80b5d14536555e506e03c9f7addfb6d8544f99bb964dd6d40d40281bd5dd1"
+        },
+        {
+          "pair": [
+            0,
+            3
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.101155,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7298063039779663
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 33,
+              "medianPx": 0.6396122574806213
+            },
+            {
+              "inliers": 36,
+              "medianPx": 0.7298063039779663
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.841796875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8203125
+            }
+          ],
+          "maxDisplacementComponentPx": 3.23014235496521,
+          "clippedComponents": 0,
+          "candidateTileSha256": "b77481582fa18b470c49298f6067ce67d88e75c3a7983bcb02db4b52eb87d390"
+        },
+        {
+          "pair": [
+            0,
+            4
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.100016,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8479359149932861
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 50,
+              "medianPx": 0.8479359149932861
+            },
+            {
+              "inliers": 50,
+              "medianPx": 0.7106043100357056
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.875
+            }
+          ],
+          "maxDisplacementComponentPx": 2.721324920654297,
+          "clippedComponents": 0,
+          "candidateTileSha256": "7e06225d80fd0e7e59baf6351dd55f2ed689b7905917da16bd4143eb0ceae6fb"
+        },
+        {
+          "pair": [
+            0,
+            5
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098394,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.618962287902832
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 42,
+              "medianPx": 0.618962287902832
+            },
+            {
+              "inliers": 44,
+              "medianPx": 0.5841059684753418
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.84765625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8740234375
+            }
+          ],
+          "maxDisplacementComponentPx": 2.7640461921691895,
+          "clippedComponents": 0,
+          "candidateTileSha256": "8d5cd4d85c01c8ffa656b09fd5ff53f9d6db025dd2b134c2a23efa5f3458d7d3"
+        },
+        {
+          "pair": [
+            0,
+            6
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.097945,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7043653726577759
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 30,
+              "medianPx": 0.7043653726577759
+            },
+            {
+              "inliers": 23,
+              "medianPx": 0.625167191028595
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8193359375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7587890625
+            }
+          ],
+          "maxDisplacementComponentPx": 6.490426540374756,
+          "clippedComponents": 0,
+          "candidateTileSha256": "a23f7dce2aa180ec572c8bc747b1b98060a72868ea0b2488171efe0ec165e1fa"
+        },
+        {
+          "pair": [
+            0,
+            7
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.100393,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8331310749053955
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 45,
+              "medianPx": 0.8082141280174255
+            },
+            {
+              "inliers": 39,
+              "medianPx": 0.8331310749053955
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.76171875
+            }
+          ],
+          "maxDisplacementComponentPx": 4.688941478729248,
+          "clippedComponents": 0,
+          "candidateTileSha256": "2f47c9eb16d9897190e1b4db1fdec1e42634a499a3c75cbbfbd86b830ea7ffa2"
+        },
+        {
+          "pair": [
+            0,
+            8
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.101117,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.0065330266952515
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 48,
+              "medianPx": 1.0065330266952515
+            },
+            {
+              "inliers": 52,
+              "medianPx": 0.8992457985877991
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.876953125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8203125
+            }
+          ],
+          "maxDisplacementComponentPx": 2.4614439010620117,
+          "clippedComponents": 0,
+          "candidateTileSha256": "7a862dd9a966a8f4041cc968890b7890bd1b00253ba18bc38e86aee6ebbe3750"
+        },
+        {
+          "pair": [
+            0,
+            9
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.10005,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7773164510726929
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 31,
+              "medianPx": 0.7773164510726929
+            },
+            {
+              "inliers": 40,
+              "medianPx": 0.6819281578063965
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.818359375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8203125
+            }
+          ],
+          "maxDisplacementComponentPx": 5.895042419433594,
+          "clippedComponents": 0,
+          "candidateTileSha256": "b1eb9a3c1fd0e165f187e79645a2d216cde28175a6c458d0df413988dec58556"
+        },
+        {
+          "pair": [
+            0,
+            10
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.100236,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6726936101913452
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 43,
+              "medianPx": 0.6726936101913452
+            },
+            {
+              "inliers": 41,
+              "medianPx": 0.6487431526184082
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.84765625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7646484375
+            }
+          ],
+          "maxDisplacementComponentPx": 5.683163642883301,
+          "clippedComponents": 0,
+          "candidateTileSha256": "e293f01b8adf11bfc5eb60eb241a48a421ddccb1b9d6583d64b845e79113f8c2"
+        },
+        {
+          "pair": [
+            92,
+            12
+          ],
+          "purpose": "corrected-sleep-endpoint",
+          "visualStatus": "accepted",
+          "seconds": 0.098558,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8352950811386108
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 25,
+              "medianPx": 0.7805602550506592
+            },
+            {
+              "inliers": 29,
+              "medianPx": 0.8352950811386108
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.68359375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.685546875
+            }
+          ],
+          "maxDisplacementComponentPx": 6.172048568725586,
+          "clippedComponents": 0,
+          "candidateTileSha256": "0c16a2cafb99ce0ecba632a278863baa158b20dd384654ed2f61534f6c2122d3"
+        },
+        {
+          "pair": [
+            0,
+            32
+          ],
+          "purpose": "turn-entry",
+          "visualStatus": "rejected",
+          "seconds": 0.655207,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 8,
+            "maxPackedFeatureMedianPx": 1.054499864578247
+          },
+          "contourRefined": true,
+          "foregroundFeatureErrors": [
+            null,
+            {
+              "inliers": 6,
+              "medianPx": 1.4106336832046509
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.12109375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.0517578125
+            }
+          ],
+          "maxDisplacementComponentPx": 30.278514862060547,
+          "clippedComponents": 0,
+          "candidateTileSha256": "ad96269bdead436bfdc0a018e145db40864f73bc1b291b5ea5b812a2d5df5989"
+        },
+        {
+          "pair": [
+            47,
+            128
+          ],
+          "purpose": "turn-exit",
+          "visualStatus": "rejected",
+          "seconds": 0.100939,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.150911569595337
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 9,
+              "medianPx": 1.0957732200622559
+            },
+            {
+              "inliers": 10,
+              "medianPx": 1.150911569595337
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.31640625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.37890625
+            }
+          ],
+          "maxDisplacementComponentPx": 22.828826904296875,
+          "clippedComponents": 0,
+          "candidateTileSha256": "7c988c12a0fb203fb1a788f781855b506528f17957660e0bfd5ac2f62154c0cf"
+        }
+      ],
+      "sourcePairs": [
+        [
+          37,
+          38
+        ],
+        [
+          40,
+          41
+        ],
+        [
+          60,
+          61
+        ],
+        [
+          66,
+          67
+        ],
+        [
+          68,
+          69
+        ],
+        [
+          69,
+          70
+        ],
+        [
+          70,
+          71
+        ],
+        [
+          91,
+          92
+        ],
+        [
+          92,
+          93
+        ],
+        [
+          0,
+          32
+        ],
+        [
+          47,
+          128
+        ]
+      ],
+      "generationSeconds": 3.15756,
+      "candidateBinarySha256": "2c68398974501a9dfbc3a6be3283d36533dca1fa9966e65eccb927930138f4ae",
+      "acceptedNewPairCount": 21,
+      "rejectedNewPairCount": 2
+    },
+    "parrot": {
+      "copiedPairCount": 69,
+      "pairCount": 89,
+      "binaryBytes": 364544,
+      "binarySha256": "2b979824e120cf4c961d48998f3228fc9860ba33d0039384d4760d861d5477b7",
+      "newPairs": [
+        {
+          "pair": [
+            0,
+            48
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098437,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7361628413200378
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 28,
+              "medianPx": 0.7119272947311401
+            },
+            {
+              "inliers": 29,
+              "medianPx": 0.7361628413200378
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7822265625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.72265625
+            }
+          ],
+          "maxDisplacementComponentPx": 10.073349952697754,
+          "clippedComponents": 0,
+          "candidateTileSha256": "00d003323dce23753db2b37434295a2fe1088d8549f3124a06bc9aab1480f41a"
+        },
+        {
+          "pair": [
+            0,
+            55
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.09697,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7940601706504822
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 20,
+              "medianPx": 0.7940601706504822
+            },
+            {
+              "inliers": 20,
+              "medianPx": 0.7473428249359131
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.734375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.759765625
+            }
+          ],
+          "maxDisplacementComponentPx": 9.454204559326172,
+          "clippedComponents": 0,
+          "candidateTileSha256": "2b15505da68996073292fc997120cf15ef5a2eb69fe78a90e73b708fac613190"
+        },
+        {
+          "pair": [
+            0,
+            56
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.649577,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9674851894378662
+          },
+          "contourRefined": true,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 13,
+              "medianPx": 1.005104660987854
+            },
+            {
+              "inliers": 19,
+              "medianPx": 1.1660199165344238
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6328125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.677734375
+            }
+          ],
+          "maxDisplacementComponentPx": 11.067580223083496,
+          "clippedComponents": 0,
+          "candidateTileSha256": "29ec167b5a6ef507f494ead851966f52d9482f9b4daa4fb236d8546c4e87d25e"
+        },
+        {
+          "pair": [
+            0,
+            63
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.096887,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6015332937240601
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 16,
+              "medianPx": 0.5715099573135376
+            },
+            {
+              "inliers": 19,
+              "medianPx": 0.6015332937240601
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.673828125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.609375
+            }
+          ],
+          "maxDisplacementComponentPx": 10.317521095275879,
+          "clippedComponents": 0,
+          "candidateTileSha256": "2bea0018226e82c495d68cd198c4f922c9a42f27317a9b44449ed8979ed0dab0"
+        },
+        {
+          "pair": [
+            0,
+            64
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.097859,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7610660791397095
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 18,
+              "medianPx": 0.7610660791397095
+            },
+            {
+              "inliers": 19,
+              "medianPx": 0.752286434173584
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6396484375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.685546875
+            }
+          ],
+          "maxDisplacementComponentPx": 7.938662052154541,
+          "clippedComponents": 0,
+          "candidateTileSha256": "2886f47e60b45bdc0db06b9ec40cc78dee3eb42feadb54a6f57b505c2eb88ff5"
+        },
+        {
+          "pair": [
+            0,
+            71
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098843,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8898047804832458
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 18,
+              "medianPx": 0.8898047804832458
+            },
+            {
+              "inliers": 18,
+              "medianPx": 0.6820628046989441
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7490234375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.685546875
+            }
+          ],
+          "maxDisplacementComponentPx": 7.335801124572754,
+          "clippedComponents": 0,
+          "candidateTileSha256": "ebd755183c56ebe14e559fdf42bfeb86e9acf7b3eee830f9e40601225a46d4eb"
+        },
+        {
+          "pair": [
+            0,
+            72
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.097506,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.5329568386077881
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 18,
+              "medianPx": 0.48626708984375
+            },
+            {
+              "inliers": 20,
+              "medianPx": 0.5329568386077881
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6962890625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7900390625
+            }
+          ],
+          "maxDisplacementComponentPx": 6.9477033615112305,
+          "clippedComponents": 0,
+          "candidateTileSha256": "be96ec38079ac0978fd98b90b6a7753a93dc60d0197a6f53be4d7e986f7e1c00"
+        },
+        {
+          "pair": [
+            0,
+            79
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098831,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8644009232521057
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 19,
+              "medianPx": 0.8644009232521057
+            },
+            {
+              "inliers": 16,
+              "medianPx": 0.7880083918571472
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6015625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7109375
+            }
+          ],
+          "maxDisplacementComponentPx": 8.337493896484375,
+          "clippedComponents": 0,
+          "candidateTileSha256": "e324e61ea727205622b057e9f8f0c97ce3867e6bcdff108f0caab0871ee47c27"
+        },
+        {
+          "pair": [
+            0,
+            80
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098779,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8724679350852966
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 14,
+              "medianPx": 0.831748366355896
+            },
+            {
+              "inliers": 17,
+              "medianPx": 0.8724679350852966
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.71484375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8203125
+            }
+          ],
+          "maxDisplacementComponentPx": 5.002233505249023,
+          "clippedComponents": 0,
+          "candidateTileSha256": "14714ae4fba926ae7f4e83fc352a491b2b9bf13070254a0d2f3bc2469b9a2166"
+        },
+        {
+          "pair": [
+            0,
+            89
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098416,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.747212290763855
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 21,
+              "medianPx": 0.7005341649055481
+            },
+            {
+              "inliers": 24,
+              "medianPx": 0.747212290763855
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6328125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6015625
+            }
+          ],
+          "maxDisplacementComponentPx": 26.899845123291016,
+          "clippedComponents": 0,
+          "candidateTileSha256": "3467e7c3be6a1fe24b8d15d2f1155028fd2f43122a4372acb2d84d386b2def7b"
+        },
+        {
+          "pair": [
+            0,
+            95
+          ],
+          "purpose": "care-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.097841,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7817957401275635
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 23,
+              "medianPx": 0.6426395773887634
+            },
+            {
+              "inliers": 28,
+              "medianPx": 0.7817957401275635
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.654296875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.68359375
+            }
+          ],
+          "maxDisplacementComponentPx": 7.827112674713135,
+          "clippedComponents": 0,
+          "candidateTileSha256": "2a832e4896f1a61afe2771ed97d0fbbdab8a2eaf9e153c3c10958c62e0403ba5"
+        },
+        {
+          "pair": [
+            0,
+            2
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.097253,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8744679093360901
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 17,
+              "medianPx": 0.8744679093360901
+            },
+            {
+              "inliers": 18,
+              "medianPx": 0.6539186239242554
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.78515625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7607421875
+            }
+          ],
+          "maxDisplacementComponentPx": 6.050121307373047,
+          "clippedComponents": 0,
+          "candidateTileSha256": "b2342e10f313dd085f27b41ae04209a507bcc6c341e79534490d5b580bcd923a"
+        },
+        {
+          "pair": [
+            0,
+            3
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.097466,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6453109979629517
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 24,
+              "medianPx": 0.6453109979629517
+            },
+            {
+              "inliers": 19,
+              "medianPx": 0.5371307134628296
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.90234375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.677734375
+            }
+          ],
+          "maxDisplacementComponentPx": 9.154535293579102,
+          "clippedComponents": 0,
+          "candidateTileSha256": "475c721859453b494731c67bd6e72a3fb59a38eb65a30360355548f3af9df7f9"
+        },
+        {
+          "pair": [
+            0,
+            4
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.096955,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.5854274034500122
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 35,
+              "medianPx": 0.5854274034500122
+            },
+            {
+              "inliers": 35,
+              "medianPx": 0.4725336730480194
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8515625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.732421875
+            }
+          ],
+          "maxDisplacementComponentPx": 5.7074689865112305,
+          "clippedComponents": 0,
+          "candidateTileSha256": "59343be298bf19273f7339dc423ae14572e28152fd73c0bafafdb94c69fbce09"
+        },
+        {
+          "pair": [
+            0,
+            5
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.097457,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7035374641418457
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 21,
+              "medianPx": 0.7035374641418457
+            },
+            {
+              "inliers": 19,
+              "medianPx": 0.658699095249176
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.607421875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8203125
+            }
+          ],
+          "maxDisplacementComponentPx": 6.1269659996032715,
+          "clippedComponents": 0,
+          "candidateTileSha256": "05b3a1c79bf5ff388da9a84e7e3c24f87c5f803bcea6196d17bee412d6e63783"
+        },
+        {
+          "pair": [
+            0,
+            6
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.097755,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.805681049823761
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 14,
+              "medianPx": 0.805681049823761
+            },
+            {
+              "inliers": 17,
+              "medianPx": 0.7720953226089478
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.873046875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.75390625
+            }
+          ],
+          "maxDisplacementComponentPx": 7.277661323547363,
+          "clippedComponents": 0,
+          "candidateTileSha256": "723a73f66113200af86053fbb72a6b045e0c68d8624ea54da09c6676ef256b13"
+        },
+        {
+          "pair": [
+            0,
+            7
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098483,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8191999793052673
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 30,
+              "medianPx": 0.8191999793052673
+            },
+            {
+              "inliers": 30,
+              "medianPx": 0.7134220600128174
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.87890625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.73828125
+            }
+          ],
+          "maxDisplacementComponentPx": 7.66074800491333,
+          "clippedComponents": 0,
+          "candidateTileSha256": "92af76121b5506edcc8ef92fc61785679d735d7fcc874795c03a8e97309bb008"
+        },
+        {
+          "pair": [
+            0,
+            8
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.098138,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.42245012521743774
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 21,
+              "medianPx": 0.42245012521743774
+            },
+            {
+              "inliers": 22,
+              "medianPx": 0.4063042402267456
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7900390625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.763671875
+            }
+          ],
+          "maxDisplacementComponentPx": 4.155714511871338,
+          "clippedComponents": 0,
+          "candidateTileSha256": "113095965d6a74d0208ea5c1fec856f03039292787fb72dd489062db035f1966"
+        },
+        {
+          "pair": [
+            0,
+            9
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.097535,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.4703260362148285
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 17,
+              "medianPx": 0.4703260362148285
+            },
+            {
+              "inliers": 16,
+              "medianPx": 0.39675354957580566
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.765625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.685546875
+            }
+          ],
+          "maxDisplacementComponentPx": 3.9325602054595947,
+          "clippedComponents": 0,
+          "candidateTileSha256": "5a0c7cfda361113ce0c682ec4c7824586d7945b205f1d856f2d1ed4f24a7614a"
+        },
+        {
+          "pair": [
+            0,
+            10
+          ],
+          "purpose": "idle-neutral",
+          "visualStatus": "accepted",
+          "seconds": 0.096071,
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8523312211036682
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 11,
+              "medianPx": 0.8523312211036682
+            },
+            {
+              "inliers": 9,
+              "medianPx": 0.8404484391212463
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.8154296875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.703125
+            }
+          ],
+          "maxDisplacementComponentPx": 5.835829257965088,
+          "clippedComponents": 0,
+          "candidateTileSha256": "ba0ce565cb8285f1891557cfdbec11a92e357ee6715b71f282a6896aa7b283b6"
+        },
+        {
+          "pair": [
+            95,
+            94
+          ],
+          "purpose": "takeoff",
+          "visualStatus": "rejected",
+          "seconds": 0.655705,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9447774291038513
+          },
+          "contourRefined": true,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 8,
+              "medianPx": 0.7672796249389648
+            },
+            {
+              "inliers": 9,
+              "medianPx": 0.9447774291038513
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.205078125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.244140625
+            }
+          ],
+          "maxDisplacementComponentPx": 25.751117706298828,
+          "clippedComponents": 0,
+          "candidateTileSha256": "afeb538fa89384e6e8f28d8ea82f4b0d01030010bca678a777503f618bf0918e"
+        },
+        {
+          "pair": [
+            94,
+            96
+          ],
+          "purpose": "takeoff",
+          "visualStatus": "rejected",
+          "seconds": 0.579787,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.8146175146102905
+          },
+          "contourRefined": true,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 6,
+              "medianPx": 1.8146175146102905
+            },
+            null
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.310546875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.546875
+            }
+          ],
+          "maxDisplacementComponentPx": 43.13774108886719,
+          "clippedComponents": 0,
+          "candidateTileSha256": "2e2bcddad9fb1eb329d05f1c201b55d1a8c13163f54b9580f39eb10900b43867"
+        },
+        {
+          "pair": [
+            127,
+            94
+          ],
+          "purpose": "landing",
+          "visualStatus": "rejected",
+          "seconds": 0.4313,
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7095919251441956
+          },
+          "contourRefined": true,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 6,
+              "medianPx": 0.7057424783706665
+            },
+            null
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.1220703125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.189453125
+            }
+          ],
+          "maxDisplacementComponentPx": 45.09303283691406,
+          "clippedComponents": 0,
+          "candidateTileSha256": "a82ea0fcc77e3f68a5dd1cceab8323e9c2e9e2b0c4007d1a24662da360812c64"
+        }
+      ],
+      "sourcePairs": [
+        [
+          35,
+          36
+        ],
+        [
+          41,
+          42
+        ],
+        [
+          60,
+          61
+        ],
+        [
+          66,
+          67
+        ],
+        [
+          67,
+          68
+        ],
+        [
+          68,
+          69
+        ],
+        [
+          95,
+          94
+        ],
+        [
+          94,
+          96
+        ],
+        [
+          127,
+          94
+        ]
+      ],
+      "generationSeconds": 4.418223,
+      "candidateBinarySha256": "bd9b52958d69cc50560ded462dff28375bdce9d6a92a71e51c9ccc382bfef8ef",
+      "acceptedNewPairCount": 20,
+      "rejectedNewPairCount": 3
+    }
+  },
+  "limitations": "Numerical winding and fur correspondence are not anatomical acceptance. All original reviewed v4 guards remain explicit. New fields require independent actual-renderer visual review.",
+  "totalGenerationSeconds": 10.864638,
+  "groundGaitConfigSha256": "92cdb28ca955f81448ca07d14a37dc53b4d3ec47f8192d3882132f86f8d97c7a",
+  "visualReview": {
+    "sourceFile": ".artifacts/contact-v5-qa-handoff-visual.json",
+    "sha256": "aba6c4e6d628fa0ad6ef74a13ee93e4c4337bac6627dc20bcf408969e63b7d06",
+    "rawJson": "{\n  \"version\": 1,\n  \"visualSampleMixes\": [\n    0,\n    0.25,\n    0.5,\n    0.75,\n    1\n  ],\n  \"binarySha256\": {\n    \"cat\": \"9ced45d209957a594102b6e98c230836f938a246a28e422bfd0b48d5e433ffee\",\n    \"dog\": \"2c68398974501a9dfbc3a6be3283d36533dca1fa9966e65eccb927930138f4ae\",\n    \"parrot\": \"bd9b52958d69cc50560ded462dff28375bdce9d6a92a71e51c9ccc382bfef8ef\"\n  },\n  \"species\": {\n    \"cat\": [\n      {\n        \"pair\": [\n          0,\n          48\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-48-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-48-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-48-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          55\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-55-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-55-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-55-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          56\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-56-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-56-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-56-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          63\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-63-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-63-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-63-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          64\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-64-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-64-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-64-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          71\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-71-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-71-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-71-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          72\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-72-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-72-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-72-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          79\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-79-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-79-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-79-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          80\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-80-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-80-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-80-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          89\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-89-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-89-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-89-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          95\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-95-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-95-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-95-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          2\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-2-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-2-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-2-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          3\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-3-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-3-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-3-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          4\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-4-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-4-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-4-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          5\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-5-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-5-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-5-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          6\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-6-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-6-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-6-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          7\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-7-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-7-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-7-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          8\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-8-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-8-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-8-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          9\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-9-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-9-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-9-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          10\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-10-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-10-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-10-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          32\n        ],\n        \"status\": \"rejected\",\n        \"purpose\": \"turn-entry\",\n        \"reason\": \"Head yaw changes face projection; quarter/half blends leave separated pink nose and eye outlines.\",\n        \"roi\": [\n          151,\n          72,\n          97,\n          91\n        ],\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-0-32-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-32-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-0-32-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          47,\n          128\n        ],\n        \"status\": \"rejected\",\n        \"purpose\": \"turn-exit\",\n        \"reason\": \"Opposing facial projection leaves two pink nose/eye outlines in the half pose.\",\n        \"roi\": [\n          16,\n          69,\n          105,\n          101\n        ],\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-cat-47-128-1.png\",\n          \".artifacts/contact-v5-qa-fields-cat-47-128-2.png\",\n          \".artifacts/contact-v5-qa-fields-cat-47-128-3.png\"\n        ],\n        \"reversePixelExact\": true\n      }\n    ],\n    \"dog\": [\n      {\n        \"pair\": [\n          0,\n          48\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-48-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-48-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-48-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          55\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-55-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-55-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-55-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          56\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-56-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-56-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-56-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          63\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-63-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-63-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-63-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          64\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-64-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-64-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-64-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          71\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-71-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-71-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-71-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          72\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-72-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-72-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-72-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          79\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-79-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-79-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-79-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          80\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-80-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-80-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-80-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          89\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-89-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-89-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-89-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          95\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-95-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-95-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-95-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          2\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-2-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-2-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-2-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          3\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-3-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-3-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-3-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          4\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-4-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-4-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-4-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          5\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-5-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-5-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-5-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          6\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-6-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-6-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-6-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          7\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-7-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-7-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-7-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          8\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-8-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-8-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-8-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          9\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-9-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-9-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-9-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          10\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-10-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-10-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-10-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          92,\n          12\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"corrected-sleep-endpoint\",\n        \"reason\": \"Both sleeping endpoints have compatible curled body/paw/head placement; intermediate retains one connected sleeping silhouette.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-92-12-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-92-12-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-92-12-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          32\n        ],\n        \"status\": \"rejected\",\n        \"purpose\": \"turn-entry\",\n        \"reason\": \"Profile transition leaves two nose/muzzle projections and a displaced mouth outline in the half pose.\",\n        \"roi\": [\n          145,\n          40,\n          102,\n          111\n        ],\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-0-32-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-32-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-0-32-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          47,\n          128\n        ],\n        \"status\": \"rejected\",\n        \"purpose\": \"turn-exit\",\n        \"reason\": \"Profile-to-neutral head transition leaves separated nose/eye/muzzle outlines in the half pose.\",\n        \"roi\": [\n          13,\n          41,\n          117,\n          112\n        ],\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-dog-47-128-1.png\",\n          \".artifacts/contact-v5-qa-fields-dog-47-128-2.png\",\n          \".artifacts/contact-v5-qa-fields-dog-47-128-3.png\"\n        ],\n        \"reversePixelExact\": true\n      }\n    ],\n    \"parrot\": [\n      {\n        \"pair\": [\n          0,\n          48\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-48-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-48-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-48-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          55\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-55-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-55-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-55-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          56\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-56-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-56-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-56-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          63\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-63-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-63-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-63-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          64\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-64-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-64-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-64-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          71\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-71-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-71-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-71-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          72\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-72-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-72-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-72-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          79\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-79-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-79-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-79-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          80\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-80-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-80-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-80-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          89\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-89-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-89-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-89-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          95\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"care-neutral\",\n        \"reason\": \"One coherent original plush head/body and connected feet at all inspected quarter mixes; mild texture softness is acceptable.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-95-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-95-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-95-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          2\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-2-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-2-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-2-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          3\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-3-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-3-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-3-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          4\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-4-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-4-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-4-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          5\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-5-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-5-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-5-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          6\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-6-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-6-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-6-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          7\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-7-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-7-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-7-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          8\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-8-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-8-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-8-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          9\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-9-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-9-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-9-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          0,\n          10\n        ],\n        \"status\": \"accepted\",\n        \"purpose\": \"idle-neutral\",\n        \"reason\": \"Unified original plush silhouette and aligned facial landmarks throughout the neutral/blink transition; no duplicate face or limb outline observed.\",\n        \"roi\": null,\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-0-10-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-10-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-0-10-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          95,\n          94\n        ],\n        \"status\": \"rejected\",\n        \"purpose\": \"takeoff\",\n        \"reason\": \"Grounded folded wing and newly raised wing coexist translucently at quarter/half poses; this is a wing topology/occlusion switch.\",\n        \"roi\": [\n          39,\n          37,\n          143,\n          154\n        ],\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-95-94-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-95-94-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-95-94-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          94,\n          96\n        ],\n        \"status\": \"rejected\",\n        \"purpose\": \"takeoff\",\n        \"reason\": \"Raised-wing transition leaves duplicate tail/lower feet contours, visible particularly at quarter pose.\",\n        \"roi\": [\n          22,\n          172,\n          156,\n          80\n        ],\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-94-96-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-94-96-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-94-96-3.png\"\n        ],\n        \"reversePixelExact\": true\n      },\n      {\n        \"pair\": [\n          127,\n          94\n        ],\n        \"status\": \"rejected\",\n        \"purpose\": \"landing\",\n        \"reason\": \"Landing transition retains an extra translucent tail tip and lower foot/body silhouette at quarter/half poses.\",\n        \"roi\": [\n          17,\n          176,\n          162,\n          79\n        ],\n        \"evidence\": [\n          \".artifacts/contact-v5-qa-fields-parrot-127-94-1.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-127-94-2.png\",\n          \".artifacts/contact-v5-qa-fields-parrot-127-94-3.png\"\n        ],\n        \"reversePixelExact\": true\n      }\n    ]\n  },\n  \"scope\": \"Independent actual whole-renderer GPU inspection of each newv5pair exactlyonce. Numeric geometry safety does not override anatomicalghost rejection.\",\n  \"counts\": {\n    \"accepted\": 61,\n    \"rejected\": 7\n  }\n}\n"
+  }
+}

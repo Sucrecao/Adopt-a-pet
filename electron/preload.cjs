@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('companion', {
     return () => ipcRenderer.removeListener('companion:motion', handler);
   },
   setReducedMotion: value => ipcRenderer.invoke('companion:reduced-motion', value),
+  setPlaybackReady: value => ipcRenderer.invoke('companion:playback-ready', value),
   showPanel: () => ipcRenderer.invoke('companion:panel'),
   hidePet: () => ipcRenderer.invoke('companion:hide'),
   setHitRegions: regions => ipcRenderer.send('companion:regions', regions),

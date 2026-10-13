@@ -1,5 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { test, expect } from '@playwright/test';
+import {useLegacyPetResources} from './legacy-pet-fixture.mjs';
+test.beforeEach(async({page})=>useLegacyPetResources(page));
 
 const headMeta = {
   version: 2, sourceSize: [1536, 1024], parts: Array.from({ length: 6 }, () => [0, 0, 64, 64]),
@@ -53,7 +55,8 @@ test('cat v2 draws its complete matching tail at the registered root', async ({ 
 });
 
 for (const failure of [null, 'png', 'head', 'limb']) {
-  test(`production cat selects the complete coherent group${failure ? ` and restores the original pair on ${failure} failure` : ''}`, async ({ page }) => {
+  test(`fallback cat rig selects the complete coherent group${failure ? ` and restores the original pair on ${failure} failure` : ''}`, async ({ page }) => {
+    await page.route('**/pets/*-whole-v*', route => route.abort());
     const png = await readFile('public/pets/cat-head-rig.png');
     await page.route('**/pets/cat-cohesive-v2.png', route => failure === 'png' ? route.abort() : route.fulfill({ contentType: 'image/png', body: png }));
     await page.route('**/pets/cat-head-rig-v2.json', route => failure === 'head' ? route.abort() : route.fulfill({ json: headMeta }));

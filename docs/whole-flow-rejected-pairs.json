@@ -1,0 +1,127 @@
+{
+  "cat": [
+    {
+      "pair": [
+        39,
+        40
+      ],
+      "reason": "Opposing 2D body views change tail and limb occlusion; interpolation duplicates the face/body outline. Use a complete source frame on this edge."
+    },
+    {
+      "pair": [
+        91,
+        92
+      ],
+      "reason": "Sitting-to-lying bridge changes leg/body occlusion; intermediate compresses and merges front paws. Use a complete source frame on this edge."
+    }
+  ],
+  "dog": [
+    {
+      "pair": [
+        37,
+        38
+      ],
+      "reason": "Yaw from side view to front view changes muzzle/ear/body visibility; the intermediate has two noses and overlapping muzzle outlines. Preserve a complete source pose."
+    },
+    {
+      "pair": [
+        40,
+        41
+      ],
+      "reason": "Yaw from front view to opposing side view changes face, tail, and limb occlusion; the intermediate duplicates eyes and muzzle. Preserve a complete source pose."
+    },
+    {
+      "pair": [
+        60,
+        61
+      ],
+      "reason": "Translucent second right/front paw outline at quarter and half pose. Preserve a complete source pose on this edge."
+    },
+    {
+      "pair": [
+        66,
+        67
+      ],
+      "reason": "Translucent extra upper-right head and ear contour at quarter and half pose. Preserve a complete source pose on this edge."
+    },
+    {
+      "pair": [
+        68,
+        69
+      ],
+      "reason": "Duplicated raised/lowered forepaw silhouette. Preserve a complete source pose on this edge."
+    },
+    {
+      "pair": [
+        69,
+        70
+      ],
+      "reason": "Duplicated raised/lowered forepaw silhouette. Preserve a complete source pose on this edge."
+    },
+    {
+      "pair": [
+        70,
+        71
+      ],
+      "reason": "Translucent extra upper-right head and ear contour at half and three-quarter pose. Preserve a complete source pose on this edge."
+    },
+    {
+      "pair": [
+        91,
+        92
+      ],
+      "reason": "Lying-down bridge moves the head across the front paws and changes body occlusion; interpolation leaves a second translucent head. Use a complete source frame on this edge."
+    },
+    {
+      "pair": [
+        92,
+        93
+      ],
+      "reason": "Lying-to-standing bridge changes the limb/body topology; interpolation duplicates the head and front-leg outline. Use a complete source frame on this edge."
+    }
+  ],
+  "parrot": [
+    {
+      "pair": [
+        35,
+        36
+      ],
+      "reason": "Yaw into the front view changes wing/body topology and beak visibility; the intermediate retains a ghost wing and beak. Preserve a complete source pose."
+    },
+    {
+      "pair": [
+        41,
+        42
+      ],
+      "reason": "Yaw out of the front view changes eye/beak and wing visibility; the intermediate duplicates beak and eye silhouettes. Preserve a complete source pose."
+    },
+    {
+      "pair": [
+        60,
+        61
+      ],
+      "reason": "Extra translucent upper-left head/crest and lower feet/chest contours. Preserve a complete source pose on this edge."
+    },
+    {
+      "pair": [
+        66,
+        67
+      ],
+      "reason": "Opposing head projection reverses triangle winding; semantic attempt had 4/8 foreground folds and no compatible field was written. Original field retains old crest/beak ghost. Preserve a complete source pose on this edge."
+    },
+    {
+      "pair": [
+        67,
+        68
+      ],
+      "reason": "Preening yaw changes cheek visibility and head/upper-wing occlusion. Even the shared-inverse/alpha-contour candidate leaves a translucent upper-left head and wing silhouette; use a complete source frame on this edge."
+    },
+    {
+      "pair": [
+        68,
+        69
+      ],
+      "reason": "Preening changes from a folded-wing view to an upright wing/body view; interpolation duplicates the wing and lower-leg outline. Use a complete source frame on this edge."
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { test, expect } from '@playwright/test';
+import {useLegacyPetResources} from './legacy-pet-fixture.mjs';
+test.beforeEach(async({page})=>useLegacyPetResources(page));
 
 async function saveEvidence(name, value) {
   await mkdir('.artifacts', { recursive: true });
@@ -191,7 +193,8 @@ test('actual complete cat stays grounded and inside its canvas across gait, real
 });
 
 for (const failure of [null, 'cat-limbs-v3.png', 'cat-head-rig-v3.json', 'cat-limb-rig-v3.json', 'cat-cohesive-v2.png']) {
-  test(`live cat loader ${failure ? `restores the usable matching group on ${failure} failure` : 'uses the actual v3 head and complete limbs'}`, async ({ page }) => {
+  test(`live fallback cat rig loader ${failure ? `restores the usable matching group on ${failure} failure` : 'uses the actual v3 head and complete limbs'}`, async ({ page }) => {
+    await page.route('**/pets/*-whole-v*', route => route.abort());
     if (failure) await page.route(`**/pets/${failure}`, route => route.abort());
     await page.addInitScript(() => {
       window.catSourceDraws = [];

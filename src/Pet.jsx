@@ -3,6 +3,9 @@ import { animationFrame, atlasPosition, createAnimationController, spriteBaselin
 import { createSpriteRenderer } from './rendering/sprite-renderer.js';
 import { createRigRenderer } from './rendering/rig-renderer.js';
 import { createRigController } from './core/rig-motion.js';
+import { createWholeAnimationController } from './core/whole-animation.js';
+import { createWholeRenderer, validateWholeAtlas } from './rendering/whole-renderer.js';
+import { validateWholeContours } from './rendering/whole-flow-renderer.js';
 
 export function useReducedMotion() {
   const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -48,20 +51,39 @@ async function loadFlow(species, signal) {
   } catch { return {}; } finally { clearTimeout(timeout); signal.removeEventListener('abort', cancel); }
 }
 
+async function loadWholeFlow(meta, signal) {
+  if (!meta?.flow?.asset) return undefined;
+  const controller = new AbortController();
+  const cancel = () => controller.abort();
+  signal.addEventListener('abort', cancel, { once: true });
+  if (signal.aborted) cancel();
+  const timeout = setTimeout(cancel, 1500);
+  try {
+    const response = await fetch(`${import.meta.env.BASE_URL}${meta.flow.asset}`, { signal: controller.signal });
+    return response.ok ? await response.arrayBuffer() : undefined;
+  } catch { return undefined; }
+  finally { clearTimeout(timeout); signal.removeEventListener('abort', cancel); }
+}
+
 /** Props update the persistent playback, while each display frame paints imperatively. */
-export default function Pet({ pet, size = 200, action = 'idle', walking = false, facing = 1, paused = false, ambient = true, actionStartedAt, locomotionRef, className = '', style, ...handlers }) {
+export default function Pet({ pet, size = 200, action = 'idle', walking = false, facing = 1, paused = false, ambient = true, actionStartedAt, locomotionRef, motionPaintRef, onPlaybackReady, className = '', style, ...handlers }) {
+  const wholeFrameMode = pet.wholeRenderMode === 'discrete-whole-frame';
   const reducedMotion = useReducedMotion();
   const elementRef = useRef(null), canvasRef = useRef(null), playbackRef = useRef(null);
   const propsRef = useRef(null);
-  propsRef.current = { pet, action, walking, facing, paused, ambient, actionStartedAt, locomotionRef, reducedMotion, className, style, ariaLabel: handlers['aria-label'] };
+  propsRef.current = { pet, action, walking, facing, paused, ambient, actionStartedAt, locomotionRef, onPlaybackReady, reducedMotion, className, style, ariaLabel: handlers['aria-label'] };
 
   useEffect(() => {
     const element = elementRef.current, canvas = canvasRef.current;
     const controller = createAnimationController({ species: pet.id });
     const rigController = createRigController({ species: pet.id });
     const abort = new AbortController();
-    let cancelled = false, request = null, renderer = null, images = null, motionLoaded = false, drawn = false, articulated = false;
-    let actionToken, actionElapsed = 0, previousRigPose;
+    let cancelled = false, request = null, renderer = null, images = null, motionLoaded = false, drawn = false, articulated = false, whole = false, wholePending = true, wholeFailed = false, wholeController;
+    let actionToken, actionElapsed = 0, previousRigPose, readinessKey;
+
+    function setValue(target, key, value) {
+      if (!wholeFrameMode || target[key] !== String(value)) target[key] = value;
+    }
 
     function paint(now) {
       if (cancelled) return;
@@ -70,12 +92,13 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
         actionToken = props.actionStartedAt;
         actionElapsed = actionToken ? Math.max(0, Date.now() - actionToken) : 0;
       }
-      const locomotion = articulated ? props.locomotionRef?.current || { epoch: 0, distanceDip: 0, spriteSizeDip: element.clientWidth, facing: props.facing, moving: props.walking } : null;
+      const locomotion = props.locomotionRef?.current || { epoch: 0, distanceDip: 0, spriteSizeDip: element.clientWidth, facing: props.facing, moving: props.walking };
       // Ambient care must not outlast the movement controller's turn hold.
       // The walking scheduler cancels it; explicit care still pauses the rig.
       const dogTurn = Boolean(articulated && pet.id === 'dog' && props.action === 'idle' && previousRigPose
         && (previousRigPose.turning || locomotion.facing !== previousRigPose.facing));
-      let sample = controller.sample({ ...props, walking: props.walking || dogTurn, actionElapsed }, now);
+      let sample = whole ? wholeController.sample({ ...props, actionElapsed, locomotion }, now)
+        : controller.sample({ ...props, walking: props.walking || dogTurn, actionElapsed }, now);
       if (articulated) {
         const automatic = props.action === 'idle' && !locomotion.moving && !dogTurn;
         const action = automatic && ['groom', 'stretch', 'hop'].includes(sample.clip) ? sample.clip === 'hop' ? 'trick' : sample.clip : props.action;
@@ -85,40 +108,58 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
       const stopped = props.paused || props.reducedMotion || !props.ambient;
       if (renderer) {
         try {
-          if (renderer.draw(articulated ? sample : { ...sample, stopped }, now) !== false) drawn = true;
+          const painted = renderer.draw(articulated || whole ? sample : { ...sample, stopped }, now) !== false;
+          if (painted) drawn = true;
+          else if (wholeFrameMode) drawn = false;
         } catch {
-          renderer.dispose(); renderer = null; drawn = false; articulated = false;
+          renderer.dispose(); renderer = null; drawn = false; articulated = false; whole = false;
+          if (wholeFrameMode) wholeFailed = true;
           sample = controller.sample({ ...props, actionElapsed }, now);
         }
       }
-      const motion = !articulated && sample.atlas === 'motion' && motionLoaded;
-      const frame = articulated ? sample.clip === 'walk' ? Math.floor((sample.phase % 1) * 64) : sample.frame : motion ? sample.frame : sample.atlas === 'legacy' ? sample.frame : sample.clip === 'walk' ? (sample.frame % 2 ? 1 : 2) : sample.clip === 'hop' ? 4 : 0;
+      const motion = !wholeFrameMode && !articulated && !whole && sample.atlas === 'motion' && motionLoaded;
+      const frame = whole ? sample.frame : wholeFrameMode ? 0 : articulated ? sample.clip === 'walk' ? Math.floor((sample.phase % 1) * 64) : sample.frame : motion ? sample.frame : sample.atlas === 'legacy' ? sample.frame : sample.clip === 'walk' ? (sample.frame % 2 ? 1 : 2) : sample.clip === 'hop' ? 4 : 0;
       const position = atlasPosition(frame, !motion);
       const alignment = !drawn && motion ? spriteBaselineOffset(pet.id, frame) / 256 * 100 : 0;
-      canvas.style.visibility = drawn ? 'visible' : 'hidden';
-      element.style.backgroundImage = `url("${import.meta.env.BASE_URL}${motion ? pet.motionAsset : pet.asset}")`;
-      element.style.backgroundSize = drawn ? '0% 0%' : motion ? '600% 400%' : '300% 200%';
-      element.style.backgroundPosition = `${position.x}% ${position.y}%`;
-      element.style.setProperty('--pet-facing', sample.facing);
-      if (!props.style?.transform) element.style.transform = articulated ? 'none' : `translateY(calc(${sample.lift}px + ${alignment}%)) scale(${sample.facing * sample.scale}, ${sample.scaleY})`;
-      element.dataset.frame = frame;
-      element.dataset.nextFrame = motion ? sample.nextFrame : frame;
-      element.dataset.mix = motion ? sample.mix : 0;
-      element.dataset.elapsed = sample.elapsed;
-      element.dataset.sequence = sample.sequence;
-      element.dataset.turning = articulated ? String(sample.turning) : 'false';
-      element.dataset.sampleTime = sample.sampleTime ?? now;
-      element.dataset.facing = sample.facing;
-      element.dataset.turnRemaining = sample.turnRemaining ?? 0;
-      element.dataset.motionDistance = sample.motionDistance ?? '';
-      element.dataset.motionEpoch = sample.motionEpoch ?? '';
-      element.dataset.orientation = sample.orientation ?? sample.facing;
-      element.dataset.phase = sample.phase ?? '';
-      element.dataset.contacts = articulated ? JSON.stringify(sample.legs.filter(leg => leg.planted).map(leg => ({ id: leg.id, supportGeneration: leg.supportGeneration, x: leg.foot.x, y: leg.foot.y }))) : '';
-      element.dataset.clip = sample.clip;
-      element.dataset.atlas = articulated ? 'rig' : motion ? 'motion' : 'legacy';
-      element.className = `pet-sprite ${sample.clip === 'walk' ? 'is-walking' : ''} ${pet.id === 'parrot' && sample.clip === 'walk' ? 'is-flying' : ''} ${props.action === 'rest' ? 'is-sleeping' : ''} ${props.className}`;
-      if (!props.ariaLabel) element.setAttribute('aria-label', `${pet.label}${props.action === 'rest' ? '正在睡觉' : sample.clip === 'walk' ? '正在活动' : ''}`);
+      setValue(canvas.style, 'visibility', drawn ? 'visible' : 'hidden');
+      setValue(element.style, 'backgroundImage', `url("${import.meta.env.BASE_URL}${motion ? pet.motionAsset : pet.asset}")`);
+      setValue(element.style, 'backgroundSize', drawn ? '0% 0%' : motion ? '600% 400%' : '300% 200%');
+      setValue(element.style, 'backgroundPosition', `${position.x}% ${position.y}%`);
+      if (!wholeFrameMode || element.style.getPropertyValue('--pet-facing') !== String(sample.facing)) element.style.setProperty('--pet-facing', sample.facing);
+      if (!props.style?.transform) setValue(element.style, 'transform', articulated || whole ? 'none' : wholeFrameMode ? `scaleX(${locomotion.facing === -1 ? -1 : 1})` : `translateY(calc(${sample.lift}px + ${alignment}%)) scale(${sample.facing * sample.scale}, ${sample.scaleY})`);
+      setValue(element.dataset, 'frame', frame);
+      setValue(element.dataset, 'nextFrame', motion || whole ? sample.nextFrame ?? frame : frame);
+      setValue(element.dataset, 'mix', motion || whole ? sample.mix ?? 0 : 0);
+      setValue(element.dataset, 'elapsed', sample.elapsed);
+      setValue(element.dataset, 'sequence', sample.sequence);
+      setValue(element.dataset, 'turning', articulated || whole ? String(sample.turning) : 'false');
+      setValue(element.dataset, 'sampleTime', sample.sampleTime ?? now);
+      setValue(element.dataset, 'facing', sample.targetFacing ?? sample.facing);
+      setValue(element.dataset, 'turnRemaining', sample.turnRemaining ?? 0);
+      setValue(element.dataset, 'transition', sample.transition ?? '');
+      setValue(element.dataset, 'transitionRemaining', sample.transitionRemaining ?? 0);
+      setValue(element.dataset, 'motionDistance', sample.motionDistance ?? '');
+      setValue(element.dataset, 'motionEpoch', sample.motionEpoch ?? '');
+      setValue(element.dataset, 'orientation', sample.orientation ?? sample.facing);
+      setValue(element.dataset, 'phase', sample.phase ?? '');
+      setValue(element.dataset, 'ground', sample.ground ? JSON.stringify(sample.ground) : '');
+      setValue(element.dataset, 'contacts', articulated ? JSON.stringify(sample.legs.filter(leg => leg.planted).map(leg => ({ id: leg.id, supportGeneration: leg.supportGeneration, x: leg.foot.x, y: leg.foot.y }))) : '');
+      setValue(element.dataset, 'clip', sample.clip);
+      setValue(element.dataset, 'atlas', whole ? 'whole' : wholeFrameMode ? 'whole-fallback' : articulated ? 'rig' : motion ? 'motion' : 'legacy');
+      setValue(element.dataset, 'loadState', wholeFailed ? 'failed' : wholePending ? 'pending' : whole && drawn ? 'ready' : 'fallback');
+      if(props.onPlaybackReady) {
+        const preparing = wholePending || whole && [5,6].includes(images.wholeMeta.version)
+          && ((sample.turning && locomotion?.intentMoving)
+            || (sample.clip === 'walk' && (Boolean(sample.transition) || sample.ground?.mode === 'enter')));
+        const ready = wholeFrameMode ? Boolean(whole && drawn && !wholeFailed && (!locomotion?.intentMoving || sample.firstStepReady)) : !preparing;
+        const epoch = locomotion?.prepareEpoch ?? 0, key = `${epoch}:${ready}`;
+        if(key !== readinessKey) { readinessKey = key; props.onPlaybackReady({ready,epoch}); }
+      }
+      setValue(element, 'className', `pet-sprite ${sample.clip === 'walk' ? 'is-walking' : ''} ${pet.id === 'parrot' && sample.clip === 'walk' ? 'is-flying' : ''} ${props.action === 'rest' ? 'is-sleeping' : ''} ${props.className}`);
+      if (!props.ariaLabel) {
+        const label = `${pet.label}${props.action === 'rest' ? '正在睡觉' : sample.clip === 'walk' ? '正在活动' : ''}`;
+        if (!wholeFrameMode || element.getAttribute('aria-label') !== label) element.setAttribute('aria-label', label);
+      }
     }
     function tick(now) {
       request = null;
@@ -138,20 +179,60 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
       if (cancelled || !images) return;
       renderer?.dispose(); renderer = null; drawn = false;
       try {
-        articulated = Boolean(images.rigImage && images.rigMeta);
-        renderer = articulated ? createRigRenderer(canvas, { species: pet.id, ...images }) : createSpriteRenderer(canvas, { species: pet.id, ...images, onContextLost: () => {
+        whole = Boolean(images.wholeImages && images.wholeMeta);
+        articulated = !wholeFrameMode && !whole && Boolean(images.rigImage && images.rigMeta);
+        if (whole) {
+          wholeController ||= createWholeAnimationController({ species: pet.id, meta: images.wholeMeta });
+          renderer = createWholeRenderer(canvas, { image: images.wholeImages[0], images: images.wholeImages, meta: images.wholeMeta, flowBytes: images.wholeFlowBytes, surfaceImages: images.wholeSurfaceImages,contourImages:images.wholeContourImages });
+          delete canvas.dataset.limbSkin; delete canvas.dataset.headRig; delete canvas.dataset.bodyRig;
+        } else if (!wholeFrameMode) renderer = articulated ? createRigRenderer(canvas, { species: pet.id, ...images }) : createSpriteRenderer(canvas, { species: pet.id, ...images, onContextLost: () => {
           if (cancelled) return;
           renderer?.dispose(); drawn = false; renderer = null;
           refresh();
         } });
-      } catch { articulated = false; /* The decoded CSS atlas remains a usable fallback. */ }
+      } catch { articulated = false; whole = false; if (wholeFrameMode) wholeFailed = true; /* The complete CSS photograph remains visible. */ }
       refresh();
     }
     const restored = () => createRenderer();
     canvas.addEventListener('webglcontextrestored', restored);
     playbackRef.current = { refresh };
+    // Native window travel and the planted paws consume the same packet before
+    // the next display tick. rAF still advances stationary care and handoffs.
+    if (motionPaintRef) motionPaintRef.current = refresh;
     refresh();
-    Promise.allSettled([decodeImage(pet.motionAsset, abort.signal), decodeImage(pet.asset, abort.signal),
+    // Complete-frame artwork can paint before the older optional rig group finishes loading.
+    const wholeAbort=new AbortController();
+    const cancelWhole=()=>wholeAbort.abort();
+    abort.signal.addEventListener('abort',cancelWhole,{once:true});
+    const wholeTimeout=setTimeout(cancelWhole,3000);
+    fetch(`${import.meta.env.BASE_URL}${pet.wholeMetaAsset}`, { signal: wholeAbort.signal }).then(response => response.ok ? response.json() : null).then(async meta => {
+      if (wholeFrameMode && (meta?.version !== 7 || meta.renderMode !== 'discrete-whole-frame')) throw new Error('Complete-frame resource mode does not match');
+      const assets = [2,3,4,5,6,7].includes(meta?.version) ? meta.pages?.map(page => page.asset) : [pet.wholeAsset];
+      if (!assets?.length) throw new Error('No whole atlas pages');
+      const surface=meta?.version===6?meta.groundGait:null;
+      const [decoded, wholeFlowBytes,wholeSurfaceImages,wholeContourImages] = await Promise.all([
+        Promise.all(assets.map(asset => decodeImage(asset, wholeAbort.signal))), wholeFrameMode ? undefined : loadWholeFlow(meta, wholeAbort.signal),
+        surface?Promise.all([decodeImage(surface.skinAsset,wholeAbort.signal),decodeImage(surface.bodyAsset,wholeAbort.signal)])
+          .then(([skinImage,bodyImage])=>{
+            if(skinImage.naturalWidth!==surface.sourceSize[0]||skinImage.naturalHeight!==surface.sourceSize[1]
+                ||bodyImage.naturalWidth!==256||bodyImage.naturalHeight!==256)throw new Error('Ground surface dimensions do not match');
+            return {skinImage,bodyImage};
+          }):undefined,
+        Promise.all((meta.flow?.contours??[]).map(c=>decodeImage(c.asset,wholeAbort.signal))),
+      ]);
+      if (cancelled) return;
+      if (!validateWholeAtlas(decoded, meta)) throw new Error('Invalid complete-frame atlas');
+      validateWholeContours(meta,wholeContourImages);
+      images = { ...images, wholeImages: decoded, wholeMeta: meta, wholeFlowBytes,wholeSurfaceImages,wholeContourImages };
+      createRenderer();
+    }).catch(() => { if (!cancelled && wholeFrameMode) wholeFailed = true; }).finally(() => {
+      wholePending = false;
+      clearTimeout(wholeTimeout);
+      abort.signal.removeEventListener('abort',cancelWhole);
+      if (!cancelled && !whole && images) createRenderer();
+      if(!cancelled)refresh();
+    });
+    if (!wholeFrameMode) Promise.allSettled([decodeImage(pet.motionAsset, abort.signal), decodeImage(pet.asset, abort.signal),
       decodeImage(pet.rigAsset, abort.signal),
       fetch(`${import.meta.env.BASE_URL}pets/${pet.id}-rig.json`, { signal: abort.signal }).then(response => response.ok ? response.json() : null),
       decodeImage(pet.id === 'parrot' ? 'pets/parrot-perch-rig.png' : null, abort.signal),
@@ -174,7 +255,7 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
       if (cancelled) return;
       motionLoaded = motion.status === 'fulfilled';
       if (legacy.status === 'fulfilled' && (motionLoaded || rig.status === 'fulfilled')) {
-        images = { motionImage: motionLoaded ? motion.value : undefined, legacyImage: legacy.value };
+        images = { ...images, motionImage: motionLoaded ? motion.value : undefined, legacyImage: legacy.value };
         refresh();
         const registeredDogHead = dogHead.status === 'fulfilled' && dogHead.value && dogHeadMeta.status === 'fulfilled' && dogHeadMeta.value?.version === 2 && dogHeadMeta.value?.parts?.length === 6 && dogHeadMeta.value?.registration;
         const dogSourceRect = rect => Array.isArray(rect) && rect.length === 4 && rect.every(Number.isFinite)
@@ -206,7 +287,9 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
           && catLimbsV3.value.sourceSize?.[0] === catLegs.value.width && catLimbsV3.value.sourceSize?.[1] === catLegs.value.height;
         const extra = rig.status === 'fulfilled' && meta.status === 'fulfilled' && meta.value
           ? { rigImage: rig.value, rigMeta: meta.value, limbImage: coherentDog ? dogImageV3.value : naturalCat ? catLegs.value : coherentCat ? catImage.value : limb.status === 'fulfilled' ? limb.value : undefined, limbMeta: coherentDog ? dogLimbsV3.value : naturalCat ? catLimbsV3.value : coherentCat ? catLimbMeta.value : limbMeta.status === 'fulfilled' ? limbMeta.value : undefined, headImage: coherentDog ? dogImageV3.value : coherentCat ? catImage.value : registeredDogHead ? dogHead.value : head.status === 'fulfilled' ? head.value : undefined, headMeta: coherentDog ? dogHeadV3.value : naturalCat ? catHeadV3.value : coherentCat ? catHeadMeta.value : registeredDogHead ? dogHeadMeta.value : headMeta.status === 'fulfilled' ? headMeta.value : undefined, perchImage: perch.status === 'fulfilled' ? perch.value : undefined } : await loadFlow(pet.id, abort.signal);
-        if (!cancelled) { images = { ...images, ...extra }; createRenderer(); }
+        // A WebGL fallback cannot later become a 2D whole canvas. The CSS atlas
+        // stays visible while the optional complete-frame group is pending.
+        if (!cancelled) { images = { ...images, ...extra }; if (!whole && !wholePending) createRenderer(); }
       } else refresh();
     });
     return () => {
@@ -216,15 +299,16 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
       canvas.removeEventListener('webglcontextrestored', restored);
       renderer?.dispose();
       playbackRef.current = null;
+      if (motionPaintRef?.current === refresh) motionPaintRef.current = null;
     };
-  }, [pet.id, pet.asset, pet.motionAsset, pet.rigAsset]);
+  }, [pet.id, pet.asset, pet.motionAsset, pet.rigAsset, pet.wholeAsset, pet.wholeMetaAsset, wholeFrameMode, motionPaintRef]);
 
   useEffect(() => { playbackRef.current?.refresh(); }, [action, walking, facing, paused, ambient, actionStartedAt, reducedMotion, className, style, handlers['aria-label']]);
   const initial = animationFrame({ action, paused, reducedMotion, species: pet.id });
   const frame = initial.atlas === 'legacy' ? initial.frame : 0;
   const position = atlasPosition(frame, true);
   return <div ref={elementRef}
-    className={`pet-sprite ${className}`} data-frame={frame} data-clip={initial.clip} data-atlas="legacy"
+    className={`pet-sprite ${className}`} data-frame={frame} data-clip={initial.clip} data-atlas={wholeFrameMode ? 'whole-fallback' : 'legacy'}
     style={{ width: size, height: size, backgroundImage: `url("${import.meta.env.BASE_URL}${pet.asset}")`, backgroundSize: '300% 200%', backgroundPosition: `${position.x}% ${position.y}%`, '--pet-facing': facing, ...style }}
     role="img" aria-label={`${pet.label}${action === 'rest' ? '正在睡觉' : ''}`} {...handlers}
   ><canvas key={pet.id} ref={canvasRef} width={256} height={256} aria-hidden="true" style={{ display: 'block', width: '100%', height: '100%', visibility: 'hidden', pointerEvents: 'none' }} /></div>;

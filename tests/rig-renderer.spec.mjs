@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
+import {useLegacyPetResources} from './legacy-pet-fixture.mjs';
+test.beforeEach(async({page})=>useLegacyPetResources(page));
 
-test('preview dog advances gait with horizontal travel and freezes all pixels when paused', async ({ page }) => {
+test('fallback rig preview dog advances gait with horizontal travel and freezes all pixels when paused', async ({ page }) => {
+  await page.route('**/pets/*-whole-v*', route => route.abort());
   await page.goto('/');
   await page.evaluate(() => localStorage.clear()); await page.reload();
   await page.getByRole('button', { name: /选择小狗/ }).click();
@@ -83,7 +86,8 @@ test('pet feed and parrot preen visibly articulate matching artwork', async ({ p
  for(const response of result){expect(response.pet).toBeTruthy();expect(response.feed).toBeTruthy();expect(response.distinct).toBeTruthy();expect(response.groom).toBeTruthy();}
 });
 
-test('preview holds root during reversal and rebases unclamped resize',async({page})=>{
+test('fallback rig preview holds root during reversal and rebases unclamped resize',async({page})=>{
+ await page.route('**/pets/*-whole-v*',route=>route.abort());
  await page.goto('/');await page.evaluate(()=>localStorage.clear());await page.reload();
  await page.getByRole('button',{name:/选择小狗/}).click();await page.getByRole('button',{name:/在预览中领养/}).click();
  const pet=page.locator('.stage-pet');await expect(pet).toHaveAttribute('data-atlas','rig');

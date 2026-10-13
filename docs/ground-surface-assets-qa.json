@@ -1,0 +1,1730 @@
+{
+  "version": 1,
+  "species": {
+    "cat": {
+      "binarySha256": "41b49876597f2cf4a390930f1ac5c509760ec1c035cef212905613130b493565",
+      "binaryBytes": 380928,
+      "remeasuredPairs": [
+        {
+          "pair": [
+            0,
+            1
+          ],
+          "fieldIndex": 0,
+          "tileSha256": "a44e6a523b0dd479630a2416646abd94f14a543a2de1151a1eab60b785036572",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.0572525262832642
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 22,
+              "medianPx": 0.7795122861862183
+            },
+            {
+              "inliers": 19,
+              "medianPx": 1.0572525262832642
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.560546875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.615234375
+            }
+          ],
+          "maxDisplacementComponentPx": 10.754373550415039,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            11,
+            0
+          ],
+          "fieldIndex": 11,
+          "tileSha256": "a6cccb3ae5a92aa111e5f27a2b1405e81be19bb30dbf3becd5531c2bfad3c1a5",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.751837432384491
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 23,
+              "medianPx": 0.6950872540473938
+            },
+            {
+              "inliers": 26,
+              "medianPx": 0.751837432384491
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.39453125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6005859375
+            }
+          ],
+          "maxDisplacementComponentPx": 12.960866928100586,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            90,
+            0
+          ],
+          "fieldIndex": 71,
+          "tileSha256": "bc3c4c420003b23859f17aabe049fe8b0103b2c6fa1984b8820ad98186e05603",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0
+          },
+          "contourRefined": true,
+          "foregroundFeatureErrors": [
+            null,
+            null
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.078125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.2490234375
+            }
+          ],
+          "maxDisplacementComponentPx": 48.077117919921875,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            48
+          ],
+          "fieldIndex": 73,
+          "tileSha256": "3a6724c0420ea19449227374eee18279adc7728260ba6b23908173369497c0c1",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9018669128417969
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 22,
+              "medianPx": 0.9018669128417969
+            },
+            {
+              "inliers": 18,
+              "medianPx": 0.6565976142883301
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.3720703125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4375
+            }
+          ],
+          "maxDisplacementComponentPx": 13.758600234985352,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            55
+          ],
+          "fieldIndex": 74,
+          "tileSha256": "6697f20df362845087eba38724f9af620abeae1bfeb85c620f27cd5fad5e6c13",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7838430404663086
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 19,
+              "medianPx": 0.5745229125022888
+            },
+            {
+              "inliers": 21,
+              "medianPx": 0.7838430404663086
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.47265625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.376953125
+            }
+          ],
+          "maxDisplacementComponentPx": 17.887704849243164,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            56
+          ],
+          "fieldIndex": 75,
+          "tileSha256": "0ec79dff2b6d48e794aa2db51f2f91e11c8dd4edf11ee96e399440d0c5838145",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.831030011177063
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 16,
+              "medianPx": 0.831030011177063
+            },
+            {
+              "inliers": 17,
+              "medianPx": 0.8016456365585327
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4892578125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.5078125
+            }
+          ],
+          "maxDisplacementComponentPx": 11.715042114257812,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            63
+          ],
+          "fieldIndex": 76,
+          "tileSha256": "214b5662663d767efe43f2299c046ac8e72d83e601cd30311fbbdea892f9b9ee",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7455164790153503
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 27,
+              "medianPx": 0.7455164790153503
+            },
+            {
+              "inliers": 24,
+              "medianPx": 0.6124527454376221
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4638671875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.52734375
+            }
+          ],
+          "maxDisplacementComponentPx": 16.944990158081055,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            64
+          ],
+          "fieldIndex": 77,
+          "tileSha256": "3e608d167e54e28a651201a89af3c3eba9ed42e9c0be7eba17767cafae12bf8f",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7591559886932373
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 18,
+              "medianPx": 0.7591559886932373
+            },
+            {
+              "inliers": 20,
+              "medianPx": 0.7112774848937988
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.49609375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.45703125
+            }
+          ],
+          "maxDisplacementComponentPx": 17.52887725830078,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            71
+          ],
+          "fieldIndex": 78,
+          "tileSha256": "494fa638915a92b2c9bec009a612337d2e9e2b1441d3638b47fbf3a6e1c19fa8",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7250828742980957
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 25,
+              "medianPx": 0.5980836749076843
+            },
+            {
+              "inliers": 27,
+              "medianPx": 0.7250828742980957
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.5009765625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.525390625
+            }
+          ],
+          "maxDisplacementComponentPx": 13.587995529174805,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            72
+          ],
+          "fieldIndex": 79,
+          "tileSha256": "a7b9b093943f318ba01bcfb073754b90bcfd004698879b7c5f66e86a4dd284eb",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6088588237762451
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 19,
+              "medianPx": 0.5536097884178162
+            },
+            {
+              "inliers": 17,
+              "medianPx": 0.6088588237762451
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.50390625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.546875
+            }
+          ],
+          "maxDisplacementComponentPx": 12.58572769165039,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            79
+          ],
+          "fieldIndex": 80,
+          "tileSha256": "35cf9071d07c3c31879fe0d880417a9dabffde9f716201b2572f3ac6896a6414",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7529900074005127
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 20,
+              "medianPx": 0.6799092888832092
+            },
+            {
+              "inliers": 15,
+              "medianPx": 0.7529900074005127
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4560546875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4658203125
+            }
+          ],
+          "maxDisplacementComponentPx": 16.182802200317383,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            80
+          ],
+          "fieldIndex": 81,
+          "tileSha256": "60b031510179de58a36bfb97846b4920bab081d6d2e83a1c28eb6690db6d55b0",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8576264381408691
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 22,
+              "medianPx": 0.8576264381408691
+            },
+            {
+              "inliers": 17,
+              "medianPx": 0.7990966439247131
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4296875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4443359375
+            }
+          ],
+          "maxDisplacementComponentPx": 17.13971710205078,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            89
+          ],
+          "fieldIndex": 82,
+          "tileSha256": "f971c3169fcb9de616e3c0ba927ff29657d09f66dc223dc98b1648648a698788",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9193986654281616
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 21,
+              "medianPx": 0.7208483219146729
+            },
+            {
+              "inliers": 20,
+              "medianPx": 0.9193986654281616
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.369140625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.37890625
+            }
+          ],
+          "maxDisplacementComponentPx": 17.349306106567383,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            95
+          ],
+          "fieldIndex": 83,
+          "tileSha256": "5b0b38374671fb6d3823118049da17abba3a84df60086d3bb7390d79936bba37",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.5562804937362671
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 25,
+              "medianPx": 0.5562804937362671
+            },
+            {
+              "inliers": 21,
+              "medianPx": 0.35547977685928345
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.46875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4970703125
+            }
+          ],
+          "maxDisplacementComponentPx": 16.38401222229004,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            2
+          ],
+          "fieldIndex": 84,
+          "tileSha256": "7c8e7c8ded5c13ec2808920bf97c0b8a1b8edd939ba734eca7fcaa32aa01f4c6",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6393383145332336
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 11,
+              "medianPx": 0.5548220276832581
+            },
+            {
+              "inliers": 8,
+              "medianPx": 0.6393383145332336
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.462890625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.37109375
+            }
+          ],
+          "maxDisplacementComponentPx": 14.493244171142578,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            3
+          ],
+          "fieldIndex": 85,
+          "tileSha256": "7d9d7d7e205f5a940da4ee91c32100b48b0c4ece580d6209dc67dc377e20cc48",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8682752847671509
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 13,
+              "medianPx": 0.8682752847671509
+            },
+            {
+              "inliers": 8,
+              "medianPx": 0.4961349368095398
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.515625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.5859375
+            }
+          ],
+          "maxDisplacementComponentPx": 11.090482711791992,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            4
+          ],
+          "fieldIndex": 86,
+          "tileSha256": "6d74d42bfd4d699ad3509daa72caeeee02999ae8e13944f91acfdf05de8ec1a5",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6559305191040039
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 10,
+              "medianPx": 0.6245664954185486
+            },
+            {
+              "inliers": 6,
+              "medianPx": 0.6559305191040039
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.529296875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.390625
+            }
+          ],
+          "maxDisplacementComponentPx": 16.120580673217773,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            5
+          ],
+          "fieldIndex": 87,
+          "tileSha256": "84c940633eaa6e036a5b91beffaf31e583db065b1d9866ca661823bde42262e6",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6582061052322388
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 10,
+              "medianPx": 0.5085564851760864
+            },
+            {
+              "inliers": 7,
+              "medianPx": 0.6582061052322388
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6630859375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.5546875
+            }
+          ],
+          "maxDisplacementComponentPx": 11.43004035949707,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            6
+          ],
+          "fieldIndex": 88,
+          "tileSha256": "5020c2b8dde506082fc3b4dcfe56870bfbcc8a38b1e226ad646cbe04e893e98f",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7610143423080444
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 16,
+              "medianPx": 0.7610143423080444
+            },
+            {
+              "inliers": 16,
+              "medianPx": 0.6476060748100281
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6015625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6416015625
+            }
+          ],
+          "maxDisplacementComponentPx": 12.493268013000488,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            7
+          ],
+          "fieldIndex": 89,
+          "tileSha256": "963fca90b1956bac45af2d949dddcef56e5ef8e0e3fe6df583bf5691b9288818",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8597487211227417
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 30,
+              "medianPx": 0.8597487211227417
+            },
+            {
+              "inliers": 27,
+              "medianPx": 0.5831101536750793
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.45703125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.587890625
+            }
+          ],
+          "maxDisplacementComponentPx": 11.542292594909668,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            8
+          ],
+          "fieldIndex": 90,
+          "tileSha256": "c8186fc6eb00a7ea01f1aea10cc0912fb793f118c477c976138225eb54066b84",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.676740825176239
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 26,
+              "medianPx": 0.676740825176239
+            },
+            {
+              "inliers": 24,
+              "medianPx": 0.6419816613197327
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.49609375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.5283203125
+            }
+          ],
+          "maxDisplacementComponentPx": 15.524641036987305,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            9
+          ],
+          "fieldIndex": 91,
+          "tileSha256": "dcbc9f9e27f5696940806f771234dde2551a26034f76fabfebe66bd0dc62db24",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.0359913110733032
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 24,
+              "medianPx": 1.0359913110733032
+            },
+            {
+              "inliers": 18,
+              "medianPx": 0.8033630847930908
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4794921875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.3349609375
+            }
+          ],
+          "maxDisplacementComponentPx": 17.148439407348633,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            10
+          ],
+          "fieldIndex": 92,
+          "tileSha256": "883e6b3352b3406b201a67298dcdf918a6b8e3adc2b0813ededb6c9296366fa3",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9463003873825073
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 22,
+              "medianPx": 0.9463003873825073
+            },
+            {
+              "inliers": 24,
+              "medianPx": 0.6962531805038452
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6064453125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4951171875
+            }
+          ],
+          "maxDisplacementComponentPx": 11.271576881408691,
+          "clippedComponents": 0
+        }
+      ],
+      "immutablePairs": 70,
+      "sourceSha256": {
+        "public/pets/cat-whole-v5.json": "b89dd3f2b3b8ff162538b812fda9bcdf7ef89124d39681f4fa7f91afd458017a",
+        "public/pets/cat-whole-v5-flow.bin": "7fc546b4bacc09f03a450999c9ad82b4dea691e4aa3ef5a9c69310e44a608a99",
+        "public/pets/cat-ground-v2-skin.png": "ac542ced0e5d8bd081db12819f42c17d10e843cb243bcb6429b551f1eaf9bf17",
+        "public/pets/cat-ground-v2-body.png": "70132a3bf27bca320de98c84a7f7fcfb74f6bb32f2eeec2df7bac661a8efc302",
+        "public/pets/cat-ground-v2-neutral.png": "79aae9ffe03b49caff5ca695bfca4e59905ded326a630bf751aab796ad3001af"
+      }
+    },
+    "dog": {
+      "binarySha256": "1043e0edf3162b6702a351c3d0815087ea019e2c1acc15e1720160ca7230a049",
+      "binaryBytes": 356352,
+      "remeasuredPairs": [
+        {
+          "pair": [
+            0,
+            1
+          ],
+          "fieldIndex": 0,
+          "tileSha256": "d7bd4eeceb93fc8b23812d3639798e3883650a58c8c2dda4aa4861d27403d48b",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.1177480220794678
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 20,
+              "medianPx": 1.0891175270080566
+            },
+            {
+              "inliers": 22,
+              "medianPx": 1.1177480220794678
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.662109375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.5556640625
+            }
+          ],
+          "maxDisplacementComponentPx": 10.380438804626465,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            11,
+            0
+          ],
+          "fieldIndex": 11,
+          "tileSha256": "9f0ca07da75d44f722a97266fbfcbd68833915d3725c9f730e8d9d212651ed62",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9119544625282288
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 16,
+              "medianPx": 0.9119544625282288
+            },
+            {
+              "inliers": 21,
+              "medianPx": 0.8543309569358826
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.3720703125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.5791015625
+            }
+          ],
+          "maxDisplacementComponentPx": 14.787217140197754,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            90,
+            0
+          ],
+          "fieldIndex": 64,
+          "tileSha256": "2a426d8781bac8b2622cb3f0136655db00c4f91ce8c52df139e0f35f76de7405",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.1237605810165405
+          },
+          "contourRefined": true,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 13,
+              "medianPx": 0.966253399848938
+            },
+            {
+              "inliers": 13,
+              "medianPx": 1.1237605810165405
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.05859375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.234375
+            }
+          ],
+          "maxDisplacementComponentPx": 27.115272521972656,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            48
+          ],
+          "fieldIndex": 66,
+          "tileSha256": "d0652a16870d3d2702f816cdf2f84496743a1b6221418c63e367520a786cd63a",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.5532805919647217
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 14,
+              "medianPx": 1.5532805919647217
+            },
+            {
+              "inliers": 17,
+              "medianPx": 1.443251132965088
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6796875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4931640625
+            }
+          ],
+          "maxDisplacementComponentPx": 10.549914360046387,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            55
+          ],
+          "fieldIndex": 67,
+          "tileSha256": "18a8d791c6e98e80e249d1696791882038eccd73440d18d56727bfadffb08f8e",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7348433136940002
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 13,
+              "medianPx": 0.7348433136940002
+            },
+            {
+              "inliers": 16,
+              "medianPx": 0.721436619758606
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.685546875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.40234375
+            }
+          ],
+          "maxDisplacementComponentPx": 11.23352336883545,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            56
+          ],
+          "fieldIndex": 68,
+          "tileSha256": "8c085a7e2f1e0aae6ac6c5dc8d0953cfd8c1f59ec36109a1d1ed739f7b9ed6cc",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.9970607757568359
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 10,
+              "medianPx": 0.9970607757568359
+            },
+            {
+              "inliers": 10,
+              "medianPx": 0.8700143694877625
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.703125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.38671875
+            }
+          ],
+          "maxDisplacementComponentPx": 9.946454048156738,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            63
+          ],
+          "fieldIndex": 69,
+          "tileSha256": "84867bcf2947096d5de995798af6b4c38d6242dd016b1d43fe917238288117ac",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8221352696418762
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 13,
+              "medianPx": 0.8221352696418762
+            },
+            {
+              "inliers": 15,
+              "medianPx": 0.6494101881980896
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6337890625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.466796875
+            }
+          ],
+          "maxDisplacementComponentPx": 11.651951789855957,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            64
+          ],
+          "fieldIndex": 70,
+          "tileSha256": "c7291b3fee96cbed44b22337f24f9f2fcf9f937d4b9cf9a405d953301abeb62a",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.2655984163284302
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 18,
+              "medianPx": 1.2655984163284302
+            },
+            {
+              "inliers": 15,
+              "medianPx": 1.0516438484191895
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7314453125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.47265625
+            }
+          ],
+          "maxDisplacementComponentPx": 9.369288444519043,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            71
+          ],
+          "fieldIndex": 71,
+          "tileSha256": "7e8e7d7972999c39de0762a24e7f778afd446da8b4f3805af795578b86e0365f",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6346604824066162
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 14,
+              "medianPx": 0.5639013051986694
+            },
+            {
+              "inliers": 17,
+              "medianPx": 0.6346604824066162
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.673828125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.439453125
+            }
+          ],
+          "maxDisplacementComponentPx": 10.15730094909668,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            72
+          ],
+          "fieldIndex": 72,
+          "tileSha256": "3a669e3d4d4fa3ad9013e30b993760d194e51b42bf62b7ac575acf4b803db5e8",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.004496693611145
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 17,
+              "medianPx": 1.004496693611145
+            },
+            {
+              "inliers": 18,
+              "medianPx": 1.004482626914978
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.7001953125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.390625
+            }
+          ],
+          "maxDisplacementComponentPx": 11.751737594604492,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            79
+          ],
+          "fieldIndex": 73,
+          "tileSha256": "a3852700ccfb2005e593991a0e61bae7cad4cf76a833eca4d464d920e89bbd1b",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.3322292566299438
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 10,
+              "medianPx": 1.3322292566299438
+            },
+            {
+              "inliers": 13,
+              "medianPx": 1.2269607782363892
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6904296875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.390625
+            }
+          ],
+          "maxDisplacementComponentPx": 13.13630485534668,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            80
+          ],
+          "fieldIndex": 74,
+          "tileSha256": "e928bd1091c8aadcc31cfc72b5d6e309c22a533b35cf33c530c4edcde0382a57",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.340027928352356
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 14,
+              "medianPx": 1.0848016738891602
+            },
+            {
+              "inliers": 17,
+              "medianPx": 1.340027928352356
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.759765625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.392578125
+            }
+          ],
+          "maxDisplacementComponentPx": 9.880852699279785,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            89
+          ],
+          "fieldIndex": 75,
+          "tileSha256": "37a18190705f0ddb7cad1fd39349d2b502036f1b9a9b9d1925f322504587b574",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.2629731893539429
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 17,
+              "medianPx": 1.2629731893539429
+            },
+            {
+              "inliers": 16,
+              "medianPx": 1.035417914390564
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6845703125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.427734375
+            }
+          ],
+          "maxDisplacementComponentPx": 9.95968246459961,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            95
+          ],
+          "fieldIndex": 76,
+          "tileSha256": "36d10658f13cf6e6d4f8d9442dc6ddc707bba6dcf3b17b8edb2ae3db5e281ba0",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.6797059774398804
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 14,
+              "medianPx": 0.6115199327468872
+            },
+            {
+              "inliers": 15,
+              "medianPx": 0.6797059774398804
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.6591796875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.3955078125
+            }
+          ],
+          "maxDisplacementComponentPx": 13.868644714355469,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            2
+          ],
+          "fieldIndex": 77,
+          "tileSha256": "87511c171eb2c3211d02fdd7bcf4beb6ed30a36a8684a85f9bf0ba5acc3c8285",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.323877215385437
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 19,
+              "medianPx": 1.1562138795852661
+            },
+            {
+              "inliers": 22,
+              "medianPx": 1.323877215385437
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.609375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.3154296875
+            }
+          ],
+          "maxDisplacementComponentPx": 12.38755989074707,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            3
+          ],
+          "fieldIndex": 78,
+          "tileSha256": "a3b7ee64cbdf2ddb4c6ee25b647189ff1cac986ae7f65a002b0236661eb3de8c",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.761509358882904
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 11,
+              "medianPx": 0.6753129363059998
+            },
+            {
+              "inliers": 13,
+              "medianPx": 0.761509358882904
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.63671875
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4736328125
+            }
+          ],
+          "maxDisplacementComponentPx": 10.113605499267578,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            4
+          ],
+          "fieldIndex": 79,
+          "tileSha256": "bd4d7dd86aa18e79b4d633b0679454f293d7e3e9d6896a899177f054108f67b3",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.0076338052749634
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 21,
+              "medianPx": 1.0076338052749634
+            },
+            {
+              "inliers": 18,
+              "medianPx": 0.9710028171539307
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.626953125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.384765625
+            }
+          ],
+          "maxDisplacementComponentPx": 14.354809761047363,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            5
+          ],
+          "fieldIndex": 80,
+          "tileSha256": "819915357e6bdaf583d753daecee0706b644d387b8348754e41d92b48332b0eb",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.0443942546844482
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 20,
+              "medianPx": 1.0443942546844482
+            },
+            {
+              "inliers": 23,
+              "medianPx": 1.0282973051071167
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.599609375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.44140625
+            }
+          ],
+          "maxDisplacementComponentPx": 11.833185195922852,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            6
+          ],
+          "fieldIndex": 81,
+          "tileSha256": "d6ad39b433ffcbd4938f374b30fda6e77e4b7d88fc5263d3ee5e5c78afb04051",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.3481721878051758
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 20,
+              "medianPx": 1.0790857076644897
+            },
+            {
+              "inliers": 20,
+              "medianPx": 1.3481721878051758
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.578125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.4306640625
+            }
+          ],
+          "maxDisplacementComponentPx": 13.68934154510498,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            7
+          ],
+          "fieldIndex": 82,
+          "tileSha256": "559751c3079a5839de9fe1a73a7a89087dea53232db8ffd4689a109432938116",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7500263452529907
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 22,
+              "medianPx": 0.6994549036026001
+            },
+            {
+              "inliers": 20,
+              "medianPx": 0.7500263452529907
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.5859375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.3896484375
+            }
+          ],
+          "maxDisplacementComponentPx": 9.985980987548828,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            8
+          ],
+          "fieldIndex": 83,
+          "tileSha256": "c7a24f4cf8c239d39915f7e2efe39c479ad305c9a60f3cac6a9c7c0c1e2c0a19",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 1.239698052406311
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 25,
+              "medianPx": 1.239698052406311
+            },
+            {
+              "inliers": 22,
+              "medianPx": 1.2049031257629395
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.541015625
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.42578125
+            }
+          ],
+          "maxDisplacementComponentPx": 11.002144813537598,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            9
+          ],
+          "fieldIndex": 84,
+          "tileSha256": "a3bbc50315ac44c9ccd49224aca73aa7cc6b08c70c3adc067c9280681b324dac",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "backward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.8884998559951782
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 14,
+              "medianPx": 0.8884998559951782
+            },
+            {
+              "inliers": 18,
+              "medianPx": 0.8363741636276245
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.455078125
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.3642578125
+            }
+          ],
+          "maxDisplacementComponentPx": 13.10848331451416,
+          "clippedComponents": 0
+        },
+        {
+          "pair": [
+            0,
+            10
+          ],
+          "fieldIndex": 85,
+          "tileSha256": "01408df59c323cf637bba27e1222df3617d3548bb75d3e20f76c9b5e698b3dd9",
+          "visualStatus": "pending",
+          "consistency": {
+            "sourceDirection": "forward",
+            "smoothingSigmaPx": 0,
+            "maxPackedFeatureMedianPx": 0.7108202576637268
+          },
+          "contourRefined": false,
+          "foregroundFeatureErrors": [
+            {
+              "inliers": 19,
+              "medianPx": 0.7108202576637268
+            },
+            {
+              "inliers": 18,
+              "medianPx": 0.6531800031661987
+            }
+          ],
+          "geometry": [
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.5927734375
+            },
+            {
+              "folds": 0,
+              "minimumForegroundAreaRatio": 0.34765625
+            }
+          ],
+          "maxDisplacementComponentPx": 12.08749008178711,
+          "clippedComponents": 0
+        }
+      ],
+      "immutablePairs": 64,
+      "sourceSha256": {
+        "public/pets/dog-whole-v5.json": "7954e6e3ecf4a3a58ec2dcf3bc9bf36acae85ccbaa839602e33f7527f2a73177",
+        "public/pets/dog-whole-v5-flow.bin": "4ac8214c967fd699259bf24d3fc210f97b9632d5b2d7bcaaef31aebaf1bee559",
+        "public/pets/dog-ground-v2-skin.png": "9173de1e69274c8bb17e427a21f544edad87dfa6f7fe5300895d67e87195215a",
+        "public/pets/dog-ground-v2-body.png": "1a33eadafd6f5ac405a90fedeab7eefa84300594d4a22ffabf185a61fd33dbe7",
+        "public/pets/dog-ground-v2-neutral.png": "d1e40d6eb945a5ce2e2bba57283189b985931cbea5439b3c004af21cd687fa59"
+      }
+    }
+  },
+  "visualAcceptance": "pending actual renderer review"
+}

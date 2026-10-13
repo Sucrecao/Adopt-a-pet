@@ -1,0 +1,236 @@
+{
+  "version": 1,
+  "frame": 0,
+  "coordinateSpace": "Exact current whole-renderer, canonical256x256, facing+1, top-left origin; not old rig coordinates",
+  "pawCenterTolerancePx": 3,
+  "visibleSurfacePinTolerancePx": 5,
+  "measurementMethod": "Independent manual marks on exact whole-renderer frame0 source PNG; no legacy rig coordinates. Foreground toe centers and lower-leg pins are visible surface references, not inferred hidden skeleton joints.",
+  "species": {
+    "cat": {
+      "sourceFrame": {
+        "page": 0,
+        "rect": [
+          15,
+          47,
+          172,
+          156
+        ],
+        "offsetX": 0.0,
+        "offsetY": 9.278195
+      },
+      "sourcePage": {
+        "asset": "pets/cat-whole-v2-motion.png",
+        "sourceSize": [
+          1448,
+          1086
+        ],
+        "columns": 8,
+        "rows": 6,
+        "scale": 0.8363878446115289
+      },
+      "capture": ".artifacts/whole-flow-review/cat-0-1-source.png",
+      "annotation": ".artifacts/gait-foot-diagnostic/cat-neutral-anchors.png",
+      "captureSha256": "c0381fed77189644d1fa7141bd7be3884eb0f900cd3154976c638849c3229e2e",
+      "legs": {
+        "nearHind": {
+          "pawCenter": [
+            55,
+            207
+          ],
+          "sole": [
+            55,
+            216
+          ],
+          "upperVisibleSurfacePin": [
+            81,
+            160
+          ],
+          "bendVisibleSurfacePin": [
+            65,
+            187
+          ],
+          "hip": null,
+          "knee": null,
+          "visibility": "Paw and lower shank fully visible; upper thigh blends into flank, no anatomically distinguishable hip/knee joint.",
+          "jointInterpretation": "Literal joint position is not independently visible; use the marked surface pins as deformation controls only."
+        },
+        "farHind": {
+          "pawCenter": [
+            113,
+            203
+          ],
+          "sole": [
+            113,
+            212
+          ],
+          "upperVisibleSurfacePin": null,
+          "bendVisibleSurfacePin": [
+            104,
+            190
+          ],
+          "hip": null,
+          "knee": null,
+          "visibility": "Lower paw/shank visible between belly and near foreleg; thigh/hip concealed by torso.",
+          "jointInterpretation": "Literal joint position is not independently visible; use the marked surface pins as deformation controls only."
+        },
+        "nearFore": {
+          "pawCenter": [
+            153,
+            216
+          ],
+          "sole": [
+            153,
+            224
+          ],
+          "upperVisibleSurfacePin": [
+            156,
+            160
+          ],
+          "bendVisibleSurfacePin": [
+            151,
+            190
+          ],
+          "hip": null,
+          "knee": null,
+          "visibility": "Broad foreground foreleg and paw fully visible; fur does not identify a literal elbow joint.",
+          "jointInterpretation": "Literal joint position is not independently visible; use the marked surface pins as deformation controls only."
+        },
+        "farFore": {
+          "pawCenter": [
+            185,
+            211
+          ],
+          "sole": [
+            185,
+            220
+          ],
+          "upperVisibleSurfacePin": [
+            188,
+            162
+          ],
+          "bendVisibleSurfacePin": [
+            181,
+            190
+          ],
+          "hip": null,
+          "knee": null,
+          "visibility": "Paw and outside lower contour visible; upper attachment partly behind chest/near foreleg.",
+          "jointInterpretation": "Literal joint position is not independently visible; use the marked surface pins as deformation controls only."
+        }
+      }
+    },
+    "dog": {
+      "sourceFrame": {
+        "page": 0,
+        "rect": [
+          30,
+          69,
+          134,
+          138
+        ],
+        "offsetX": 0.0,
+        "offsetY": 6.0
+      },
+      "sourcePage": {
+        "asset": "pets/dog-whole-v2-motion.png",
+        "sourceSize": [
+          1448,
+          1086
+        ],
+        "columns": 8,
+        "rows": 6,
+        "scale": 0.9855587121212122
+      },
+      "capture": ".artifacts/whole-flow-review/dog-0-1-source.png",
+      "annotation": ".artifacts/gait-foot-diagnostic/dog-neutral-anchors.png",
+      "captureSha256": "a0617245b0252481de127269e4a18283524c553dc58870374f933a1e63156419",
+      "legs": {
+        "nearHind": {
+          "pawCenter": [
+            64,
+            203
+          ],
+          "sole": [
+            64,
+            213
+          ],
+          "upperVisibleSurfacePin": [
+            93,
+            154
+          ],
+          "bendVisibleSurfacePin": [
+            75,
+            182
+          ],
+          "hip": null,
+          "knee": null,
+          "visibility": "Paw and lower shank visible; thigh blends into flank, literal hip/knee joint is not drawn.",
+          "jointInterpretation": "Literal joint position is not independently visible; use the marked surface pins as deformation controls only."
+        },
+        "farHind": {
+          "pawCenter": [
+            118,
+            204
+          ],
+          "sole": [
+            118,
+            212
+          ],
+          "upperVisibleSurfacePin": null,
+          "bendVisibleSurfacePin": [
+            109,
+            188
+          ],
+          "hip": null,
+          "knee": null,
+          "visibility": "Paw and short lower shank visible; thigh/hip concealed behind near foreleg and torso.",
+          "jointInterpretation": "Literal joint position is not independently visible; use the marked surface pins as deformation controls only."
+        },
+        "nearFore": {
+          "pawCenter": [
+            144,
+            215
+          ],
+          "sole": [
+            144,
+            224
+          ],
+          "upperVisibleSurfacePin": [
+            144,
+            154
+          ],
+          "bendVisibleSurfacePin": [
+            142,
+            190
+          ],
+          "hip": null,
+          "knee": null,
+          "visibility": "Foreground foreleg and paw visible; no exact elbow joint landmark.",
+          "jointInterpretation": "Literal joint position is not independently visible; use the marked surface pins as deformation controls only."
+        },
+        "farFore": {
+          "pawCenter": [
+            180,
+            208
+          ],
+          "sole": [
+            180,
+            217
+          ],
+          "upperVisibleSurfacePin": [
+            185,
+            152
+          ],
+          "bendVisibleSurfacePin": [
+            177,
+            184
+          ],
+          "hip": null,
+          "knee": null,
+          "visibility": "Paw and lower leg visible; upper shoulder/attachment partly concealed by chest.",
+          "jointInterpretation": "Literal joint position is not independently visible; use the marked surface pins as deformation controls only."
+        }
+      }
+    }
+  }
+}

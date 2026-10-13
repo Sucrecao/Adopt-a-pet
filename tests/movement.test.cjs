@@ -6,8 +6,9 @@ const vm = require('node:vm');
 const { createRequire } = require('node:module');
 
 async function harness(options = {}) {
-  const [geometry, motionModule, core] = await Promise.all([
+  const [geometry, motionModule, core, gait] = await Promise.all([
     import('../src/core/geometry.js'), import('../src/core/motion.js'), import('../src/core/state.js'),
+    import('../src/core/gait.js'),
   ]);
   const mainPath = path.join(__dirname, '../electron/main.cjs');
   const mainRequire = createRequire(mainPath);
@@ -46,7 +47,7 @@ async function harness(options = {}) {
   const context = vm.createContext({
     require: name => name === 'electron' ? electron : mainRequire(name),
     __dirname: path.dirname(mainPath), process: { env: {} }, console, Date: Clock,
-    setTimeout: () => 1, clearTimeout: () => {}, window, geometry, motionModule, core, options,
+    setTimeout: () => 1, clearTimeout: () => {}, window, geometry, motionModule, core, gait, options,
   });
   const run = code => vm.runInContext(code, context);
   // Execute real main functions; the harness adds no production test hooks.
@@ -54,6 +55,8 @@ async function harness(options = {}) {
     petWindow = window;
     clampWindow = geometry.clampWindow;
     advanceMotion = motionModule.advanceMotion;
+    desktopSpriteSize = gait.desktopSpriteSize;
+    gaitSpeedDip = gait.gaitSpeedDip;
     transition = core.transition;
     chooseTarget = (bounds, area, mode) => geometry.chooseTarget(bounds, area, mode, () => options.random ?? 0.9);
     state = { ...core.createState(Date.now()), adopted: true,
@@ -72,8 +75,50 @@ async function harness(options = {}) {
     drag(start) { listeners[start ? 'companion:drag-start' : 'companion:drag-end'](event); },
     move(point) { return handlers['companion:move'](event, point); },
     snapshot() { return JSON.parse(run('JSON.stringify(snapshot())')); },
+    ready(value, trusted=true) { return handlers['companion:playback-ready']?.(trusted?event:{sender:{},senderFrame:{}},value) ?? false; },
   };
 }
+
+test('native travel waits for the painted connection before a new movement intent',async()=>{
+  const pet=await harness();
+  assert.equal(pet.ready({ready:true,epoch:0}),true);
+  pet.dispatch({type:'interact',action:'feed'});pet.tick(900);
+  pet.cursor({x:900,y:350});pet.dispatch({type:'interact',action:'play'});
+  const before=pet.bounds();pet.tick();
+  const requested=pet.snapshot().motion;
+  assert.equal(requested.intentMoving,true);assert.equal(requested.moving,false);
+  assert.equal(typeof requested.prepareEpoch,'number');
+  for(let i=0;i<20;i++)pet.tick();
+  assert.deepEqual(pet.bounds(),before);assert.equal(pet.snapshot().motion.distanceDip,requested.distanceDip);
+  assert.equal(pet.ready({ready:true,epoch:requested.prepareEpoch-1}),false);
+  assert.throws(()=>pet.ready({ready:true,epoch:requested.prepareEpoch},false),/未知窗口/);
+  pet.tick();assert.deepEqual(pet.bounds(),before);
+  assert.equal(pet.ready({ready:true,epoch:requested.prepareEpoch}),true);
+  for(let i=0;i<20;i++)pet.tick();
+  assert.ok(pet.bounds().x>before.x);
+});
+
+test('not-ready turn exit keeps its800ms clock running and releases movement without another turn',async()=>{
+  const pet=await harness({species:'dog'});
+  assert.equal(pet.ready({ready:true,epoch:0}),true);
+  for(let index=0;index<40;index++)pet.tick();
+  pet.run('target = {x:0,y:motion.y};');pet.tick();
+  const before=pet.bounds(),motion=pet.snapshot().motion;
+  assert.equal(motion.facing,-1);assert.equal(pet.run('turnRemainingMs'),800);
+  // Pet publishes not-ready as soon as the painted turn begins, before the
+  // subsequent walk entry can receive or consume any native displacement.
+  assert.equal(pet.ready({ready:false,epoch:motion.prepareEpoch}),true);
+  for(let index=0;index<20;index++) {
+    pet.tick(50);assert.deepEqual(pet.bounds(),before);assert.equal(pet.snapshot().motion.distanceDip,motion.distanceDip);
+  }
+  assert.equal(pet.run('turnRemainingMs'),0,'readiness must not freeze the original turn clock');
+  assert.equal(pet.snapshot().motion.moving,false);
+  assert.equal(pet.ready({ready:true,epoch:motion.prepareEpoch}),true);pet.tick();
+  assert.equal(pet.snapshot().motion.moving,true,'the painted first step releases travel on the next tick');
+  assert.equal(pet.run('turnRemainingMs'),0,'the completed turn is not queued again');
+  for(let index=0;index<20;index++)pet.tick();
+  assert.ok(pet.bounds().x<before.x);assert.ok(pet.snapshot().motion.distanceDip>motion.distanceDip);
+});
 
 test('enlarging a roaming pet replaces its old destination and keeps 300 subsequent steps on screen', async () => {
   const pet = await harness();
@@ -101,7 +146,11 @@ test('native travel follows actual elapsed time at 16ms and 33ms', async () => {
     for (let elapsed = 0; elapsed < 2000; elapsed += cadence) pets[index].tick(Math.min(cadence, 2000 - elapsed));
   }
   assert.ok(Math.abs(pets[0].bounds().x - pets[1].bounds().x) <= 1);
-  assert.ok(pets[0].bounds().x >= 370 && pets[0].bounds().x < 384);
+  // Integrate the eight-per-second acceleration response analytically. The
+  // native width includes12px of padding that the actual sprite excludes.
+  const speed = 42 * (221 - 12) / (340 - 12);
+  const expectedTravel = speed * (2 - (1 - Math.exp(-8 * 2)) / 8);
+  assert.ok(Math.abs(pets[0].bounds().x - (300 + expectedTravel)) <= 1);
 });
 
 test('native fractional coordinates survive rounded window bounds', async () => {
@@ -122,7 +171,7 @@ test('native long frame clamps to 50ms and zero elapsed does not move', async ()
 });
 
 test('new actions immediately stop roaming until their duration expires, then resume', async () => {
-  for (const [action, duration] of [['stretch', 2600], ['trick', 2800]]) {
+  for (const [action, duration] of [['stretch', 3400], ['trick', 3600]]) {
     const pet = await harness();
     for (let frame = 0; frame < 20; frame++) pet.tick();
     assert.equal(pet.snapshot().motion.moving, true);
@@ -170,6 +219,75 @@ test('play chase retains continuous moving state and facing inside the horizonta
     assert.equal(pet.snapshot().motion.facing, 1);
   }
 });
+
+for(const species of ['cat','dog'])for(const heading of [-1,1]) {
+  test(`${species}: a chase destination just behind the heading stops without backwards planted-paw travel (${heading})`,async()=>{
+    const pet=await harness({species});
+    for(let i=0;i<20;i++)pet.tick();
+    pet.run(`facing = ${heading===1?'"right"':'"left"'};
+      motion = {...motion, x:window.getBounds().x, vx:${heading*32}, vy:0, arrived:false};
+      target = {x:motion.x-(${heading*4}), y:motion.y};
+      movementWanted = true; moving = true; turnRemainingMs = 0;`);
+    const before=pet.bounds(),distance=pet.snapshot().motion.distanceDip;
+    for(let i=0;i<60;i++) {
+      const previous=pet.bounds();pet.tick();const next=pet.bounds();
+      assert.ok((next.x-previous.x)*heading>=0,'window may not reverse under a forward planted-paw cycle');
+      assert.equal(pet.snapshot().motion.facing,heading,'near-target stopping retains heading');
+    }
+    assert.deepEqual(pet.bounds(),before,'a destination inside the opposite dead zone settles in place');
+    assert.equal(pet.snapshot().motion.distanceDip,distance);
+    assert.equal(pet.snapshot().motion.moving,false);assert.equal(pet.snapshot().motion.intentMoving,false);
+  });
+}
+
+for(const species of ['cat','dog'])for(const preparing of [true,false]) {
+  test(`${species}: play preserves an existing ${preparing?'first-step preparation':'walking cycle'} and accepted distance`,async()=>{
+    const pet=await harness({species});
+    pet.run(`motionEpoch=7; distanceDip=21; prepareEpoch=5;
+      playbackReadyKnown=true; playbackReady=${!preparing};
+      movementWanted=true; moving=${!preparing};
+      motion={...motion,vx:${preparing?0:32},vy:0,arrived:false};`);
+    const before=pet.snapshot().motion,bounds=pet.bounds();
+    pet.cursor({x:bounds.x+bounds.width/2+500,y:bounds.y+bounds.height*.6});
+    pet.dispatch({type:'interact',action:'play'});
+    const after=pet.snapshot().motion;
+    assert.equal(after.epoch,before.epoch,'play must not inject a stop/rebase into the same mobile mode');
+    assert.equal(after.distanceDip,before.distanceDip);assert.equal(after.prepareEpoch,before.prepareEpoch);
+    assert.equal(after.intentMoving,true);assert.equal(after.moving,before.moving);
+    assert.equal(pet.run('playbackReady'),!preparing);
+    if(preparing) {
+      for(let i=0;i<20;i++)pet.tick();assert.deepEqual(pet.bounds(),bounds);
+      assert.equal(pet.ready({ready:true,epoch:5}),true);
+    }
+    for(let i=0;i<20;i++)pet.tick();
+    assert.ok(pet.bounds().x>bounds.x);assert.ok(pet.snapshot().motion.distanceDip>21);
+    assert.equal(pet.snapshot().motion.epoch,7);
+  });
+}
+
+for(const species of ['cat','dog'])for(const heading of [-1,1]) {
+  test(`${species}: cancelling movement inside a turn publishes the stopped intent (${heading})`,async()=>{
+    const pet=await harness({species});
+    pet.run(`facing=${heading===1?'"right"':'"left"'};
+      motion={...motion,x:window.getBounds().x,vx:0,vy:0,arrived:false};
+      target={x:motion.x+${heading*300},y:motion.y};`);
+    for(let i=0;i<40;i++)pet.tick();
+    pet.run(`target={x:motion.x-(${heading*300}),y:motion.y};`);pet.tick();
+    assert.equal(pet.run('turnRemainingMs'),800);
+    assert.equal(pet.snapshot().motion.facing,-heading);
+    const before=pet.bounds(),distance=pet.snapshot().motion.distanceDip;
+    pet.run(`target={x:window.getBounds().x+${heading*3},y:motion.y};`);
+    pet.tick();
+    assert.ok(pet.run('turnRemainingMs')>0,'the original turn still finishes in place');
+    const delivered=()=>pet.events.filter(e=>e.channel==='companion:motion').at(-1).value;
+    assert.equal(delivered().intentMoving,false,'renderer must receive cancelled intent while the turn is held');
+    for(let i=0;i<20;i++)pet.tick(50);
+    assert.equal(pet.run('turnRemainingMs'),0);assert.equal(pet.run('target'),null);
+    assert.deepEqual(pet.bounds(),before);assert.equal(pet.snapshot().motion.distanceDip,distance);
+    assert.equal(delivered().intentMoving,pet.snapshot().motion.intentMoving);
+    assert.equal(delivered().moving,false);
+  });
+}
 
 test('roaming crosses zero on the secondary display without losing its fractional position', async () => {
   const pet = await harness({
@@ -281,7 +399,7 @@ for (const species of ['cat', 'parrot']) test(`${species} telemetry measures acc
     assert.equal(event.value.distanceDip, distance);
     before = after;
   }
-  assert.equal(pet.snapshot().motion.spriteSizeDip, 221 * .76);
+  assert.equal(pet.snapshot().motion.spriteSizeDip, (221 - 12) * .76);
   assert.ok([1, -1].includes(pet.snapshot().motion.facing));
   assert.equal(pet.run('Object.hasOwn(state, "motion")'), false);
 });
@@ -305,7 +423,7 @@ test('pause, drag, resize and relocation rebase motion without adding distance',
   epoch = pet.snapshot().motion.epoch;
   pet.dispatch({ type: 'settings', patch: { size: 1 } });
   assert.ok(pet.snapshot().motion.epoch > epoch);
-  assert.equal(pet.snapshot().motion.spriteSizeDip, 340 * .76);
+  assert.equal(pet.snapshot().motion.spriteSizeDip, (340 - 12) * .76);
 });
 test('reduced motion uses trusted boolean IPC and remains transient', async () => {
   const pet = await harness();

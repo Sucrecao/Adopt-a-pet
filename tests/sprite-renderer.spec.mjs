@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 async function rendererProbe(page, mode = 'webgl', localFlow = false, encoding = 'signed-half-pixel-rgba') {
-  await page.goto('http://127.0.0.1:5173');
+  await page.goto('/');
   return page.evaluate(async ({ mode, localFlow, encoding }) => {
     const { createSpriteRenderer } = await import('/src/rendering/sprite-renderer.js');
     const source = document.createElement('canvas');
@@ -100,7 +100,7 @@ test('software fallback still interpolates transparent images and handles clip t
 });
 
 test('overlapping deformed triangles retain the original pose color', async ({ page }) => {
-  await page.goto('http://127.0.0.1:5173');
+  await page.goto('/');
   const brightest = await page.evaluate(async () => {
     const { createSpriteRenderer } = await import('/src/rendering/sprite-renderer.js');
     const atlas = document.createElement('canvas'); atlas.width = 1536; atlas.height = 1024;

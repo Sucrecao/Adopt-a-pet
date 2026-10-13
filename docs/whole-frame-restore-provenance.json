@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-13",
+  "renderMode": "discrete-whole-frame",
+  "species": {
+    "cat": {
+      "source": "public/pets/cat-whole-v3.json",
+      "sourceSha256": "e6fb7159130f3264e06734895a33eb72ac3efecb48e08408ef0d75c61aef2f19",
+      "output": "public/pets/cat-whole-v7.json",
+      "outputSha256": "bdfdd84b946c8511f98f4ec561065d6309b5f21e406b16923e410435a85533a7",
+      "frames": 128,
+      "walkFrames": 32,
+      "stride": 32,
+      "pages": [
+        {
+          "asset": "pets/cat-whole-v2-motion.png",
+          "sha256": "0774a3b571f0e655acd73978f009f64ef6fc1b098577cdab128faa5e6b1f4a19"
+        },
+        {
+          "asset": "pets/cat-whole-v2-care.png",
+          "sha256": "87c23c9aef8d79331bd8e18b16d7f029bdf1990b65f9838dd5db2770086f8401"
+        },
+        {
+          "asset": "pets/cat-whole-v3-gait.png",
+          "sha256": "da8c790d8bdce190169a45e9af87cd55bcd30c246873c85c1dc41816205add55"
+        }
+      ]
+    },
+    "dog": {
+      "source": "public/pets/dog-whole-v3.json",
+      "sourceSha256": "4f87defefb1aa51ed55ece67163c78d849b17c302420317b16c2b70e6ca595bb",
+      "output": "public/pets/dog-whole-v7.json",
+      "outputSha256": "49087e7663df3f6422945940928e31329bff304695d09a773887460fcac45c35",
+      "frames": 128,
+      "walkFrames": 32,
+      "stride": 32,
+      "pages": [
+        {
+          "asset": "pets/dog-whole-v2-motion.png",
+          "sha256": "e7abd36dc8550ab08a5f3b7ffd70f44b6604a6904bf296395ff96b370b5b25d0"
+        },
+        {
+          "asset": "pets/dog-whole-v2-care.png",
+          "sha256": "c5d8ad124e2b3088eeb039f673e4dcc014a783face1de8fea64a536644fbed4b"
+        },
+        {
+          "asset": "pets/dog-whole-v3-gait.png",
+          "sha256": "3424795b9c90d1ce12a654b3ff47cfb7174e0b615a14da94b7d21e19902e08ae"
+        }
+      ]
+    },
+    "parrot": {
+      "source": "public/pets/parrot-whole-v3.json",
+      "sourceSha256": "7ee701479976a3593ac00a5eb800b683f10f2f8cc74bd106a3ff7eb0d6d5fe32",
+      "output": "public/pets/parrot-whole-v7.json",
+      "outputSha256": "d1c13b399666aac46c3fae6a34fb74352881559b6af0d9cb20a77feecc8556a3",
+      "frames": 128,
+      "walkFrames": 32,
+      "stride": 80,
+      "pages": [
+        {
+          "asset": "pets/parrot-whole-v2-motion.png",
+          "sha256": "2dc8b44d77677c1855f6a2507d92966b4de9dbfaadfa3cec902ade3e70f51c3d"
+        },
+        {
+          "asset": "pets/parrot-whole-v2-care.png",
+          "sha256": "3588d7f14b3ba281e678bf3f713efc6786f169a947034671f178f081cefafb60"
+        },
+        {
+          "asset": "pets/parrot-whole-v3-gait.png",
+          "sha256": "0e66eaf7f4947b72c446824659291923166e7163157b8ac9e9c9db77493977f6"
+        }
+      ]
+    }
+  }
+}

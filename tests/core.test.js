@@ -66,9 +66,9 @@ test('interactions apply effects once during cooldown and remain bounded', () =>
   for (const value of Object.values(state.stats)) assert.ok(value >= 0 && value <= 100);
 });
 
-test('stretch and trick preserve duration, effects, cooldown and normalized action', () => {
+test('stretch and trick retain full action time plus a bounded connection budget, effects and cooldown', () => {
   for (const [action, duration, energy, happiness, bond] of [
-    ['stretch', 2600, -1, 4, 1], ['trick', 2800, -3, 7, 2],
+    ['stretch', 3400, -1, 4, 1], ['trick', 3600, -3, 7, 2],
   ]) {
     const initial = createState(1000);
     const next = transition(initial, { type: 'interact', action }, 1000);
@@ -82,6 +82,17 @@ test('stretch and trick preserve duration, effects, cooldown and normalized acti
     const paused = transition(initial, { type: 'settings', patch: { paused: true } }, 1000);
     assert.equal(transition(paused, { type: 'interact', action }, 1000).action.type, 'idle');
   }
+});
+
+test('care expiry cannot truncate its authored clip after an800ms lead-in',()=>{
+  for(const [action,authored] of [['pet',2400],['feed',3200],['stretch',2600],['trick',2800]]){
+    const state=transition(createState(1000),{type:'interact',action},1000);
+    assert.equal(state.action.until,1000+800+authored);
+    assert.equal(decayState(state,1000+800+authored-1).action.type,action);
+    assert.equal(decayState(state,1000+800+authored).action.type,'idle');
+  }
+  assert.equal(transition(createState(1000),{type:'interact',action:'play'},1000).action.until,7000);
+  assert.equal(transition(createState(1000),{type:'interact',action:'rest'},1000).action.until,31000);
 });
 
 test('decay uses elapsed time, caps offline loss and expires actions', () => {

@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 async function mountPlayback(page) {
+  await page.route('**/pets/*-whole-v*', route => route.abort());
   await page.goto('/');
   await page.evaluate(async () => {
     const [{ default: React }, { default: ReactDOMClient }, { default: ReactDOM }, { default: Pet }, { PETS }] = await Promise.all([
@@ -21,7 +22,7 @@ async function mountPlayback(page) {
     document.body.append(mount);
     const root = ReactDOMClient.createRoot(mount);
     const locomotionRef = { current: { epoch: 1, distanceDip: 0, spriteSizeDip: 256, facing: 1, moving: false } };
-    let props = { pet: PETS.find(pet => pet.id === 'dog'), size: 256, action: 'idle', locomotionRef };
+    let props = { pet: {...PETS.find(pet => pet.id === 'dog'),wholeRenderMode:undefined,wholeMetaAsset:'pets/dog-whole-v5.json'}, size: 256, action: 'idle', locomotionRef };
     const render = () => ReactDOM.flushSync(() => root.render(React.createElement(Pet, props)));
     render();
     window.dogPlayback = {
@@ -42,7 +43,7 @@ async function mountPlayback(page) {
 
 for (const [ambient, random] of [['groom', 0], ['stretch', .3], ['hop', .6]]) {
   for (const alreadyActive of [false, true]) {
-    test(`dog finishes its movement hold when ambient ${ambient} ${alreadyActive ? 'is active before' : 'would start at'} a reversal`, async ({ page }) => {
+    test(`fallback dog rig finishes its movement hold when ambient ${ambient} ${alreadyActive ? 'is active before' : 'would start at'} a reversal`, async ({ page }) => {
       await mountPlayback(page);
       const result = await page.evaluate(({ random, alreadyActive }) => {
         window.dogPlayback.step(6480);
@@ -66,7 +67,7 @@ for (const [ambient, random] of [['groom', 0], ['stretch', .3], ['hop', .6]]) {
   }
 }
 
-test('dog turn still pauses for explicit care and resumes after it', async ({ page }) => {
+test('fallback dog rig turn still pauses for explicit care and resumes after it', async ({ page }) => {
   await mountPlayback(page);
   const before = await page.evaluate(() => {
     window.dogPlayback.step(16, { facing: -1 });

@@ -1,0 +1,1499 @@
+{
+  "parrot": {
+    "asset": "pets/parrot-whole-v3-gait.png",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "columns": 8,
+    "rows": 4,
+    "sha256": "0e66eaf7f4947b72c446824659291923166e7163157b8ac9e9c9db77493977f6",
+    "rawPath": "/Users/sucrecao/.codex/generated_images/01a12a9d-9db9-7452-9e10-cda94006a8f7/exec-ef627f14-e6c4-4a27-a8c5-0257ed2bf3aa.png",
+    "method": "Near-eye center is the centroid of the largest4-connected dark component (alpha>180 and every RGB channel<70) in the inspected right-side face ROI. Every selected component has47\u201359 pixels and was checked against the black near eye. Coordinates are global source pixels. Complete-body contours use alpha>=32 and min1000 pixels, matching registration.",
+    "eyeCoordinates": [
+      [
+        182.18,
+        137.23
+      ],
+      [
+        400.04,
+        138.64
+      ],
+      [
+        621.07,
+        138.74
+      ],
+      [
+        844.14,
+        138.43
+      ],
+      [
+        1065.82,
+        138.82
+      ],
+      [
+        1288.42,
+        138.89
+      ],
+      [
+        1509.96,
+        138.67
+      ],
+      [
+        1719.03,
+        138.34
+      ],
+      [
+        183.07,
+        352.68
+      ],
+      [
+        402.0,
+        353.72
+      ],
+      [
+        624.96,
+        354.8
+      ],
+      [
+        848.0,
+        354.77
+      ],
+      [
+        1069.62,
+        354.88
+      ],
+      [
+        1288.98,
+        354.61
+      ],
+      [
+        1511.2,
+        354.29
+      ],
+      [
+        1722.88,
+        353.79
+      ],
+      [
+        188.64,
+        567.32
+      ],
+      [
+        404.76,
+        567.82
+      ],
+      [
+        627.27,
+        568.67
+      ],
+      [
+        848.71,
+        567.86
+      ],
+      [
+        1069.81,
+        565.75
+      ],
+      [
+        1290.68,
+        560.53
+      ],
+      [
+        1511.15,
+        560.24
+      ],
+      [
+        1719.51,
+        560.2
+      ],
+      [
+        184.29,
+        766.55
+      ],
+      [
+        403.24,
+        766.78
+      ],
+      [
+        626.25,
+        766.93
+      ],
+      [
+        848.41,
+        767.27
+      ],
+      [
+        1066.4,
+        767.53
+      ],
+      [
+        1290.12,
+        767.52
+      ],
+      [
+        1512.46,
+        767.34
+      ],
+      [
+        1725.5,
+        767.28
+      ]
+    ],
+    "flightEyes": {
+      "96": [
+        182.18,
+        137.23
+      ],
+      "97": [
+        400.04,
+        138.64
+      ],
+      "98": [
+        621.07,
+        138.74
+      ],
+      "99": [
+        844.14,
+        138.43
+      ],
+      "100": [
+        1065.82,
+        138.82
+      ],
+      "101": [
+        1288.42,
+        138.89
+      ],
+      "102": [
+        1509.96,
+        138.67
+      ],
+      "103": [
+        1719.03,
+        138.34
+      ],
+      "104": [
+        183.07,
+        352.68
+      ],
+      "105": [
+        402.0,
+        353.72
+      ],
+      "106": [
+        624.96,
+        354.8
+      ],
+      "107": [
+        848.0,
+        354.77
+      ],
+      "108": [
+        1069.62,
+        354.88
+      ],
+      "109": [
+        1288.98,
+        354.61
+      ],
+      "110": [
+        1511.2,
+        354.29
+      ],
+      "111": [
+        1722.88,
+        353.79
+      ],
+      "112": [
+        188.64,
+        567.32
+      ],
+      "113": [
+        404.76,
+        567.82
+      ],
+      "114": [
+        627.27,
+        568.67
+      ],
+      "115": [
+        848.71,
+        567.86
+      ],
+      "116": [
+        1069.81,
+        565.75
+      ],
+      "117": [
+        1290.68,
+        560.53
+      ],
+      "118": [
+        1511.15,
+        560.24
+      ],
+      "119": [
+        1719.51,
+        560.2
+      ],
+      "120": [
+        184.29,
+        766.55
+      ],
+      "121": [
+        403.24,
+        766.78
+      ],
+      "122": [
+        626.25,
+        766.93
+      ],
+      "123": [
+        848.41,
+        767.27
+      ],
+      "124": [
+        1066.4,
+        767.53
+      ],
+      "125": [
+        1290.12,
+        767.52
+      ],
+      "126": [
+        1512.46,
+        767.34
+      ],
+      "127": [
+        1725.5,
+        767.28
+      ]
+    },
+    "frames": [
+      {
+        "localFrame": 0,
+        "globalFrame": 96,
+        "contour": [
+          45,
+          61,
+          209,
+          215
+        ],
+        "cropSuggestion": [
+          42,
+          58,
+          170,
+          160
+        ],
+        "nearEye": [
+          182.18,
+          137.23
+        ],
+        "nearEyePixels": 57,
+        "yellowHeadBounds": [
+          145,
+          85,
+          206,
+          162
+        ],
+        "eyeToCrestTop": 52.23,
+        "yellowHeadHeight": 77,
+        "yellowHeadWidth": 61
+      },
+      {
+        "localFrame": 1,
+        "globalFrame": 97,
+        "contour": [
+          263,
+          61,
+          428,
+          216
+        ],
+        "cropSuggestion": [
+          260,
+          58,
+          171,
+          161
+        ],
+        "nearEye": [
+          400.04,
+          138.64
+        ],
+        "nearEyePixels": 56,
+        "yellowHeadBounds": [
+          361,
+          85,
+          424,
+          163
+        ],
+        "eyeToCrestTop": 53.64,
+        "yellowHeadHeight": 78,
+        "yellowHeadWidth": 63
+      },
+      {
+        "localFrame": 2,
+        "globalFrame": 98,
+        "contour": [
+          483,
+          58,
+          648,
+          216
+        ],
+        "cropSuggestion": [
+          480,
+          55,
+          171,
+          164
+        ],
+        "nearEye": [
+          621.07,
+          138.74
+        ],
+        "nearEyePixels": 54,
+        "yellowHeadBounds": [
+          582,
+          86,
+          645,
+          163
+        ],
+        "eyeToCrestTop": 52.74,
+        "yellowHeadHeight": 77,
+        "yellowHeadWidth": 63
+      },
+      {
+        "localFrame": 3,
+        "globalFrame": 99,
+        "contour": [
+          704,
+          59,
+          871,
+          216
+        ],
+        "cropSuggestion": [
+          701,
+          56,
+          173,
+          163
+        ],
+        "nearEye": [
+          844.14,
+          138.43
+        ],
+        "nearEyePixels": 58,
+        "yellowHeadBounds": [
+          807,
+          87,
+          868,
+          163
+        ],
+        "eyeToCrestTop": 51.43,
+        "yellowHeadHeight": 76,
+        "yellowHeadWidth": 61
+      },
+      {
+        "localFrame": 4,
+        "globalFrame": 100,
+        "contour": [
+          924,
+          65,
+          1093,
+          216
+        ],
+        "cropSuggestion": [
+          921,
+          62,
+          175,
+          157
+        ],
+        "nearEye": [
+          1065.82,
+          138.82
+        ],
+        "nearEyePixels": 56,
+        "yellowHeadBounds": [
+          1029,
+          89,
+          1089,
+          163
+        ],
+        "eyeToCrestTop": 49.82,
+        "yellowHeadHeight": 74,
+        "yellowHeadWidth": 60
+      },
+      {
+        "localFrame": 5,
+        "globalFrame": 101,
+        "contour": [
+          1147,
+          71,
+          1316,
+          216
+        ],
+        "cropSuggestion": [
+          1144,
+          68,
+          175,
+          151
+        ],
+        "nearEye": [
+          1288.42,
+          138.89
+        ],
+        "nearEyePixels": 53,
+        "yellowHeadBounds": [
+          1252,
+          90,
+          1312,
+          163
+        ],
+        "eyeToCrestTop": 48.89,
+        "yellowHeadHeight": 73,
+        "yellowHeadWidth": 60
+      },
+      {
+        "localFrame": 6,
+        "globalFrame": 102,
+        "contour": [
+          1368,
+          81,
+          1537,
+          217
+        ],
+        "cropSuggestion": [
+          1365,
+          78,
+          175,
+          142
+        ],
+        "nearEye": [
+          1509.96,
+          138.67
+        ],
+        "nearEyePixels": 55,
+        "yellowHeadBounds": [
+          1470,
+          91,
+          1533,
+          163
+        ],
+        "eyeToCrestTop": 47.67,
+        "yellowHeadHeight": 72,
+        "yellowHeadWidth": 63
+      },
+      {
+        "localFrame": 7,
+        "globalFrame": 103,
+        "contour": [
+          1576,
+          87,
+          1746,
+          217
+        ],
+        "cropSuggestion": [
+          1573,
+          84,
+          176,
+          136
+        ],
+        "nearEye": [
+          1719.03,
+          138.34
+        ],
+        "nearEyePixels": 58,
+        "yellowHeadBounds": [
+          1676,
+          88,
+          1743,
+          163
+        ],
+        "eyeToCrestTop": 50.34,
+        "yellowHeadHeight": 75,
+        "yellowHeadWidth": 67
+      },
+      {
+        "localFrame": 8,
+        "globalFrame": 104,
+        "contour": [
+          40,
+          300,
+          211,
+          431
+        ],
+        "cropSuggestion": [
+          37,
+          297,
+          177,
+          137
+        ],
+        "nearEye": [
+          183.07,
+          352.68
+        ],
+        "nearEyePixels": 57,
+        "yellowHeadBounds": [
+          146,
+          302,
+          207,
+          377
+        ],
+        "eyeToCrestTop": 50.68,
+        "yellowHeadHeight": 75,
+        "yellowHeadWidth": 61
+      },
+      {
+        "localFrame": 9,
+        "globalFrame": 105,
+        "contour": [
+          257,
+          300,
+          429,
+          432
+        ],
+        "cropSuggestion": [
+          254,
+          297,
+          178,
+          138
+        ],
+        "nearEye": [
+          402.0,
+          353.72
+        ],
+        "nearEyePixels": 53,
+        "yellowHeadBounds": [
+          365,
+          302,
+          426,
+          378
+        ],
+        "eyeToCrestTop": 51.72,
+        "yellowHeadHeight": 76,
+        "yellowHeadWidth": 61
+      },
+      {
+        "localFrame": 10,
+        "globalFrame": 106,
+        "contour": [
+          479,
+          301,
+          652,
+          431
+        ],
+        "cropSuggestion": [
+          476,
+          298,
+          179,
+          136
+        ],
+        "nearEye": [
+          624.96,
+          354.8
+        ],
+        "nearEyePixels": 51,
+        "yellowHeadBounds": [
+          588,
+          302,
+          648,
+          379
+        ],
+        "eyeToCrestTop": 52.8,
+        "yellowHeadHeight": 77,
+        "yellowHeadWidth": 60
+      },
+      {
+        "localFrame": 11,
+        "globalFrame": 107,
+        "contour": [
+          699,
+          301,
+          875,
+          431
+        ],
+        "cropSuggestion": [
+          696,
+          298,
+          182,
+          136
+        ],
+        "nearEye": [
+          848.0,
+          354.77
+        ],
+        "nearEyePixels": 53,
+        "yellowHeadBounds": [
+          814,
+          302,
+          872,
+          379
+        ],
+        "eyeToCrestTop": 52.77,
+        "yellowHeadHeight": 77,
+        "yellowHeadWidth": 58
+      },
+      {
+        "localFrame": 12,
+        "globalFrame": 108,
+        "contour": [
+          919,
+          301,
+          1097,
+          431
+        ],
+        "cropSuggestion": [
+          916,
+          298,
+          184,
+          136
+        ],
+        "nearEye": [
+          1069.62,
+          354.88
+        ],
+        "nearEyePixels": 52,
+        "yellowHeadBounds": [
+          1034,
+          302,
+          1093,
+          379
+        ],
+        "eyeToCrestTop": 52.88,
+        "yellowHeadHeight": 77,
+        "yellowHeadWidth": 59
+      },
+      {
+        "localFrame": 13,
+        "globalFrame": 109,
+        "contour": [
+          1138,
+          299,
+          1316,
+          431
+        ],
+        "cropSuggestion": [
+          1135,
+          296,
+          184,
+          138
+        ],
+        "nearEye": [
+          1288.98,
+          354.61
+        ],
+        "nearEyePixels": 56,
+        "yellowHeadBounds": [
+          1254,
+          301,
+          1312,
+          379
+        ],
+        "eyeToCrestTop": 53.61,
+        "yellowHeadHeight": 78,
+        "yellowHeadWidth": 58
+      },
+      {
+        "localFrame": 14,
+        "globalFrame": 110,
+        "contour": [
+          1358,
+          300,
+          1538,
+          432
+        ],
+        "cropSuggestion": [
+          1355,
+          297,
+          186,
+          138
+        ],
+        "nearEye": [
+          1511.2,
+          354.29
+        ],
+        "nearEyePixels": 56,
+        "yellowHeadBounds": [
+          1475,
+          301,
+          1535,
+          379
+        ],
+        "eyeToCrestTop": 53.29,
+        "yellowHeadHeight": 78,
+        "yellowHeadWidth": 60
+      },
+      {
+        "localFrame": 15,
+        "globalFrame": 111,
+        "contour": [
+          1572,
+          300,
+          1750,
+          435
+        ],
+        "cropSuggestion": [
+          1569,
+          297,
+          184,
+          141
+        ],
+        "nearEye": [
+          1722.88,
+          353.79
+        ],
+        "nearEyePixels": 57,
+        "yellowHeadBounds": [
+          1687,
+          302,
+          1746,
+          378
+        ],
+        "eyeToCrestTop": 51.79,
+        "yellowHeadHeight": 76,
+        "yellowHeadWidth": 59
+      },
+      {
+        "localFrame": 16,
+        "globalFrame": 112,
+        "contour": [
+          41,
+          517,
+          215,
+          639
+        ],
+        "cropSuggestion": [
+          38,
+          514,
+          180,
+          128
+        ],
+        "nearEye": [
+          188.64,
+          567.32
+        ],
+        "nearEyePixels": 47,
+        "yellowHeadBounds": [
+          149,
+          518,
+          212,
+          592
+        ],
+        "eyeToCrestTop": 49.32,
+        "yellowHeadHeight": 74,
+        "yellowHeadWidth": 63
+      },
+      {
+        "localFrame": 17,
+        "globalFrame": 113,
+        "contour": [
+          255,
+          517,
+          431,
+          641
+        ],
+        "cropSuggestion": [
+          252,
+          514,
+          182,
+          130
+        ],
+        "nearEye": [
+          404.76,
+          567.82
+        ],
+        "nearEyePixels": 50,
+        "yellowHeadBounds": [
+          367,
+          519,
+          428,
+          592
+        ],
+        "eyeToCrestTop": 48.82,
+        "yellowHeadHeight": 73,
+        "yellowHeadWidth": 61
+      },
+      {
+        "localFrame": 18,
+        "globalFrame": 114,
+        "contour": [
+          475,
+          518,
+          654,
+          641
+        ],
+        "cropSuggestion": [
+          472,
+          515,
+          185,
+          129
+        ],
+        "nearEye": [
+          627.27,
+          568.67
+        ],
+        "nearEyePixels": 52,
+        "yellowHeadBounds": [
+          589,
+          519,
+          651,
+          593
+        ],
+        "eyeToCrestTop": 49.67,
+        "yellowHeadHeight": 74,
+        "yellowHeadWidth": 62
+      },
+      {
+        "localFrame": 19,
+        "globalFrame": 115,
+        "contour": [
+          695,
+          518,
+          875,
+          640
+        ],
+        "cropSuggestion": [
+          692,
+          515,
+          186,
+          128
+        ],
+        "nearEye": [
+          848.71,
+          567.86
+        ],
+        "nearEyePixels": 49,
+        "yellowHeadBounds": [
+          810,
+          519,
+          872,
+          592
+        ],
+        "eyeToCrestTop": 48.86,
+        "yellowHeadHeight": 73,
+        "yellowHeadWidth": 62
+      },
+      {
+        "localFrame": 20,
+        "globalFrame": 116,
+        "contour": [
+          923,
+          515,
+          1097,
+          641
+        ],
+        "cropSuggestion": [
+          920,
+          512,
+          180,
+          132
+        ],
+        "nearEye": [
+          1069.81,
+          565.75
+        ],
+        "nearEyePixels": 52,
+        "yellowHeadBounds": [
+          1032,
+          516,
+          1093,
+          590
+        ],
+        "eyeToCrestTop": 49.75,
+        "yellowHeadHeight": 74,
+        "yellowHeadWidth": 61
+      },
+      {
+        "localFrame": 21,
+        "globalFrame": 117,
+        "contour": [
+          1146,
+          509,
+          1317,
+          640
+        ],
+        "cropSuggestion": [
+          1143,
+          506,
+          177,
+          137
+        ],
+        "nearEye": [
+          1290.68,
+          560.53
+        ],
+        "nearEyePixels": 53,
+        "yellowHeadBounds": [
+          1252,
+          510,
+          1314,
+          585
+        ],
+        "eyeToCrestTop": 50.53,
+        "yellowHeadHeight": 75,
+        "yellowHeadWidth": 62
+      },
+      {
+        "localFrame": 22,
+        "globalFrame": 118,
+        "contour": [
+          1365,
+          508,
+          1538,
+          641
+        ],
+        "cropSuggestion": [
+          1362,
+          505,
+          179,
+          139
+        ],
+        "nearEye": [
+          1511.15,
+          560.24
+        ],
+        "nearEyePixels": 59,
+        "yellowHeadBounds": [
+          1472,
+          509,
+          1535,
+          585
+        ],
+        "eyeToCrestTop": 51.24,
+        "yellowHeadHeight": 76,
+        "yellowHeadWidth": 63
+      },
+      {
+        "localFrame": 23,
+        "globalFrame": 119,
+        "contour": [
+          1581,
+          510,
+          1747,
+          640
+        ],
+        "cropSuggestion": [
+          1578,
+          507,
+          172,
+          136
+        ],
+        "nearEye": [
+          1719.51,
+          560.2
+        ],
+        "nearEyePixels": 51,
+        "yellowHeadBounds": [
+          1683,
+          512,
+          1743,
+          585
+        ],
+        "eyeToCrestTop": 48.2,
+        "yellowHeadHeight": 73,
+        "yellowHeadWidth": 60
+      },
+      {
+        "localFrame": 24,
+        "globalFrame": 120,
+        "contour": [
+          45,
+          711,
+          211,
+          844
+        ],
+        "cropSuggestion": [
+          42,
+          708,
+          172,
+          139
+        ],
+        "nearEye": [
+          184.29,
+          766.55
+        ],
+        "nearEyePixels": 56,
+        "yellowHeadBounds": [
+          145,
+          715,
+          208,
+          791
+        ],
+        "eyeToCrestTop": 51.55,
+        "yellowHeadHeight": 76,
+        "yellowHeadWidth": 63
+      },
+      {
+        "localFrame": 25,
+        "globalFrame": 121,
+        "contour": [
+          264,
+          709,
+          430,
+          844
+        ],
+        "cropSuggestion": [
+          261,
+          706,
+          172,
+          141
+        ],
+        "nearEye": [
+          403.24,
+          766.78
+        ],
+        "nearEyePixels": 58,
+        "yellowHeadBounds": [
+          363,
+          715,
+          427,
+          791
+        ],
+        "eyeToCrestTop": 51.78,
+        "yellowHeadHeight": 76,
+        "yellowHeadWidth": 64
+      },
+      {
+        "localFrame": 26,
+        "globalFrame": 122,
+        "contour": [
+          488,
+          694,
+          653,
+          843
+        ],
+        "cropSuggestion": [
+          485,
+          691,
+          171,
+          155
+        ],
+        "nearEye": [
+          626.25,
+          766.93
+        ],
+        "nearEyePixels": 55,
+        "yellowHeadBounds": [
+          589,
+          715,
+          650,
+          791
+        ],
+        "eyeToCrestTop": 51.93,
+        "yellowHeadHeight": 76,
+        "yellowHeadWidth": 61
+      },
+      {
+        "localFrame": 27,
+        "globalFrame": 123,
+        "contour": [
+          709,
+          693,
+          875,
+          843
+        ],
+        "cropSuggestion": [
+          706,
+          690,
+          172,
+          156
+        ],
+        "nearEye": [
+          848.41,
+          767.27
+        ],
+        "nearEyePixels": 51,
+        "yellowHeadBounds": [
+          810,
+          715,
+          872,
+          792
+        ],
+        "eyeToCrestTop": 52.27,
+        "yellowHeadHeight": 77,
+        "yellowHeadWidth": 62
+      },
+      {
+        "localFrame": 28,
+        "globalFrame": 124,
+        "contour": [
+          927,
+          691,
+          1093,
+          843
+        ],
+        "cropSuggestion": [
+          924,
+          688,
+          172,
+          158
+        ],
+        "nearEye": [
+          1066.4,
+          767.53
+        ],
+        "nearEyePixels": 53,
+        "yellowHeadBounds": [
+          1026,
+          715,
+          1090,
+          792
+        ],
+        "eyeToCrestTop": 52.53,
+        "yellowHeadHeight": 77,
+        "yellowHeadWidth": 64
+      },
+      {
+        "localFrame": 29,
+        "globalFrame": 125,
+        "contour": [
+          1152,
+          690,
+          1316,
+          844
+        ],
+        "cropSuggestion": [
+          1149,
+          687,
+          170,
+          160
+        ],
+        "nearEye": [
+          1290.12,
+          767.52
+        ],
+        "nearEyePixels": 52,
+        "yellowHeadBounds": [
+          1252,
+          716,
+          1314,
+          792
+        ],
+        "eyeToCrestTop": 51.52,
+        "yellowHeadHeight": 76,
+        "yellowHeadWidth": 62
+      },
+      {
+        "localFrame": 30,
+        "globalFrame": 126,
+        "contour": [
+          1374,
+          690,
+          1539,
+          844
+        ],
+        "cropSuggestion": [
+          1371,
+          687,
+          171,
+          160
+        ],
+        "nearEye": [
+          1512.46,
+          767.34
+        ],
+        "nearEyePixels": 50,
+        "yellowHeadBounds": [
+          1475,
+          715,
+          1536,
+          792
+        ],
+        "eyeToCrestTop": 52.34,
+        "yellowHeadHeight": 77,
+        "yellowHeadWidth": 61
+      },
+      {
+        "localFrame": 31,
+        "globalFrame": 127,
+        "contour": [
+          1588,
+          691,
+          1752,
+          844
+        ],
+        "cropSuggestion": [
+          1585,
+          688,
+          170,
+          159
+        ],
+        "nearEye": [
+          1725.5,
+          767.28
+        ],
+        "nearEyePixels": 50,
+        "yellowHeadBounds": [
+          1687,
+          715,
+          1749,
+          792
+        ],
+        "eyeToCrestTop": 52.28,
+        "yellowHeadHeight": 77,
+        "yellowHeadWidth": 62
+      }
+    ],
+    "renderedPixelsPerSourcePixel": 1.0478164237942666,
+    "registrationSuggestion": {
+      "targetNearEye": [
+        172,
+        110
+      ],
+      "pixelsPerSourcePixel": 1.0478164237942666,
+      "pageScale": 0.9076300467827291,
+      "basis": "Match median eye-to-yellow-crest-top distance, avoiding wing-bounding-box height. v2 median48.84 sourcepx \u00d7v2 factor1.1077805291281113 =54.103renderpx; new median51.635sourcepx. One uniform factor applied to all32 full crops."
+    },
+    "headScaleMeasurements": {
+      "method": "Opaque yellow head/crest pixels (alpha>=180, R>=130,G>=100,R>=G+7,G>=B+20) within x=[eyeX\u221255,eyeX+24),y=[eyeY\u2212100,eyeY+25). This estimates crest size; head-height boxes are truncated25px below eye and are not full skull bounds. Opaque crop QA confirmed detected upper edge follows yellow crest.",
+      "v2MedianEyeToCrestTop": 48.84,
+      "newMedianEyeToCrestTop": 51.635,
+      "newEyeToCrestTopRange": [
+        47.67,
+        53.64
+      ],
+      "v2MedianYellowHeadHeight": 73.0,
+      "newMedianYellowHeadHeight": 76.0,
+      "newYellowHeadHeightRange": [
+        72,
+        78
+      ]
+    },
+    "qa": {
+      "wholeContours": 32,
+      "minimumNominalCellMargin": 4.75,
+      "minimumNeighborAxisGap": 34,
+      "transparentCropMargin": 3,
+      "allRightFacing": true,
+      "mirrorRequired": false,
+      "singleWingbeatCycle": true,
+      "registeredAdjacentSilhouetteDelta": [
+        0.0352,
+        0.034,
+        0.0393,
+        0.0499,
+        0.0519,
+        0.0756,
+        0.165,
+        0.1067,
+        0.0528,
+        0.0445,
+        0.0582,
+        0.041,
+        0.0526,
+        0.0376,
+        0.0418,
+        0.118,
+        0.0389,
+        0.0349,
+        0.0393,
+        0.1236,
+        0.1233,
+        0.0719,
+        0.1121,
+        0.1699,
+        0.0237,
+        0.0861,
+        0.0334,
+        0.0326,
+        0.0272,
+        0.0193,
+        0.0212,
+        0.0356
+      ],
+      "registeredBounds": [
+        [
+          28.261,
+          30.125,
+          171.842,
+          161.364
+        ],
+        [
+          28.407,
+          28.648,
+          172.89,
+          162.412
+        ],
+        [
+          27.328,
+          25.399,
+          172.89,
+          165.555
+        ],
+        [
+          25.159,
+          26.772,
+          174.985,
+          164.507
+        ],
+        [
+          23.399,
+          32.65,
+          177.081,
+          158.22
+        ],
+        [
+          23.818,
+          38.864,
+          177.081,
+          151.933
+        ],
+        [
+          23.252,
+          49.572,
+          177.081,
+          142.503
+        ],
+        [
+          22.131,
+          56.205,
+          178.129,
+          136.216
+        ],
+        [
+          22.089,
+          54.801,
+          179.177,
+          137.264
+        ],
+        [
+          20.067,
+          53.711,
+          180.224,
+          138.312
+        ],
+        [
+          19.061,
+          53.627,
+          181.272,
+          136.216
+        ],
+        [
+          15.875,
+          53.659,
+          184.416,
+          136.216
+        ],
+        [
+          14.178,
+          53.544,
+          186.511,
+          136.216
+        ],
+        [
+          13.801,
+          51.731,
+          186.511,
+          138.312
+        ],
+        [
+          11.475,
+          53.114,
+          188.607,
+          138.312
+        ],
+        [
+          13.905,
+          53.638,
+          186.511,
+          141.455
+        ],
+        [
+          17.3,
+          57.274,
+          182.32,
+          127.834
+        ],
+        [
+          15.079,
+          56.75,
+          184.416,
+          129.929
+        ],
+        [
+          12.449,
+          56.907,
+          187.559,
+          128.881
+        ],
+        [
+          10.94,
+          57.756,
+          188.607,
+          127.834
+        ],
+        [
+          18.17,
+          56.823,
+          182.32,
+          132.025
+        ],
+        [
+          20.402,
+          56.006,
+          179.177,
+          137.264
+        ],
+        [
+          18.862,
+          55.262,
+          181.272,
+          139.36
+        ],
+        [
+          26.867,
+          57.4,
+          173.938,
+          136.216
+        ],
+        [
+          26.05,
+          51.794,
+          173.938,
+          139.36
+        ],
+        [
+          26.102,
+          49.457,
+          173.938,
+          141.455
+        ],
+        [
+          27.139,
+          33.583,
+          172.89,
+          156.125
+        ],
+        [
+          25.924,
+          32.179,
+          173.938,
+          157.172
+        ],
+        [
+          25.934,
+          29.811,
+          173.938,
+          159.268
+        ],
+        [
+          27.276,
+          28.773,
+          171.842,
+          161.364
+        ],
+        [
+          26.919,
+          28.962,
+          172.89,
+          161.364
+        ],
+        [
+          27.925,
+          30.073,
+          171.842,
+          160.316
+        ]
+      ],
+      "continuityLimitations": "Frame31\u21920 closes well. Wing shape changes cluster around6\u21927 and23\u219224; lowstroke body/tail silhouette is somewhat broader than the raised stroke. Generated25px cell moats were not fully attained; all contours stay inside nominal cells, source neighbor gaps are safe, and all3px contour crops contain one animal."
+    }
+  }
+}
