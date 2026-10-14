@@ -27,8 +27,9 @@ async function harness() {
     petWindow=window; clampWindow=geometry.clampWindow; advanceMotion=motionModule.advanceMotion;
     desktopSpriteSize=gait.desktopSpriteSize; gaitSpeedDip=gait.gaitSpeedDip; transition=core.transition;
     chooseTarget=()=>({x:100,y:500});
-    state={...core.createState(Date.now()),adopted:true,species:'cat',settings:{size:1,movement:'free',paused:false,alwaysOnTop:true}};
-    petCatalog=[{id:'cat',presentation:'visual-root-v1'},{id:'parrot'}];
+    state={...core.createState(Date.now()),adopted:true,species:'maltese',settings:{size:1,movement:'free',paused:false,alwaysOnTop:true}};
+    // Authored-motion fixture uses a supported identity but retains visual authority.
+    petCatalog=[{id:'maltese',presentation:'visual-root-v1'},{id:'parrot'}];
     visualRect={x:-300,y:500,width:340,height:360}; visualGeometrySeq=1;
     resetMotion(); target={x:100,y:500}; wanderAt=Date.now()+60000; registerIPC();
   `);

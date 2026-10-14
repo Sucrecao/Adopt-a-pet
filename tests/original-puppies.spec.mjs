@@ -2,8 +2,13 @@ import { test, expect } from '@playwright/test';
 
 const labels = ['爱心', '送心', '抱心', '鲜花', '贴贴', '拥抱', '招手', '疑问', '玩闹', '委屈', '探头', '紧张', '面壁', '难过', '撒娇', '开心', '惊讶', '哭哭', '零食', '运动', '开饭', '歇歇', '哈欠', '睡觉'];
 const savedState = page => page.evaluate(() => JSON.parse(localStorage.getItem('pawpal.companion.v1')));
-const picker = page => page.getByLabel('原作动画', { exact: true });
+const picker = page => page.getByRole('dialog', { name: '换个表情', exact: true });
 const clipButton = (page, clip) => picker(page).getByRole('button', { name: `播放${labels[clip - 1]}`, exact: true });
+
+async function openPicker(page) {
+  if (!await picker(page).isVisible()) await page.locator('[data-expression-trigger]').click();
+  await expect(picker(page)).toBeVisible();
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -21,10 +26,11 @@ async function adopt(page, species) {
 }
 
 async function selectClip(page, clip) {
+  await openPicker(page);
   await clipButton(page, clip).click();
+  await expect(picker(page)).toHaveCount(0);
   await expect(page.locator('.stage-pet')).toHaveAttribute('data-original-clip', String(clip));
   await expect(page.locator('.stage-pet')).toHaveAttribute('data-load-state', 'ready');
-  await expect(clipButton(page, clip)).toHaveAttribute('aria-pressed', 'true');
 }
 
 async function sampleStage(page, duration = 350) {
@@ -77,7 +83,10 @@ for (const species of ['maltese', 'golden']) {
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await adopt(page, species);
-    await expect(picker(page).getByRole('button')).toHaveCount(24);
+    await expect(picker(page)).toHaveCount(0);
+    await openPicker(page);
+    await expect(picker(page).getByRole('button', { name: /^播放/ })).toHaveCount(24);
+    await page.keyboard.press('Escape');
     for (let clip = 1; clip <= 24; clip++) {
       await selectClip(page, clip);
       await expect.poll(async () => Number(await page.locator('.stage-pet').getAttribute('data-frame'))).toBeGreaterThan(0);
@@ -101,7 +110,7 @@ for (const species of ['maltese', 'golden']) {
       window.originalReplayObserver = new MutationObserver(() => window.originalReplayFrames.push(Number(sprite.dataset.frame)));
       window.originalReplayObserver.observe(sprite, { attributes: true, attributeFilter: ['data-frame'] });
     });
-    await clipButton(page, 4).click();
+    await selectClip(page, 4);
     await expect.poll(async () => (await savedState(page)).originalAnimation.startedAt).toBeGreaterThan(firstSelection.startedAt);
     await expect.poll(() => page.evaluate(() => window.originalReplayFrames.includes(0))).toBe(true);
     await page.evaluate(() => window.originalReplayObserver.disconnect());
@@ -110,7 +119,9 @@ for (const species of ['maltese', 'golden']) {
     await expect(page.getByRole('heading', { name: '原作伙伴的桌面', exact: true })).toBeVisible();
     await expect(page.locator('.stage-pet')).toHaveAttribute('data-original-clip', '4');
     await expect(page.locator('.stage-pet')).toHaveAttribute('data-load-state', 'ready');
+    await openPicker(page);
     await expect(clipButton(page, 4)).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('Escape');
     expect((await savedState(page)).originalAnimation.clip).toBe(4);
   });
 
@@ -122,7 +133,9 @@ for (const species of ['maltese', 'golden']) {
     const selection = (await savedState(page)).originalAnimation;
     // The picker may disable paused choices or let the command reducer ignore
     // them; both must retain the current persisted selection and painted clip.
+    await openPicker(page);
     if (await clipButton(page, 19).isEnabled()) await clipButton(page, 19).click();
+    if (await picker(page).isVisible()) await page.keyboard.press('Escape');
     expect((await savedState(page)).originalAnimation).toEqual(selection);
     const frozen = await sampleStage(page);
     expect(new Set(frozen.map(sample => sample.frame)).size).toBe(1);
@@ -149,8 +162,8 @@ for (const species of ['maltese', 'golden']) {
   });
 }
 
-test('legacy cat keeps its authored whole renderer and care controls', async ({ page }) => {
-  await page.locator('.animal-cat').click();
+test('parrot keeps its authored whole renderer and care controls', async ({ page }) => {
+  await page.locator('.animal-parrot').click();
   await page.getByRole('button', { name: /在预览中领养/ }).click();
   await expect(picker(page)).toHaveCount(0);
   await expect(page.locator('.stage-pet')).toHaveAttribute('data-atlas', 'whole');

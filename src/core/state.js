@@ -12,7 +12,7 @@ const isRecord = value => value !== null && typeof value === 'object' && !Array.
 const validOriginalClip = clip => Number.isInteger(clip) && clip >= 1 && clip <= 24;
 
 export function createState(now = Date.now()) {
-  return { species: 'cat', name: '奶糖', adopted: false,
+  return { species: PETS[0].id, name: PETS[0].defaultName, adopted: false,
     stats: { hunger: 78, energy: 85, happiness: 80, bond: 0 },
     settings: { size: 1, movement: 'free', sound: false, alwaysOnTop: true, paused: false },
     action: { type: 'idle', until: 0 }, originalAnimation: { clip: 7, startedAt: 0 }, lastInteraction: 0, updatedAt: now };
@@ -22,8 +22,9 @@ export function normalizeState(value, now = Date.now()) {
   const state = createState(now);
   if (!isRecord(value)) return state;
   const pet = PETS.find(p => p.id === value.species);
+  const retiredName = value.species === 'cat' ? '奶糖' : value.species === 'dog' ? '豆包' : undefined;
   if (pet) state.species = pet.id;
-  state.name = validName(value.name) ? value.name.trim() : (pet?.defaultName ?? state.name);
+  state.name = validName(value.name) && value.name.trim() !== retiredName ? value.name.trim() : (pet?.defaultName ?? state.name);
   state.adopted = typeof value.adopted === 'boolean' ? value.adopted : false;
   for (const key of Object.keys(state.stats)) state.stats[key] = clamp(finite(value.stats?.[key], state.stats[key]));
   state.settings.size = clamp(finite(value.settings?.size, 1), 0.65, 1.5);
@@ -31,11 +32,11 @@ export function normalizeState(value, now = Date.now()) {
   for (const key of ['sound', 'alwaysOnTop', 'paused']) {
     if (typeof value.settings?.[key] === 'boolean') state.settings[key] = value.settings[key];
   }
-  if (Object.hasOwn(actions, value.action?.type) && Number.isFinite(value.action?.until)) {
+  if (!retiredName && Object.hasOwn(actions, value.action?.type) && Number.isFinite(value.action?.until)) {
     state.action = { type: value.action.type, until: clamp(value.action.until, 0, now + 30000) };
   }
   state.lastInteraction = clamp(finite(value.lastInteraction, 0), 0, now);
-  if (validOriginalClip(value.originalAnimation?.clip)) {
+  if (!retiredName && validOriginalClip(value.originalAnimation?.clip)) {
     state.originalAnimation = { clip: value.originalAnimation.clip, startedAt: clamp(finite(value.originalAnimation.startedAt, 0), 0, now) };
   }
   state.updatedAt = clamp(finite(value.updatedAt, now), 0, now);

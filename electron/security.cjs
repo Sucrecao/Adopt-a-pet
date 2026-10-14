@@ -11,7 +11,7 @@ const settings = {
 function isValidCommand(command) {
   if (!isRecord(command)) return false;
   switch (command.type) {
-    case 'adopt': return ['maltese', 'golden', 'cat', 'dog', 'parrot'].includes(command.species) && isName(command.name);
+    case 'adopt': return ['maltese', 'golden', 'parrot'].includes(command.species) && isName(command.name);
     case 'rename': return isName(command.name);
     case 'interact': return ['pet', 'feed', 'play', 'rest', 'stretch', 'trick'].includes(command.action);
     case 'original-animation': return Number.isInteger(command.clip) && command.clip >= 1 && command.clip <= 24;

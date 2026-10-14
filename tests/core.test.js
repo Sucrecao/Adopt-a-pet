@@ -5,8 +5,8 @@ import { createState, normalizeState, transition, decayState } from '../src/core
 import { clampWindow, chooseTarget } from '../src/core/geometry.js';
 import { desktopSpriteSize, gaitSpeedDip } from '../src/core/gait.js';
 
-test('reference puppies lead the catalog while the original pets retain their assets', () => {
-  assert.deepEqual(PETS.map(p => p.id), ['maltese', 'golden', 'cat', 'dog', 'parrot']);
+test('catalog contains the two original puppies and parrot', () => {
+  assert.deepEqual(PETS.map(p => p.id), ['maltese', 'golden', 'parrot']);
   for (const pet of PETS) {
     for (const key of ['label', 'defaultName', 'subtitle', 'description', 'personality', 'toyLabel', 'color']) assert.ok(pet[key]);
     const original = ['maltese', 'golden'].includes(pet.id);
@@ -20,7 +20,7 @@ test('reference puppies lead the catalog while the original pets retain their as
       assert.equal(pet.presentation,'visual-root-v1');
     }
   }
-  for (const id of ['maltese', 'golden', 'dog']) assert.equal(PETS.find(pet => pet.id === id).kind, 'dog');
+  for (const id of ['maltese', 'golden']) assert.equal(PETS.find(pet => pet.id === id).kind, 'dog');
 });
 
 for (const species of ['maltese', 'golden']) {
@@ -47,8 +47,8 @@ for (const species of ['maltese', 'golden']) {
   });
 }
 
-test('original adopted pets reload with the same identities after catalog expansion', () => {
-  for (const species of ['cat', 'dog', 'parrot']) {
+test('parrot adoption reloads with the same identity', () => {
+  for (const species of ['parrot']) {
     const saved = { ...createState(1000), species, name: '老朋友', adopted: true };
     const reloaded = normalizeState(JSON.parse(JSON.stringify(saved)), 1000);
     assert.equal(reloaded.species, species);
@@ -59,8 +59,8 @@ test('original adopted pets reload with the same identities after catalog expans
 
 test('fresh state uses deterministic defaults', () => {
   const state = createState(1000);
-  assert.equal(state.species, 'cat');
-  assert.equal(state.name, '奶糖');
+  assert.equal(state.species, 'maltese');
+  assert.equal(state.name, '马尔济斯');
   assert.equal(state.adopted, false);
   assert.deepEqual(state.stats, { hunger: 78, energy: 85, happiness: 80, bond: 0 });
   assert.deepEqual(state.settings, { size: 1, movement: 'free', sound: false, alwaysOnTop: true, paused: false });
@@ -69,8 +69,8 @@ test('fresh state uses deterministic defaults', () => {
 
 test('normalize corrupt loaded state clamps values and removes unsupported fields', () => {
   const state = normalizeState({ species: 'dragon', name: ' ', adopted: 'yes', stats: { hunger: -5, energy: 200, happiness: NaN }, settings: { size: 10, movement: 'space', sound: 'yes' }, action: { type: 'unknown', until: Infinity }, updatedAt: 'old', extra: true }, 2000);
-  assert.equal(state.species, 'cat');
-  assert.equal(state.name, '奶糖');
+  assert.equal(state.species, 'maltese');
+  assert.equal(state.name, '马尔济斯');
   assert.equal(state.adopted, false);
   assert.deepEqual(state.stats, { hunger: 0, energy: 100, happiness: 80, bond: 0 });
   assert.equal(state.settings.size, 1.5);
@@ -84,9 +84,9 @@ test('normalize corrupt loaded state clamps values and removes unsupported field
 
 test('adopt and rename sanitize names without mutating previous state', () => {
   const original = createState(1000);
-  const adopted = transition(original, { type: 'adopt', species: 'dog', name: '  豆包  ' }, 2000);
-  assert.equal(adopted.name, '豆包');
-  assert.equal(adopted.species, 'dog');
+  const adopted = transition(original, { type: 'adopt', species: 'golden', name: '  金毛  ' }, 2000);
+  assert.equal(adopted.name, '金毛');
+  assert.equal(adopted.species, 'golden');
   assert.equal(adopted.adopted, true);
   assert.equal(original.adopted, false);
   assert.equal(transition(adopted, { type: 'rename', name: ' 小狗 ' }, 2000).name, '小狗');

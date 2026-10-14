@@ -24,7 +24,7 @@ test('original animation commands reject invalid clips and non-original companio
     assert.throws(() => transition(adopted, { type: 'original-animation', clip }, 2000));
   }
   for (const clip of [1, 7, 24]) assert.equal(isValidCommand({ type: 'original-animation', clip }), true);
-  for (const species of ['cat', 'dog', 'parrot']) {
+  for (const species of ['parrot']) {
     const legacy = transition(createState(1000), { type: 'adopt', species, name: '老朋友' }, 1000);
     assert.throws(() => transition(legacy, { type: 'original-animation', clip: 1 }, 2000));
   }

@@ -4,15 +4,14 @@ const { isValidCommand, isTrustedSender, isValidHitRegions, isValidPoint } = req
 const security = require('../electron/security.cjs');
 
 test('adoption accepts only supported pets and sensible names', () => {
-  assert.equal(isValidCommand({type:'adopt',species:'cat',name:'奶糖'}), true);
-  for (const species of ['maltese', 'golden']) {
+  for (const species of ['maltese', 'golden', 'parrot']) {
     assert.equal(isValidCommand({ type:'adopt', species, name:'我的伙伴' }), true);
     assert.equal(isValidCommand({ type:'adopt', species, name:'' }), false);
     assert.equal(isValidCommand({ type:'adopt', species, name:'a'.repeat(25) }), false);
   }
-  assert.equal(isValidCommand({type:'adopt',species:'dragon',name:'a'}), false);
-  assert.equal(isValidCommand({type:'adopt',species:'dog',name:'a'.repeat(41)}), false);
-  assert.equal(isValidCommand({type:'adopt',species:'dog',name:42}), false);
+  for (const species of ['cat', 'dog', 'dragon']) assert.equal(isValidCommand({ type:'adopt', species, name:'老朋友' }), false);
+  assert.equal(isValidCommand({type:'adopt',species:'parrot',name:'a'.repeat(41)}), false);
+  assert.equal(isValidCommand({type:'adopt',species:'parrot',name:42}), false);
 });
 
 test('renderer cannot dispatch arbitrary actions or unknown settings', () => {

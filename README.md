@@ -1,10 +1,16 @@
 # PawPal · 屏边小伙伴
 
-Mac / Windows 的桌面宠物程序：领养猫、狗或鹦鹉，在透明窗口里陪伴与互动。Maltese 和 Golden Retriever 使用 Moonlab 的原作画面与原始动画，在原地播放并支持拖动摆放；其他伙伴保留自由活动、沿边缘漫步和照顾互动。
+Mac / Windows 的桌面宠物程序：领养马尔济斯、金毛或鹦鹉青柠，在透明窗口里陪伴与互动。Maltese 和 Golden Retriever 使用 Moonlab 的原作画面与原始动画，在原地播放并支持拖动摆放；青柠保留飞行和照顾互动。
 
-## Maltese & Golden Retriever 原作版 · 0.5.2
+## 当前角色 · 0.5.4
 
-两位角色各有 24 段原作动画，共 741 帧。保留原始完整画面、透明背景、道具、播放时长和循环次数。动画结束后停在最后一帧，点击伙伴或再次选择同一动作即可重播；支持暂停、调整大小和拖动摆放。领养面板可选择全部动作，桌面快捷栏提供常用原作表情。
+领养列表仅保留马尔济斯、金毛和青柠。旧奶糖、豆包存档迁移为马尔济斯，保留自定义名字、状态和设置。
+
+## Maltese & Golden Retriever 原作动画
+
+两位角色各有 24 段原作动画，共 741 帧。保留原始完整画面、透明背景、道具、播放时长和循环次数。点击“换个表情”才展开原画缩略图菜单，选择后收起；支持暂停、调整大小和拖动摆放。手动表情保留 30 秒活动时间，再回到日常陪伴。
+
+所有时段显式使用北京时间：07:00 早安招手，10:00 安静陪伴，12:00 开饭，14:00 回到日常，19:00 拥抱撒娇，23:00 睡觉。白天和晚间每隔 3–5 分钟偶尔说一句亲切话，每句显示 6 秒；晚上更多关心和抱抱，深夜不周期提醒。暂停、拖动、隐藏、减少动态效果及页面不可见时安静等待，菜单打开时不插话。
 
 官方参考：[Maltese](https://store.line.me/stickershop/product/24856130/en) / [Retriever](https://store.line.me/stickershop/product/24856095/en)。源预览保存在 `public/pets/*-original-source-*.png`，逐帧无损导入脚本为 `scripts/import-original-puppies.py`。验证记录见 `docs/verification-moonlab-original-0.5.2.md`。
 
@@ -12,13 +18,13 @@ Mac / Windows 的桌面宠物程序：领养猫、狗或鹦鹉，在透明窗口
 
 已经打包的试用版在 `release/`：
 
-- Apple 芯片 Mac：解压 `PawPal-0.5.2-original-mac-arm64.zip`，打开 `PawPal.app`。
+- Apple 芯片 Mac：解压 `PawPal-0.5.4-mac-arm64.zip`，打开 `PawPal.app`。
 - Intel 芯片 Mac：解压 `PawPal-0.3.2-mac-x64.zip`，打开 `PawPal.app`。
 - Windows x64：解压 `PawPal-0.3.2-win.zip`，运行 `PawPal.exe`，保留同目录其他文件。
 
-0.5.2 Apple 芯片 Mac 包已使用本地 ad-hoc 签名并通过实际桌面检查。旧版 Intel Mac 和 Windows 包尚待对应系统实测。
+0.5.4 Apple 芯片 Mac 包使用本地 ad-hoc 签名并通过原生桌面检查。旧版 Intel Mac 和 Windows 包尚待对应系统实测。
 
-Apple 芯片 Mac 与源码已更新到 0.5.2；Intel Mac / Windows 下载包暂保留 0.3.2。
+Apple 芯片 Mac 与源码已更新到 0.5.4；Intel Mac / Windows 下载包暂保留 0.3.2。
 
 从源码运行：
 

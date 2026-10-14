@@ -136,9 +136,9 @@ try {
     await overlay.screenshot({ path: screenshot, omitBackground: true }); result.screenshot = screenshot;
     console.log(`${species}: native source crops, IPC, >=8s stationary, pause, move, size, transparent surface passed.`);
   }
-  await dispatch(panel, { type: 'adopt', species: 'cat', name: 'Legacy cat' }); await ready(overlay, null, false);
-  report.legacy = await snapshot(overlay);
-  assert.notEqual(report.legacy.renderer, 'original-whole-frame');
+  await dispatch(panel, { type: 'adopt', species: 'parrot', name: 'Parrot' }); await ready(overlay, null, false);
+  report.parrot = await snapshot(overlay);
+  assert.equal(await overlay.locator('.pet-overlay canvas').getAttribute('data-renderer'), 'whole-frame-2d');
   assert.ok(await overlay.evaluate(() => document.querySelector('.pet-overlay canvas').getContext('2d').getImageData(0, 0, 256, 256).data.some((v, i) => i % 4 === 3 && v > 0)));
   report.passed = true;
 } catch (error) {
@@ -150,5 +150,5 @@ try {
   await rm(userData, { recursive: true, force: true });
   report.finishedAt = new Date().toISOString();
   await writeFile(path.join(directory, 'native-report.json'), JSON.stringify(report, null, 2) + '\n');
-  await writeFile(path.join(directory, 'native-report.md'), `# Original native Electron probe\n\nMode: ${mode}. Version: ${version}. Passed: ${report.passed}.\n\nCommand: \`${report.command}\`\n\n${report.failure ?? 'Both original species passed source crop equality, selection/restart IPC, pause holds, >=8 second stationary checks, manual placement, proportional size changes, and visible transparent full-surface overlays. Legacy cat loaded its authored renderer.'}\n\n${report.limitations}\n\nFresh owned temporary profile was removed after application shutdown. No installed app or existing user profile was modified. JSON evidence: native-report.json.\n`);
+  await writeFile(path.join(directory, 'native-report.md'), `# Original native Electron probe\n\nMode: ${mode}. Version: ${version}. Passed: ${report.passed}.\n\nCommand: \`${report.command}\`\n\n${report.failure ?? 'Both original species passed source crop equality, selection/restart IPC, pause holds, >=8 second stationary checks, manual placement, proportional size changes, and visible transparent full-surface overlays. Parrot loaded its authored whole-frame-2d renderer.'}\n\n${report.limitations}\n\nFresh owned temporary profile was removed after application shutdown. No installed app or existing user profile was modified. JSON evidence: native-report.json.\n`);
 }
