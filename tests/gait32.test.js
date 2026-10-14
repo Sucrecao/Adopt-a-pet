@@ -49,7 +49,7 @@ test('32 equal gait phases retain the64px accepted stride and wrap continuously'
   assert.equal(meta.clips.walk.durations.reduce((sum, value) => sum + value, 0), 1060);
 });
 
-for (const pet of PETS) {
+for (const pet of PETS.filter(pet => ['cat', 'dog', 'parrot'].includes(pet.id))) {
   test(`${pet.id} production v3 gait preserves existing clips and uses32 distinct equal phases`, () => {
     const old = JSON.parse(readFileSync(new URL(`../public/pets/${pet.id}-whole-v2.json`, import.meta.url)));
     const meta = JSON.parse(readFileSync(new URL(`../public/pets/${pet.id}-whole-v3.json`, import.meta.url)));

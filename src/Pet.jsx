@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import OriginalPet from './OriginalPet.jsx';
 import { animationFrame, atlasPosition, createAnimationController, spriteBaselineOffset } from './core/animation.js';
 import { createSpriteRenderer } from './rendering/sprite-renderer.js';
 import { createRigRenderer } from './rendering/rig-renderer.js';
@@ -6,6 +7,7 @@ import { createRigController } from './core/rig-motion.js';
 import { createWholeAnimationController } from './core/whole-animation.js';
 import { createWholeRenderer, validateWholeAtlas } from './rendering/whole-renderer.js';
 import { validateWholeContours } from './rendering/whole-flow-renderer.js';
+import { createLinePageCache } from './rendering/line-pages.js';
 
 export function useReducedMotion() {
   const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -32,6 +34,14 @@ function decodeImage(asset, signal) {
     image.onerror = error => { cleanup(); reject(error); };
     image.src = `${import.meta.env.BASE_URL}${asset}`;
   });
+}
+
+async function decodeBitmap(asset,signal) {
+  const response=await fetch(`${import.meta.env.BASE_URL}${asset}`,{signal});
+  if(!response.ok)throw new Error('Whole source image unavailable');
+  const bitmap=await createImageBitmap(await response.blob());
+  if(signal.aborted){bitmap.close();throw new DOMException('Atlas loading cancelled','AbortError');}
+  return bitmap;
 }
 
 async function loadFlow(species, signal) {
@@ -66,12 +76,12 @@ async function loadWholeFlow(meta, signal) {
 }
 
 /** Props update the persistent playback, while each display frame paints imperatively. */
-export default function Pet({ pet, size = 200, action = 'idle', walking = false, facing = 1, paused = false, ambient = true, actionStartedAt, locomotionRef, motionPaintRef, onPlaybackReady, className = '', style, ...handlers }) {
+function AuthoredPet({ pet, size = 200, action = 'idle', walking = false, facing = 1, paused = false, ambient = true, actionStartedAt, locomotionRef, motionPaintRef, visualMotionRef, onPlaybackReady, className = '', style, ...handlers }) {
   const wholeFrameMode = pet.wholeRenderMode === 'discrete-whole-frame';
   const reducedMotion = useReducedMotion();
   const elementRef = useRef(null), canvasRef = useRef(null), playbackRef = useRef(null);
   const propsRef = useRef(null);
-  propsRef.current = { pet, action, walking, facing, paused, ambient, actionStartedAt, locomotionRef, onPlaybackReady, reducedMotion, className, style, ariaLabel: handlers['aria-label'] };
+  propsRef.current = { pet, action, walking, facing, paused, ambient, actionStartedAt, locomotionRef, visualMotionRef, onPlaybackReady, reducedMotion, className, style, ariaLabel: handlers['aria-label'] };
 
   useEffect(() => {
     const element = elementRef.current, canvas = canvasRef.current;
@@ -79,7 +89,8 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
     const rigController = createRigController({ species: pet.id });
     const abort = new AbortController();
     let cancelled = false, request = null, renderer = null, images = null, motionLoaded = false, drawn = false, articulated = false, whole = false, wholePending = true, wholeFailed = false, wholeController;
-    let actionToken, actionElapsed = 0, previousRigPose, readinessKey;
+    let actionToken, actionElapsed = 0, previousRigPose, readinessKey, presentedStepReady = false, lastPresentedSample, lineWaitingPage;
+    let linePages;
 
     function setValue(target, key, value) {
       if (!wholeFrameMode || target[key] !== String(value)) target[key] = value;
@@ -92,7 +103,9 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
         actionToken = props.actionStartedAt;
         actionElapsed = actionToken ? Math.max(0, Date.now() - actionToken) : 0;
       }
-      const locomotion = props.locomotionRef?.current || { epoch: 0, distanceDip: 0, spriteSizeDip: element.clientWidth, facing: props.facing, moving: props.walking };
+      const visualDriver=whole?props.visualMotionRef?.current:null;
+      const candidate=visualDriver?.sample(now, presentedStepReady && !props.paused && !props.reducedMotion && props.ambient);
+      const locomotion = candidate || props.locomotionRef?.current || { epoch: 0, distanceDip: 0, spriteSizeDip: element.clientWidth, facing: props.facing, moving: props.walking };
       // Ambient care must not outlast the movement controller's turn hold.
       // The walking scheduler cancels it; explicit care still pauses the rig.
       const dogTurn = Boolean(articulated && pet.id === 'dog' && props.action === 'idle' && previousRigPose
@@ -106,25 +119,49 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
         previousRigPose = sample;
       }
       const stopped = props.paused || props.reducedMotion || !props.ambient;
+      if(linePages&&whole) {
+        const meta=images.wholeMeta;
+        const needed=props.ambient===false?[meta.neutralFrame]:sample.transition==='walk.settle'?meta.authoredStops[sample.stopSlot]?.frames??[sample.frame]:meta.clips[sample.clip]?.frames??[sample.frame];
+        const pinned=[meta.neutralFrame,sample.frame,...needed];
+        if(sample.clip==='walk')pinned.push(...meta.clips.walk.frames);
+        linePages.pinFrames(pinned);
+        linePages.prefetchFrames(pinned);
+        if(sample.clip==='walk'&&!sample.transition) {
+          const slot=Math.floor((sample.phase%1)*meta.clips.walk.frames.length);
+          const nearby=Array.from({length:5},(_,i)=>meta.authoredStops[(slot+i)%meta.authoredStops.length].frames[1]);
+          linePages.prefetchFrames(nearby);
+        }
+        const stats=linePages.stats();setValue(element.dataset,'decodedBytes',stats.bytes);setValue(element.dataset,'decodedPages',stats.pages);
+      }
+      let painted = false, paintedErrorRollback = false;
       if (renderer) {
         try {
-          const painted = renderer.draw(articulated || whole ? sample : { ...sample, stopped }, now) !== false;
+          painted = renderer.draw(articulated || whole ? sample : { ...sample, stopped }, now) !== false;
           if (painted) drawn = true;
-          else if (wholeFrameMode) drawn = false;
+          else if (wholeFrameMode && !linePages) drawn = false;
         } catch {
-          renderer.dispose(); renderer = null; drawn = false; articulated = false; whole = false;
-          if (wholeFrameMode) wholeFailed = true;
-          sample = controller.sample({ ...props, actionElapsed }, now);
+          wholeController?.rollback?.();
+          paintedErrorRollback=true;
+          if(images.wholeMeta?.authoring!=='line-pet-v1') {
+            renderer.dispose(); renderer = null; drawn = false; articulated = false; whole = false;
+            if (wholeFrameMode) wholeFailed = true;
+            sample = controller.sample({ ...props, actionElapsed }, now);
+          }
         }
       }
+      if (whole && !painted && !paintedErrorRollback) wholeController?.rollback?.();
+      if (candidate) visualDriver.commit({now,locomotion,sample,painted:whole&&painted});
+      presentedStepReady=Boolean(whole&&painted&&sample.firstStepReady);
+      if(whole&&painted)lastPresentedSample=sample;
+      else if(whole&&lastPresentedSample)sample=lastPresentedSample;
       const motion = !wholeFrameMode && !articulated && !whole && sample.atlas === 'motion' && motionLoaded;
       const frame = whole ? sample.frame : wholeFrameMode ? 0 : articulated ? sample.clip === 'walk' ? Math.floor((sample.phase % 1) * 64) : sample.frame : motion ? sample.frame : sample.atlas === 'legacy' ? sample.frame : sample.clip === 'walk' ? (sample.frame % 2 ? 1 : 2) : sample.clip === 'hop' ? 4 : 0;
       const position = atlasPosition(frame, !motion);
       const alignment = !drawn && motion ? spriteBaselineOffset(pet.id, frame) / 256 * 100 : 0;
       setValue(canvas.style, 'visibility', drawn ? 'visible' : 'hidden');
       setValue(element.style, 'backgroundImage', `url("${import.meta.env.BASE_URL}${motion ? pet.motionAsset : pet.asset}")`);
-      setValue(element.style, 'backgroundSize', drawn ? '0% 0%' : motion ? '600% 400%' : '300% 200%');
-      setValue(element.style, 'backgroundPosition', `${position.x}% ${position.y}%`);
+      setValue(element.style, 'backgroundSize', drawn ? '0% 0%' : pet.neutralAsset ? '100% 100%' : motion ? '600% 400%' : '300% 200%');
+      setValue(element.style, 'backgroundPosition', pet.neutralAsset?'50% 50%':`${position.x}% ${position.y}%`);
       if (!wholeFrameMode || element.style.getPropertyValue('--pet-facing') !== String(sample.facing)) element.style.setProperty('--pet-facing', sample.facing);
       if (!props.style?.transform) setValue(element.style, 'transform', articulated || whole ? 'none' : wholeFrameMode ? `scaleX(${locomotion.facing === -1 ? -1 : 1})` : `translateY(calc(${sample.lift}px + ${alignment}%)) scale(${sample.facing * sample.scale}, ${sample.scaleY})`);
       setValue(element.dataset, 'frame', frame);
@@ -143,7 +180,7 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
       setValue(element.dataset, 'orientation', sample.orientation ?? sample.facing);
       setValue(element.dataset, 'phase', sample.phase ?? '');
       setValue(element.dataset, 'ground', sample.ground ? JSON.stringify(sample.ground) : '');
-      setValue(element.dataset, 'contacts', articulated ? JSON.stringify(sample.legs.filter(leg => leg.planted).map(leg => ({ id: leg.id, supportGeneration: leg.supportGeneration, x: leg.foot.x, y: leg.foot.y }))) : '');
+      setValue(element.dataset, 'contacts', articulated ? JSON.stringify(sample.legs.filter(leg => leg.planted).map(leg => ({ id: leg.id, supportGeneration: leg.supportGeneration, x: leg.foot.x, y: leg.foot.y }))) : whole && sample.contacts ? JSON.stringify(sample.contacts) : '');
       setValue(element.dataset, 'clip', sample.clip);
       setValue(element.dataset, 'atlas', whole ? 'whole' : wholeFrameMode ? 'whole-fallback' : articulated ? 'rig' : motion ? 'motion' : 'legacy');
       setValue(element.dataset, 'loadState', wholeFailed ? 'failed' : wholePending ? 'pending' : whole && drawn ? 'ready' : 'fallback');
@@ -183,7 +220,8 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
         articulated = !wholeFrameMode && !whole && Boolean(images.rigImage && images.rigMeta);
         if (whole) {
           wholeController ||= createWholeAnimationController({ species: pet.id, meta: images.wholeMeta });
-          renderer = createWholeRenderer(canvas, { image: images.wholeImages[0], images: images.wholeImages, meta: images.wholeMeta, flowBytes: images.wholeFlowBytes, surfaceImages: images.wholeSurfaceImages,contourImages:images.wholeContourImages });
+          renderer = createWholeRenderer(canvas, { image: images.wholeImages[0], images: images.wholeImages, meta: images.wholeMeta, flowBytes: images.wholeFlowBytes, surfaceImages: images.wholeSurfaceImages,contourImages:images.wholeContourImages,
+            sourceProvider:linePages?page=>{const source=linePages.get(page);if(!source){lineWaitingPage=page;linePages.load(page).catch(()=>{});}return source;}:undefined });
           delete canvas.dataset.limbSkin; delete canvas.dataset.headRig; delete canvas.dataset.bodyRig;
         } else if (!wholeFrameMode) renderer = articulated ? createRigRenderer(canvas, { species: pet.id, ...images }) : createSpriteRenderer(canvas, { species: pet.id, ...images, onContextLost: () => {
           if (cancelled) return;
@@ -209,6 +247,16 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
       if (wholeFrameMode && (meta?.version !== 7 || meta.renderMode !== 'discrete-whole-frame')) throw new Error('Complete-frame resource mode does not match');
       const assets = [2,3,4,5,6,7].includes(meta?.version) ? meta.pages?.map(page => page.asset) : [pet.wholeAsset];
       if (!assets?.length) throw new Error('No whole atlas pages');
+      if(meta.authoring==='line-pet-v1') {
+        clearTimeout(wholeTimeout);
+        const placeholders=meta.pages.map(page=>({width:page.sourceSize[0],height:page.sourceSize[1]}));
+        validateWholeAtlas(placeholders,meta);
+        linePages=createLinePageCache({meta,loadImage:asset=>decodeBitmap(asset,wholeAbort.signal),onReady:page=>{if(!cancelled&&lineWaitingPage===page){lineWaitingPage=undefined;refresh();}}});
+        linePages.pinFrames([meta.neutralFrame]);
+        await linePages.load(meta.frames[meta.neutralFrame].page);
+        if(cancelled)return;
+        images={...images,wholeImages:placeholders,wholeMeta:meta};createRenderer();return;
+      }
       const surface=meta?.version===6?meta.groundGait:null;
       const [decoded, wholeFlowBytes,wholeSurfaceImages,wholeContourImages] = await Promise.all([
         Promise.all(assets.map(asset => decodeImage(asset, wholeAbort.signal))), wholeFrameMode ? undefined : loadWholeFlow(meta, wholeAbort.signal),
@@ -298,6 +346,7 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
       if (request !== null) cancelAnimationFrame(request);
       canvas.removeEventListener('webglcontextrestored', restored);
       renderer?.dispose();
+      linePages?.dispose();
       playbackRef.current = null;
       if (motionPaintRef?.current === refresh) motionPaintRef.current = null;
     };
@@ -309,7 +358,17 @@ export default function Pet({ pet, size = 200, action = 'idle', walking = false,
   const position = atlasPosition(frame, true);
   return <div ref={elementRef}
     className={`pet-sprite ${className}`} data-frame={frame} data-clip={initial.clip} data-atlas={wholeFrameMode ? 'whole-fallback' : 'legacy'}
-    style={{ width: size, height: size, backgroundImage: `url("${import.meta.env.BASE_URL}${pet.asset}")`, backgroundSize: '300% 200%', backgroundPosition: `${position.x}% ${position.y}%`, '--pet-facing': facing, ...style }}
+    style={{ width: size, height: size, backgroundImage: `url("${import.meta.env.BASE_URL}${pet.asset}")`, backgroundSize: pet.neutralAsset?'100% 100%':'300% 200%', backgroundPosition: pet.neutralAsset?'50% 50%':`${position.x}% ${position.y}%`, '--pet-facing': facing, ...style }}
     role="img" aria-label={`${pet.label}${action === 'rest' ? '正在睡觉' : ''}`} {...handlers}
   ><canvas key={pet.id} ref={canvasRef} width={256} height={256} aria-hidden="true" style={{ display: 'block', width: '100%', height: '100%', visibility: 'hidden', pointerEvents: 'none' }} /></div>;
+}
+
+function OriginalPetRoute(props) {
+  const reducedMotion = useReducedMotion();
+  return <OriginalPet {...props} reducedMotion={reducedMotion} />;
+}
+
+export default function Pet(props) {
+  return props.pet.animationMode === 'original-apng-v1'
+    ? <OriginalPetRoute {...props} /> : <AuthoredPet {...props} />;
 }

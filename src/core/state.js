@@ -9,12 +9,13 @@ const actions = { pet: { happiness: 8, bond: 2 }, feed: { hunger: 18, happiness:
 const durations = { pet: 3200, feed: 4000, play: 6000, rest: 30000, stretch: 3400, trick: 3600 };
 const validName = name => typeof name === 'string' && name.trim().length > 0 && name.trim().length <= 24;
 const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const validOriginalClip = clip => Number.isInteger(clip) && clip >= 1 && clip <= 24;
 
 export function createState(now = Date.now()) {
   return { species: 'cat', name: '奶糖', adopted: false,
     stats: { hunger: 78, energy: 85, happiness: 80, bond: 0 },
     settings: { size: 1, movement: 'free', sound: false, alwaysOnTop: true, paused: false },
-    action: { type: 'idle', until: 0 }, lastInteraction: 0, updatedAt: now };
+    action: { type: 'idle', until: 0 }, originalAnimation: { clip: 7, startedAt: 0 }, lastInteraction: 0, updatedAt: now };
 }
 
 export function normalizeState(value, now = Date.now()) {
@@ -34,6 +35,9 @@ export function normalizeState(value, now = Date.now()) {
     state.action = { type: value.action.type, until: clamp(value.action.until, 0, now + 30000) };
   }
   state.lastInteraction = clamp(finite(value.lastInteraction, 0), 0, now);
+  if (validOriginalClip(value.originalAnimation?.clip)) {
+    state.originalAnimation = { clip: value.originalAnimation.clip, startedAt: clamp(finite(value.originalAnimation.startedAt, 0), 0, now) };
+  }
   state.updatedAt = clamp(finite(value.updatedAt, now), 0, now);
   return state;
 }
@@ -71,6 +75,14 @@ export function transition(value, command, now = Date.now()) {
       for (const [key, amount] of Object.entries(actions[command.action])) state.stats[key] = clamp(state.stats[key] + amount);
       state.action = { type: command.action, until: now + durations[command.action] };
       state.lastInteraction = now;
+      break;
+    }
+    case 'original-animation': {
+      const pet = PETS.find(p => p.id === state.species);
+      if (!state.adopted || pet?.animationMode !== 'original-apng-v1' || !validOriginalClip(command.clip)) throw new Error('请选择有效的原作动画');
+      if (state.settings.paused) return state;
+      state.originalAnimation = { clip: command.clip, startedAt: now };
+      state.action = { type: 'idle', until: 0 };
       break;
     }
     case 'settings':

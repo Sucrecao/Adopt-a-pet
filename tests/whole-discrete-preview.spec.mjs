@@ -3,7 +3,7 @@ import {test,expect} from '@playwright/test';
 test('whole-picture preview supports all source frames, slow play, pause and both facings',async({page})=>{
   test.setTimeout(60_000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
-  await page.goto('/.artifacts/pet-motion-comparison-preview.html');
+  await page.goto('/.artifacts/pet-motion-comparison-preview-v7-retained.html');
   const frame=page.frameLocator('iframe'),canvas=frame.locator('#whole-pet-motion canvas');
   await expect(canvas).toHaveAttribute('data-renderer','whole-frame-2d');
   await frame.locator('[data-play]').click();

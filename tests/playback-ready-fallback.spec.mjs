@@ -1,13 +1,15 @@
 import { test, expect } from '@playwright/test';
 
-test('failed whole-frame artwork keeps a complete photo and holds native travel',async({page})=>{
+test('failed whole-frame artwork keeps a complete neutral picture and holds travel',async({page})=>{
   await page.route('**/pets/*-whole-v*',route=>route.abort());
+  await page.route('**/pets/*-line-v1.json',route=>route.abort());
   await page.route(/pets\/.*-(motion|rig)\.png$/,route=>route.abort());
   await page.goto('/');await page.evaluate(()=>localStorage.clear());await page.reload();
+  await page.getByRole('button',{name:/选择猫咪/}).click();
   await page.getByRole('button',{name:/在预览中领养/}).click();
   const pet=page.locator('.stage-pet'),root=page.locator('.stage-pet-anchor');
   await expect(pet).toHaveAttribute('data-atlas','whole-fallback');
-  await expect(pet).toHaveCSS('background-image',/cat\.png/);
+  await expect(pet).toHaveCSS('background-image',/cat-line-v1-neutral\.png/);
   await page.getByRole('button',{name:'玩耍',exact:true}).click();
   const before=await root.boundingBox(),stage=await page.locator('.desktop-stage').boundingBox();
   await page.mouse.move(stage.x+stage.width*.9,stage.y+stage.height*.68);

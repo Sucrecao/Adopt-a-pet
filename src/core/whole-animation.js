@@ -1,4 +1,5 @@
 import { createWholeHandoffController } from './whole-handoff.js';
+import { createLineAnimationController } from './line-animation.js';
 
 const frames = (first, count) => Array.from({ length: count }, (_, index) => first + index);
 
@@ -92,6 +93,7 @@ export function createWholeAnimationController({ species = 'cat', meta = {}, ran
   const frameCount = meta.frames?.length ?? 48;
   validateWholeClips(clips, frameCount);
   validateWholeTransitions(meta.transitions, frameCount);
+  if (discrete && meta.authoring === 'line-pet-v1') return createLineAnimationController({species,meta,random});
   if ([5,6].includes(meta.version) && meta.handoffs?.version === 1) {
     return createWholeHandoffController({ species, meta, random, clips, frameAt,
       createLegacy: options => createWholeAnimationController(options) });

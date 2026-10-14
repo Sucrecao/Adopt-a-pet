@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, Tray, screen, nativeImage, dialog } =
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
-const { isValidCommand, isTrustedSender, isValidHitRegions, isValidPoint } = require('./security.cjs');
+const { isValidCommand, isTrustedSender, isValidHitRegions, isValidPoint, isValidVisualCommit } = require('./security.cjs');
 
 if (process.env.PAWPAL_TEST_USER_DATA) app.setPath('userData', process.env.PAWPAL_TEST_USER_DATA);
 let panel, petWindow, tray, state, storePath, transition, normalizeState, clampWindow, chooseTarget, advanceMotion, desktopSpriteSize, gaitSpeedDip;
@@ -11,15 +11,21 @@ let dragging = null, moving = false, facing = 'right';
 let motion = null, lastMovementAt = null, turnRemainingMs = 0;
 let motionEpoch = 0, distanceDip = 0, reducedMotion = false;
 let playbackReady = true, playbackReadyKnown = false, movementWanted = false, prepareEpoch = 0;
+let petCatalog = [], visualRect = null, visualGeometrySeq = 0, visualSequence = 0, visualSpeedDip = 0;
 const timers = [];
 const devURL = !app.isPackaged ? process.env.VITE_DEV_SERVER_URL : undefined;
 const preload = path.join(__dirname, 'preload.cjs');
 
 function motionSnapshot() {
-  const bounds = petWindow && !petWindow.isDestroyed() ? petWindow.getBounds() : null;
-  return { epoch: motionEpoch, distanceDip, spriteSizeDip: desktopSpriteSize(bounds?.width ?? 340 * (state?.settings.size ?? 1)),
+  const host = petWindow && !petWindow.isDestroyed() ? petWindow.getBounds() : null;
+  const bounds = visualRect || host;
+  return { clockKind: visualRect ? 'visual-root-v1' : 'native-window-v1', epoch: motionEpoch, distanceDip,
+    spriteSizeDip: desktopSpriteSize(bounds?.width ?? 340 * (state?.settings.size ?? 1)),
     facing: facing === 'left' ? -1 : 1, moving, intentMoving: movementWanted || moving, prepareEpoch, dragging: Boolean(dragging),
-    paused: Boolean(state?.settings.paused || reducedMotion) };
+    paused: Boolean(state?.settings.paused || reducedMotion || hidden),
+    ...(visualRect && host ? { visual: { geometrySeq: visualGeometrySeq, host, rectGlobal: { ...visualRect },
+      targetGlobal: target && { ...target }, speedDip: visualSpeedDip, committedSequence: visualSequence,
+      displayId: screen.getDisplayMatching(host).id } } : {}) };
 }
 function emitMotion() {
   if (petWindow && !petWindow.isDestroyed()) petWindow.webContents.send('companion:motion', motionSnapshot());
@@ -67,19 +73,30 @@ function createPanel() {
 }
 // Electron's integer conversion rejects -0; normalize it only at the native boundary.
 function rounded(bounds) { return Object.fromEntries(Object.entries(bounds).map(([key, value]) => [key, Math.round(value) + 0])); }
-function areaFor(bounds) { return screen.getDisplayMatching(bounds).workArea; }
+function areaFor(bounds) { return screen.getDisplayMatching(rounded(bounds)).workArea; }
+function companionBounds() { return visualRect ? { ...visualRect } : petWindow.getBounds(); }
+function wantsVisualPresentation() { return petCatalog.some(pet => pet.id === state?.species && pet.presentation === 'visual-root-v1'); }
+function relocateVisual(rect, area) {
+  // The native boundary owns host geometry. Ordinary renderer travel never calls this.
+  petWindow.setBounds(rounded(area));
+  const acceptedHost = petWindow.getBounds();
+  visualRect = clampWindow(rect, acceptedHost);
+  visualGeometrySeq++; regions = [];
+}
 function resetMotion() {
-  const bounds = petWindow && !petWindow.isDestroyed() ? petWindow.getBounds() : null;
+  const bounds = petWindow && !petWindow.isDestroyed() ? companionBounds() : null;
   motion = bounds ? { x: bounds.x, y: bounds.y, vx: 0, vy: 0, arrived: true } : null;
   lastMovementAt = Date.now();
-  target = null; moving = false; movementWanted = false; playbackReady = true; turnRemainingMs = 0;
+  target = null; moving = false; movementWanted = false; playbackReady = !visualRect; turnRemainingMs = 0;
   motionEpoch++; distanceDip = 0;
+  visualSequence = 0; visualSpeedDip = 0;
   emitMotion();
 }
 function constrainPet(area) {
   if (!petWindow || petWindow.isDestroyed()) return;
-  const bounds = petWindow.getBounds();
-  petWindow.setBounds(rounded(clampWindow(bounds, area ?? areaFor(bounds))));
+  const bounds = companionBounds();
+  if (visualRect) relocateVisual(bounds, area ?? areaFor(bounds));
+  else petWindow.setBounds(rounded(clampWindow(bounds, area ?? areaFor(bounds))));
   resetMotion();
   publish();
 }
@@ -89,7 +106,9 @@ function createPet() {
   const width = Math.round(340 * state.settings.size), height = Math.round(360 * state.settings.size);
   const bounds = rounded(clampWindow({ x: area.x + (area.width - width) / 2,
     y: state.settings.movement === 'edge' ? area.y + area.height - height : area.y + (area.height - height) * 0.56, width, height }, area));
-  petWindow = new BrowserWindow({ ...bounds, frame: false, transparent: true, backgroundColor: '#00000000',
+  visualRect = wantsVisualPresentation() ? { ...bounds } : null;
+  if (visualRect) visualGeometrySeq++;
+  petWindow = new BrowserWindow({ ...(visualRect ? rounded(area) : bounds), frame: false, transparent: true, backgroundColor: '#00000000',
     resizable: false, hasShadow: false, skipTaskbar: true, show: false,
     alwaysOnTop: state.settings.alwaysOnTop, title: 'PawPal companion',
     webPreferences: { preload, contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false } });
@@ -98,7 +117,7 @@ function createPet() {
   ignoring = true;
   if (process.platform === 'darwin') petWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   petWindow.once('ready-to-show', () => { if (!hidden) petWindow.showInactive(); });
-  petWindow.on('closed', () => { petWindow = null; regions = []; resetMotion(); });
+  petWindow.on('closed', () => { petWindow = null; visualRect = null; regions = []; dragging = null; resetMotion(); });
   load(petWindow, 'pet').catch(error => dialog.showErrorBox('无法显示桌面宠物', error.message));
   resetMotion(); wanderAt = Date.now() + 5000;
 }
@@ -106,19 +125,28 @@ function configurePet(previous) {
   if (!state.adopted) return;
   createPet();
   if (!petWindow || petWindow.isDestroyed()) return;
+  if (previous.species !== state.species) dragging = null;
   petWindow.setAlwaysOnTop(state.settings.alwaysOnTop);
+  if (Boolean(visualRect) !== wantsVisualPresentation()) {
+    const bounds = companionBounds(), area = areaFor(bounds);
+    if (wantsVisualPresentation()) relocateVisual(bounds, area);
+    else { visualRect = null; petWindow.setBounds(rounded(clampWindow(bounds, area))); regions = []; }
+    dragging = null; resetMotion(); wanderAt = 0;
+  }
   if (previous.settings.size !== state.settings.size) {
-    const bounds = petWindow.getBounds();
+    const bounds = companionBounds();
     const width = Math.round(340 * state.settings.size), height = Math.round(360 * state.settings.size);
     const adjusted = { x: bounds.x + (bounds.width - width) / 2, y: bounds.y + bounds.height - height, width, height };
-    petWindow.setBounds(rounded(clampWindow(adjusted, areaFor(bounds))));
+    if (visualRect) relocateVisual(adjusted, areaFor(bounds));
+    else petWindow.setBounds(rounded(clampWindow(adjusted, areaFor(bounds))));
     regions = [];
     resetMotion(); wanderAt = 0;
   }
   if (previous.settings.movement !== state.settings.movement && state.settings.movement === 'edge' &&
       state.species !== 'parrot') {
-    const bounds = petWindow.getBounds(), area = areaFor(bounds);
-    petWindow.setBounds(rounded(clampWindow({ ...bounds, y: area.y + area.height - bounds.height }, area)));
+    const bounds = companionBounds(), area = areaFor(bounds);
+    if (visualRect) relocateVisual({ ...bounds, y: area.y + area.height - bounds.height }, area);
+    else petWindow.setBounds(rounded(clampWindow({ ...bounds, y: area.y + area.height - bounds.height }, area)));
   }
   if (previous.settings.movement !== state.settings.movement || previous.species !== state.species ||
       (previous.settings.paused !== state.settings.paused && !turnRemainingMs)) {
@@ -137,13 +165,17 @@ function pointerTick() {
   if (!petWindow || petWindow.isDestroyed() || !petWindow.isVisible()) return;
   const cursor = screen.getCursorScreenPoint();
   if (dragging) {
-    const bounds = petWindow.getBounds();
+    const bounds = companionBounds();
     const next = { ...bounds, x: cursor.x - dragging.x, y: cursor.y - dragging.y };
     const area = screen.getDisplayNearestPoint(cursor).workArea;
-    petWindow.setBounds(rounded(clampWindow(next, area)));
+    if (visualRect) {
+      const host = petWindow.getBounds();
+      if (host.x !== area.x || host.y !== area.y || host.width !== area.width || host.height !== area.height) relocateVisual(next, area);
+      else { visualRect = clampWindow(next, host); visualGeometrySeq++; }
+    } else petWindow.setBounds(rounded(clampWindow(next, area)));
     resetMotion();
   }
-  const ignore = !dragging && !hitAt(cursor, petWindow.getBounds());
+  const ignore = !dragging && !hitAt(cursor, companionBounds());
   if (ignore !== ignoring) {
     petWindow.setIgnoreMouseEvents(ignore, { forward: true });
     ignoring = ignore;
@@ -155,12 +187,13 @@ function movementTick() {
   const elapsed = lastMovementAt === null ? 0 : Math.min(0.05, Math.max(0, (now - lastMovementAt) / 1000));
   lastMovementAt = now;
   if (!state.adopted || !petWindow || petWindow.isDestroyed() || !petWindow.isVisible() || state.settings.paused || reducedMotion || dragging) return;
-  const bounds = petWindow.getBounds(), area = areaFor(bounds);
+  const bounds = companionBounds(), area = visualRect ? petWindow.getBounds() : areaFor(bounds);
   // getBounds() is integer-valued; use it for geometry, never to overwrite the
   // floating position during an ordinary tick.
   motion ??= { x: bounds.x, y: bounds.y, vx: 0, vy: 0, arrived: true };
   const action = state.action.until > now ? state.action.type : 'idle';
-  if (['rest', 'pet', 'feed', 'stretch', 'trick'].includes(action) ||
+  if (petCatalog.some(pet => pet.id === state.species && pet.animationMode === 'original-apng-v1') ||
+      ['rest', 'pet', 'feed', 'stretch', 'trick'].includes(action) ||
       (action !== 'play' && hitAt(screen.getCursorScreenPoint(), bounds))) {
     motion = { ...motion, vx: 0, vy: 0 };
     if (moving || movementWanted) { moving = false; movementWanted = false; emitMotion(); publish(); }
@@ -208,7 +241,7 @@ function movementTick() {
     if (changed) { emitMotion(); publish(); }
     return;
   }
-  if(wantsMovement && playbackReadyKnown && !playbackReady) {
+  if(wantsMovement && playbackReadyKnown && !playbackReady && (!visualRect || requestedFacing === facing)) {
     motion = { ...motion, vx: 0, vy: 0 };
     moving = false;
     if(newlyRequested) { emitMotion(); publish(); }
@@ -219,6 +252,16 @@ function movementTick() {
     motion = { ...motion, vx: 0, vy: 0 };
     turnRemainingMs = 800;
     emitMotion(); publish();
+    return;
+  }
+  if (visualRect) {
+    // Native code supplies intent, bounds and barriers. The renderer integrates
+    // each rAF and reports only the root paired with a successful whole-frame draw.
+    const changed = moving !== wantsMovement;
+    moving = wantsMovement; visualSpeedDip = speed;
+    if (!wantsMovement) { target = null; wanderAt = now + 4500 + Math.random() * 6500; }
+    emitMotion();
+    if (changed) publish();
     return;
   }
   motion = advanceMotion(motion, target, speed, elapsed);
@@ -245,7 +288,7 @@ function updateTray() {
   if (!tray) return;
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: '打开领养面板', click: showPanel },
-    { label: hidden ? '叫宠物出来' : '让宠物暂时隐藏', enabled: state.adopted, click: () => { hidden = !hidden; if (hidden) petWindow?.hide(); else { createPet(); petWindow?.showInactive(); } resetMotion(); updateTray(); publish(); } },
+    { label: hidden ? '叫宠物出来' : '让宠物暂时隐藏', enabled: state.adopted, click: () => { hidden = !hidden; if (hidden) { dragging = null; petWindow?.hide(); } else { createPet(); petWindow?.showInactive(); } resetMotion(); updateTray(); publish(); } },
     { label: state.settings.paused ? '继续活动' : '暂停活动', enabled: state.adopted, click: () => { state = transition(state, {type:'settings',patch:{paused:!state.settings.paused}}); if (turnRemainingMs) lastMovementAt = Date.now(); else resetMotion(); publish(); scheduleSave(); updateTray(); } },
     { type: 'separator' },
     { label: '退出 PawPal', click: () => app.quit() },
@@ -308,22 +351,35 @@ function registerIPC() {
     return snapshot();
   });
   handle('companion:panel', () => showPanel());
-  handle('companion:hide', () => { hidden = true; petWindow?.hide(); resetMotion(); publish(); updateTray(); });
+  handle('companion:hide', () => { hidden = true; dragging = null; petWindow?.hide(); resetMotion(); publish(); updateTray(); });
   handle('companion:displays', () => screen.getAllDisplays().map(display => ({ id:display.id, label:display.label, workArea:display.workArea })));
   handle('companion:move', (_event, point) => {
     if (!isValidPoint(point) || !petWindow) return false;
-    const bounds = petWindow.getBounds();
+    const bounds = companionBounds();
     const position = rounded({ x: point.x, y: point.y });
-    petWindow.setBounds(rounded(clampWindow({...bounds,...position}, screen.getDisplayNearestPoint(position).workArea)));
+    if (visualRect) relocateVisual({ ...bounds, x: point.x, y: point.y }, screen.getDisplayNearestPoint(position).workArea);
+    else petWindow.setBounds(rounded(clampWindow({...bounds,...position}, screen.getDisplayNearestPoint(position).workArea)));
     resetMotion(); wanderAt = Date.now() + 7000; publish();
     return true;
   });
   ipcMain.on('companion:regions', (event, values) => {
-    if (trusted(event) && event.sender === petWindow?.webContents && isValidHitRegions(values)) regions = values;
+    if (!trusted(event) || event.sender !== petWindow?.webContents) return;
+    if (visualRect) {
+      if (values?.epoch === motionEpoch && values?.geometrySeq === visualGeometrySeq
+        && isValidHitRegions(values.regions, visualRect)) regions = values.regions;
+    } else if (isValidHitRegions(values)) regions = values;
+  });
+  ipcMain.on('companion:visual-commit', (event, value) => {
+    if (!trusted(event) || event.sender !== petWindow?.webContents || !visualRect) return;
+    if (!isValidVisualCommit(value, { epoch: motionEpoch, geometrySeq: visualGeometrySeq, sequence: visualSequence,
+      rect: visualRect, area: petWindow.getBounds(), distanceDip,
+      allowMovement: moving && !state.settings.paused && !reducedMotion && !hidden && !dragging && !turnRemainingMs })) return;
+    visualRect = { ...value.rectGlobal }; distanceDip = value.distanceDip; visualSequence = value.sequence;
+    motion = { x: visualRect.x, y: visualRect.y, vx: 0, vy: 0, arrived: false };
   });
   ipcMain.on('companion:drag-start', event => {
     if (!trusted(event) || event.sender !== petWindow?.webContents) return;
-    const cursor = screen.getCursorScreenPoint(), bounds = petWindow.getBounds();
+    const cursor = screen.getCursorScreenPoint(), bounds = companionBounds();
     dragging = {x:cursor.x-bounds.x,y:cursor.y-bounds.y};
     resetMotion(); publish();
   });
@@ -341,6 +397,7 @@ else {
     ({ clampWindow, chooseTarget } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/geometry.js')).href));
     ({ advanceMotion } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/motion.js')).href));
     ({ desktopSpriteSize, gaitSpeedDip } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/gait.js')).href));
+    ({ PETS: petCatalog } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/pets.js')).href));
     storePath = path.join(app.getPath('userData'), 'companion.json');
     try { state = normalizeState(JSON.parse(fs.readFileSync(storePath, 'utf8'))); }
     catch { state = normalizeState(null); }

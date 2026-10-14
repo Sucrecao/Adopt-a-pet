@@ -124,6 +124,16 @@ h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: .1px; }
 .interaction-bar b { display: block; font-size: 11px; font-weight: 500; }
 .interaction-bar small { display: block; font-size: 9px; color: #b1a6bb; margin-top: 5px; }
 .interaction-bar > button > svg { margin-left: auto; color: #c7bdcf; }
+.original-picker { margin-top: 12px; padding: 16px; border: 1px solid #eeebf2; border-radius: 12px; background: #fff; }
+.original-picker-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12px; }
+.original-picker-heading span { color: #a397af; font-size: 10px; }
+.original-clip-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; }
+.original-clip-grid button { padding: 10px 4px; font-size: 11px; border: 1px solid #eeebf2; border-radius: 8px; background: #fff; color: #7e6d8d; }
+.original-clip-grid button:hover, .original-clip-grid button[aria-pressed=true] { border-color: #bea8df; background: #f4eefb; color: #77569c; }
+.original-info > p:not(.card-subtitle) { font-size: 12px; line-height: 1.9; color: #95869e; }
+.original-placement { display: flex; align-items: center; gap: 8px; padding: 10px 0 16px; font-size: 12px; color: #95869e; }
+@media (max-width: 820px) { .original-clip-grid { grid-template-columns: repeat(6, 1fr); } }
+@media (max-width: 540px) { .original-clip-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; } }
 .details-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 18px; margin-top: 24px; }
 .care-card, .settings-card { background: #fff; border: 1px solid #eeebf2; padding: 22px 23px 18px; border-radius: 14px; }
 .care-card .section-heading, .settings-card .section-heading { margin-bottom: 10px; }

@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('companion', {
   showPanel: () => ipcRenderer.invoke('companion:panel'),
   hidePet: () => ipcRenderer.invoke('companion:hide'),
   setHitRegions: regions => ipcRenderer.send('companion:regions', regions),
+  commitVisualMotion: packet => ipcRenderer.send('companion:visual-commit', packet),
   beginDrag: () => ipcRenderer.send('companion:drag-start'),
   endDrag: () => ipcRenderer.send('companion:drag-end'),
   movePet: point => ipcRenderer.invoke('companion:move', point),

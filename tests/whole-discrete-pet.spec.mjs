@@ -22,7 +22,7 @@ async function mount(page,species='cat',{wait=true}={}) {
     window.requestAnimationFrame=callback=>{const key=++id;callbacks.set(key,callback);return key;};window.cancelAnimationFrame=key=>callbacks.delete(key);
     const host=document.createElement('div');host.className='whole-frame-fixture';document.body.append(host);let root=ReactDOMClient.createRoot(host);
     const locomotionRef={current:{epoch:1,prepareEpoch:1,distanceDip:0,spriteSizeDip:256,facing:1,moving:false,intentMoving:false,actualMoving:false}};
-    const motionPaintRef={current:null};const select=id=>({...PETS.find(p=>p.id===id),wholeRenderMode:'discrete-whole-frame',wholeMetaAsset:`pets/${id}-whole-discrete-fixture.json`});
+    const motionPaintRef={current:null};const select=id=>({...PETS.find(p=>p.id===id),asset:`pets/${id}.png`,neutralAsset:undefined,wholeRenderMode:'discrete-whole-frame',wholeMetaAsset:`pets/${id}-whole-discrete-fixture.json`});
     let props={pet:select(species),size:256,locomotionRef,motionPaintRef,onPlaybackReady:event=>readiness.push(event)};
     const render=()=>ReactDOM.flushSync(()=>root.render(React.createElement(React.StrictMode,null,React.createElement(Pet,props))));
     const snapshot=()=>{const pet=host.querySelector('.pet-sprite'),canvas=pet?.querySelector('canvas');return pet?{...pet.dataset,pixels:canvas.toDataURL(),backend:canvas.dataset.renderer,groundBackend:canvas.dataset.groundRenderer??'',visibility:canvas.style.visibility,transform:pet.style.transform,background:pet.style.backgroundImage,ready:readiness.at(-1),queuedRafs:callbacks.size}:null;};

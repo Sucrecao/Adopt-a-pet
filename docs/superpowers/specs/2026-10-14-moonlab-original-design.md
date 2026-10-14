@@ -1,0 +1,11 @@
+# Moonlab original artwork and animation
+
+The user explicitly chose “原画、原动作完全一致（推荐）”. Replace the two approximated Maltese/Golden renderings with Moonlab's published complete original animations. Existing other pets, prior authoring, source assets and release archives remain available and unchanged.
+
+Sources: Maltese product 24856130 and Retriever product 24856095, public LINE Store previews. Each has 24 original animated stickers. Downloaded source files and exact public URLs are recorded in `.artifacts/couple-puppies-exact/references/manifest.json`. There are 370 Maltese frames and 371 Golden frames, each 320×300. Preserve the complete decoded RGBA picture, transparent canvas, source frame delay, frame ordering, original finite/infinite repeat count, accessories and two-character scenes. Do not invent missing walk/turn/groom poses or relabel dances as walking.
+
+Import complete frames losslessly into one atlas per animation, with native-size static fallback. A separate original playback controller selects one complete frame according to original delays and loop count. Pause, reduced motion, dragging and static adoption cards hold a full source frame. The renderer draws at the source canvas aspect ratio and only uniformly scales the complete picture for display; no runtime parts, morphing, blending, reflection or synthetic in-between frames.
+
+Keep the pet ids `maltese` and `golden` for saved identities. Store original animation selection and restart token separately from legacy care actions. Original pets have a 24-animation picker and original-response quick controls, with manual placement and size/pause settings. Their unsupported autonomous locomotion is disabled in browser stage and native scheduler. Other pets retain their current controls and movement.
+
+Verification requires all 741 exported frame crops to equal original decoded RGBA bytes, matching timings/repeat counts; controller boundary/pause/restart tests; browser adoption, selection/restart, paused/reduced-motion holding, complete-frame rendering and persistence; full unit suite/build; packaged Electron source-mode and manual-placement smoke checks. Produce a separate 0.5.2 local archive after review.

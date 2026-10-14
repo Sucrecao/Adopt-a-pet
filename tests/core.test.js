@@ -3,12 +3,57 @@ import assert from 'node:assert/strict';
 import { PETS } from '../src/core/pets.js';
 import { createState, normalizeState, transition, decayState } from '../src/core/state.js';
 import { clampWindow, chooseTarget } from '../src/core/geometry.js';
+import { desktopSpriteSize, gaitSpeedDip } from '../src/core/gait.js';
 
-test('three species carry UI metadata and local assets', () => {
-  assert.deepEqual(PETS.map(p => p.id), ['cat', 'dog', 'parrot']);
+test('reference puppies lead the catalog while the original pets retain their assets', () => {
+  assert.deepEqual(PETS.map(p => p.id), ['maltese', 'golden', 'cat', 'dog', 'parrot']);
   for (const pet of PETS) {
     for (const key of ['label', 'defaultName', 'subtitle', 'description', 'personality', 'toyLabel', 'color']) assert.ok(pet[key]);
-    assert.equal(pet.asset, `pets/${pet.id}.png`);
+    const original = ['maltese', 'golden'].includes(pet.id);
+    assert.equal(pet.asset, pet.id==='parrot'?`pets/${pet.id}.png`:`pets/${pet.id}-${original ? 'original' : 'line'}-v1-neutral.png`);
+    if(pet.id!=='parrot') {
+      assert.equal(pet.neutralAsset,pet.asset);
+      if (original) {
+        assert.equal(pet.originalMetaAsset, `pets/${pet.id}-original-v1.json`);
+        assert.equal(pet.animationMode, 'original-apng-v1');
+      } else assert.equal(pet.wholeMetaAsset,`pets/${pet.id}-line-v1.json`);
+      assert.equal(pet.presentation,'visual-root-v1');
+    }
+  }
+  for (const id of ['maltese', 'golden', 'dog']) assert.equal(PETS.find(pet => pet.id === id).kind, 'dog');
+});
+
+for (const species of ['maltese', 'golden']) {
+  test(`${species} adoption survives persisted reload without losing name or preferences`, () => {
+    const initial = transition(createState(1000), { type: 'settings', patch: { movement: 'edge', size: .85, sound: true } }, 1000);
+    const adopted = transition(initial, { type: 'adopt', species, name: '  我的伙伴  ' }, 2000);
+    const reloaded = normalizeState(JSON.parse(JSON.stringify(adopted)), 2000);
+    assert.equal(reloaded.species, species);
+    assert.equal(reloaded.name, '我的伙伴');
+    assert.equal(reloaded.adopted, true);
+    assert.deepEqual(reloaded.settings, adopted.settings);
+    assert.deepEqual(reloaded.stats, adopted.stats);
+    assert.equal(initial.adopted, false);
+    assert.equal(transition(reloaded, { type: 'interact', action: 'pet' }, 3000).action.type, 'pet');
+  });
+
+  test(`${species} uses the existing dog travel cadence at every pet size`, () => {
+    for (const size of [.65, 1, 1.5]) {
+      for (const action of ['idle', 'play']) {
+        const visibleSize = desktopSpriteSize(340 * size);
+        assert.equal(gaitSpeedDip(species, action, visibleSize), gaitSpeedDip('dog', action, visibleSize));
+      }
+    }
+  });
+}
+
+test('original adopted pets reload with the same identities after catalog expansion', () => {
+  for (const species of ['cat', 'dog', 'parrot']) {
+    const saved = { ...createState(1000), species, name: '老朋友', adopted: true };
+    const reloaded = normalizeState(JSON.parse(JSON.stringify(saved)), 1000);
+    assert.equal(reloaded.species, species);
+    assert.equal(reloaded.name, '老朋友');
+    assert.equal(reloaded.adopted, true);
   }
 });
 

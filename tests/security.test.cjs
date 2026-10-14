@@ -1,9 +1,15 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { isValidCommand, isTrustedSender, isValidHitRegions, isValidPoint } = require('../electron/security.cjs');
+const security = require('../electron/security.cjs');
 
 test('adoption accepts only supported pets and sensible names', () => {
   assert.equal(isValidCommand({type:'adopt',species:'cat',name:'奶糖'}), true);
+  for (const species of ['maltese', 'golden']) {
+    assert.equal(isValidCommand({ type:'adopt', species, name:'我的伙伴' }), true);
+    assert.equal(isValidCommand({ type:'adopt', species, name:'' }), false);
+    assert.equal(isValidCommand({ type:'adopt', species, name:'a'.repeat(25) }), false);
+  }
   assert.equal(isValidCommand({type:'adopt',species:'dragon',name:'a'}), false);
   assert.equal(isValidCommand({type:'adopt',species:'dog',name:'a'.repeat(41)}), false);
   assert.equal(isValidCommand({type:'adopt',species:'dog',name:42}), false);
@@ -46,4 +52,24 @@ test('hit regions are finite, bounded and use known shapes', () => {
   assert.equal(isValidHitRegions(Array(20).fill({type:'rect',x:0,y:0,width:1,height:1})), false);
   assert.equal(isValidPoint({x:-1440,y:300}), true);
   assert.equal(isValidPoint({x:Infinity,y:300}), false);
+});
+
+test('visual hit regions stay in the logical pet box, independent of its screen origin', () => {
+  assert.equal(isValidHitRegions([{ type:'rect', x:300, y:10, width:200, height:30 }], { width:340, height:360 }), false);
+  assert.equal(isValidHitRegions([{ type:'ellipse', x:30, y:50, width:220, height:240 }], { width:340, height:360 }), true);
+});
+
+test('visual commits require current geometry, increasing sequence and matching finite travel', () => {
+  assert.equal(typeof security.isValidVisualCommit, 'function');
+  const context = { epoch:3, geometrySeq:2, sequence:5, distanceDip:4, allowMovement:true,
+    rect:{x:1200,y:100,width:340,height:360}, area:{x:0,y:0,width:2000,height:1000} };
+  const packet = { clockKind:'visual-root-v1', epoch:3, geometrySeq:2, sequence:6,
+    rectGlobal:{x:1200.125,y:100,width:340,height:360}, distanceDip:4.125, selectedFrame:10, phase:.2 };
+  assert.equal(security.isValidVisualCommit(packet, context), true);
+  for (const invalid of [{...packet,epoch:2}, {...packet,sequence:5}, {...packet,geometrySeq:1},
+    {...packet,distanceDip:20}, {...packet,rectGlobal:{...packet.rectGlobal,x:Infinity}},
+    {...packet,rectGlobal:{...packet.rectGlobal,width:2000}}, {...packet,rectGlobal:{...packet.rectGlobal,y:101}}]) {
+    assert.equal(security.isValidVisualCommit(invalid, context), false);
+  }
+  assert.equal(security.isValidVisualCommit(packet, {...context,allowMovement:false}), false);
 });

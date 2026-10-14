@@ -4,6 +4,7 @@ import { createWholeGroundRenderer } from './whole-ground-renderer.js';
 import { validateGroundPoseConfig } from '../core/ground-surface-pose.js';
 import { createWholeSurfaceGroundRenderer } from './whole-surface-ground-renderer.js';
 import { createWholeCanonicalFrames } from './whole-canonical-frames.js';
+import { validateLineAnimation } from '../core/line-animation.js';
 
 const SIZE = 256;
 
@@ -11,6 +12,7 @@ const SIZE = 256;
 export function validateWholeAtlas(imageOrImages, meta) {
   const images = Array.isArray(imageOrImages) ? imageOrImages : [imageOrImages];
   const discrete = meta?.version === 7;
+  const line = discrete && meta.authoring === 'line-pet-v1';
   if (discrete && (meta.renderMode !== 'discrete-whole-frame'
       || ['flow','handoffs','groundGait','groundRise'].some(key => meta[key] !== undefined))) {
     throw new Error('Invalid discrete whole-frame metadata');
@@ -22,10 +24,10 @@ export function validateWholeAtlas(imageOrImages, meta) {
   const multiPage = meta?.version === 2 || gaitPages || discrete;
   const pages = meta?.version === 1 ? [meta] : multiPage && Array.isArray(meta.pages) ? meta.pages : [];
   const frameCount = discrete ? meta.frames?.length : surface ? 130 + extra : meta?.version===5 && meta.handoffs?.mirroredNeutralFrame===128 ? 129 : gaitPages ? 128 : meta?.version === 2 ? 96 : 48;
-  if (discrete && (!Array.isArray(meta.frames) || frameCount < 1 || frameCount > 1024)) throw new Error('Invalid discrete whole-frame count');
+  if (discrete && (!Array.isArray(meta.frames) || frameCount < 1 || frameCount > (line ? 8192 : 1024))) throw new Error('Invalid discrete whole-frame count');
   if (surface && (!Number.isInteger(extra) || extra < 0 || extra > 64)) throw new Error('Invalid whole atlas extra frame count');
   if (!pages.length || images.length !== pages.length || (multiPage && (discrete
-      ? pages.length > 96 : surface
+      ? pages.length > (line ? 160 : 96) : surface
       ? pages.length < 4 || pages.length > 4 + extra
       : pages.length !== (gaitPages ? 3 : 2)))) throw new Error('Invalid whole atlas pages');
   for (const [index, page] of pages.entries()) {
@@ -57,6 +59,7 @@ export function validateWholeAtlas(imageOrImages, meta) {
   }
   validateWholeClips(meta.clips, meta.frames.length);
   validateWholeTransitions(meta.transitions, meta.frames.length);
+  if(line)validateLineAnimation(meta);
   if (!discrete) validateWholeContours(meta);
   if(surface) {
     validateGroundPoseConfig(meta.groundGait);
@@ -81,13 +84,17 @@ export function validateWholeAtlas(imageOrImages, meta) {
 }
 
 /** Paint a single whole rectangular crop, retaining its aspect ratio and alpha. */
-export function createWholeRenderer(canvas, { image, images, meta, flowBytes, surfaceImages, contourImages=[] }) {
+export function createWholeRenderer(canvas, { image, images, meta, flowBytes, surfaceImages, contourImages=[], sourceProvider }) {
   const sources = images ?? [image];
   validateWholeAtlas(sources, meta);
   const discrete = meta.version === 7;
   if (!discrete) validateWholeContours(meta,contourImages);
   canvas.width = canvas.height = SIZE;
-  const context = canvas.getContext('2d');
+  const presentedContext = canvas.getContext('2d');
+  const line = meta.authoring === 'line-pet-v1';
+  const staging = line ? document.createElement('canvas') : canvas;
+  staging.width = staging.height = SIZE;
+  const context = line ? staging.getContext('2d') : presentedContext;
   if (!context) throw new Error('Whole atlas needs a 2D canvas context');
   const canonicalFrames=meta.version===6?createWholeCanonicalFrames(sources,meta):null;
   let flow = discrete ? null : createWholeFlowRenderer({ images:sources,meta,flowBytes,contourImages,
@@ -104,6 +111,9 @@ export function createWholeRenderer(canvas, { image, images, meta, flowBytes, su
       if (disposed || !Number.isInteger(sample?.frame) || !meta.frames[sample.frame]) return false;
       const facing = sample.facing === -1 ? -1 : 1;
       if (discrete && drawnFrame === sample.frame && drawnFacing === facing) return true;
+      const requestedPage=meta.frames[sample.frame].page;
+      const source=sourceProvider ? sourceProvider(requestedPage) : sources[requestedPage];
+      if(line && !source)return false;
       // A replacement can fail after clearing; only a completed draw is held.
       if (discrete) drawnFrame = drawnFacing = undefined;
       context.setTransform(1, 0, 0, 1, 0, 0);
@@ -131,11 +141,22 @@ export function createWholeRenderer(canvas, { image, images, meta, flowBytes, su
       const frame = meta.frames[index], [x, y, width, height] = frame.rect;
       const page = meta.version === 1 ? 0 : frame.page, scale = scales[page];
       context.save();
-      if ((sample.facing === -1 ? -1 : 1) * (canonicalFrames?1:frame.mirror??1) === -1) { context.translate(SIZE, 0); context.scale(-1, 1); }
-      if(canonicalFrames)context.drawImage(canonicalFrames.get(index),0,0);
-      else context.drawImage(sources[page], x, y, width, height,
-        (SIZE - width * scale) / 2 + (frame.offsetX ?? 0), (SIZE - height * scale) / 2 + (frame.offsetY ?? 0), width * scale, height * scale);
-      context.restore();
+      try {
+        if ((sample.facing === -1 ? -1 : 1) * (canonicalFrames?1:frame.mirror??1) === -1) { context.translate(SIZE, 0); context.scale(-1, 1); }
+        if(canonicalFrames)context.drawImage(canonicalFrames.get(index),0,0);
+        else context.drawImage(sourceProvider?source:sources[page], x, y, width, height,
+          (SIZE - width * scale) / 2 + (frame.offsetX ?? 0), (SIZE - height * scale) / 2 + (frame.offsetY ?? 0), width * scale, height * scale);
+      } finally {context.restore();}
+      if(line) {
+        // One full-surface copy clears transparent pixels only when the complete
+        // picture is submitted. A failed submission retains the held picture.
+        presentedContext.save();
+        try {
+          presentedContext.setTransform(1,0,0,1,0,0);
+          presentedContext.globalCompositeOperation='copy';
+          presentedContext.drawImage(staging,0,0);
+        } finally {presentedContext.restore();}
+      }
       if (discrete) { drawnFrame = sample.frame; drawnFacing = facing; }
       return true;
     },
@@ -148,6 +169,7 @@ export function createWholeRenderer(canvas, { image, images, meta, flowBytes, su
       drawnFrame = drawnFacing = undefined;
       context.setTransform(1, 0, 0, 1, 0, 0);
       context.clearRect(0, 0, SIZE, SIZE);
+      if(line)presentedContext.clearRect(0,0,SIZE,SIZE);
     },
   };
 }
