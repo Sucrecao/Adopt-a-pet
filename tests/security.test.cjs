@@ -25,6 +25,15 @@ test('renderer cannot dispatch arbitrary actions or unknown settings', () => {
   assert.equal(isValidCommand({type:'delete-files'}), false);
 });
 
+test('standing reminder IPC accepts a boolean preference and safe cue identifiers only', () => {
+  assert.equal(isValidCommand({ type:'settings', patch:{ standReminder:true } }), true);
+  assert.equal(isValidCommand({ type:'settings', patch:{ standReminder:false } }), true);
+  assert.equal(isValidCommand({ type:'settings', patch:{ standReminder:1 } }), false);
+  assert.equal(typeof security.isValidReminderId, 'function');
+  for (const id of [1, 2, Number.MAX_SAFE_INTEGER]) assert.equal(security.isValidReminderId(id), true);
+  for (const id of [0, -1, 1.2, NaN, Infinity, '1', {}, Number.MAX_SAFE_INTEGER + 1]) assert.equal(security.isValidReminderId(id), false);
+});
+
 test('new action IPC accepts stretch and trick only by their exact identifiers', () => {
   assert.equal(isValidCommand({ type: 'interact', action: 'stretch' }), true);
   assert.equal(isValidCommand({ type: 'interact', action: 'trick' }), true);

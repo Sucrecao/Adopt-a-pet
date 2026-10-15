@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { ArrowDown, ArrowRight, BellOff, Check, ChevronRight, CircleHelp, Hand, Heart, Home, Leaf, Maximize2, Monitor, Moon, MousePointer2, PanelLeft, Pause, PawPrint, Play, Settings2, Sparkles, Volume2, X, Utensils, Circle, Bird, Smile, Clock3 } from 'lucide-react';
+import { ArrowDown, ArrowRight, BellOff, Check, ChevronRight, CircleHelp, Hand, Heart, Home, Leaf, Maximize2, Monitor, Moon, MousePointer2, PanelLeft, Pause, PawPrint, Play, Settings2, Sparkles, Volume2, X, Utensils, Circle, Bird, Smile, Clock3, Footprints } from 'lucide-react';
 import { PETS } from './core/pets.js';
 import { createState } from './core/state.js';
 import { bridge } from './bridge.js';
@@ -10,6 +10,8 @@ import { gaitSpeedDip } from './core/gait.js';
 import { createVisualMotionDriver } from './core/visual-motion.js';
 import OriginalPicker from './OriginalPicker.jsx';
 import useCompanionRoutine from './useCompanionRoutine.js';
+import StandReminder from './StandReminder.jsx';
+import useStandReminder from './useStandReminder.js';
 
 const actions = [
   { id: 'pet', label: '抚摸', icon: Hand, detail: '挠挠小脑袋' },
@@ -74,7 +76,7 @@ function Stat({ label, value, icon: Icon, tone }) {
   return <div className={`stat stat-${tone}`}><div className="stat-top"><span><Icon size={15} />{label}</span><strong>{percent}<small> / 100</small></strong></div><div className="stat-track" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}><i style={{ width: `${percent}%` }} /></div></div>;
 }
 
-function Stage({ pet, state, speech, onInteract, onDraggingChange, period, originalMode, onPlaybackComplete, pickerOpen }) {
+function Stage({ pet, state, speech, onInteract, onDraggingChange, period, originalMode, onPlaybackComplete, pickerOpen, onHeadNuzzle, nuzzling, headNuzzleEnabled, standReminder, onDismissReminder }) {
   const original = pet.animationMode === 'original-apng-v1';
   const stageRef = useRef(null), anchorRef = useRef(null);
   const [position, setPosition] = useState({ x: 52, y: 68 });
@@ -141,11 +143,11 @@ function Stage({ pet, state, speech, onInteract, onDraggingChange, period, origi
     return () => { resize.disconnect(); window.removeEventListener('resize', resizeImmediately); };
   }, [pet.id, state.settings.size]);
   useEffect(() => {
-    const stationary = original || state.settings.paused || reducedMotion || (action !== 'idle' && action !== 'play');
+    const stationary = original || state.settings.paused || reducedMotion || Boolean(standReminder) || (action !== 'idle' && action !== 'play');
     positionRef.current.vx = 0; positionRef.current.vy = 0;
     if (stationary) {
       target.current = { x: positionRef.current.x, y: positionRef.current.y };
-      locomotionRef.current = { ...locomotionRef.current, moving: false, intentMoving: false, paused: state.settings.paused || reducedMotion };
+      locomotionRef.current = { ...locomotionRef.current, moving: false, intentMoving: false, paused: state.settings.paused || reducedMotion || Boolean(standReminder) };
       setWalking(false); return;
     }
     locomotionRef.current = { ...locomotionRef.current, paused: false, dragging: false };
@@ -207,7 +209,7 @@ function Stage({ pet, state, speech, onInteract, onDraggingChange, period, origi
     }
     request = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(request);
-  }, [state.settings.paused, state.settings.movement, action, reducedMotion, pet.id]);
+  }, [state.settings.paused, state.settings.movement, action, reducedMotion, pet.id, Boolean(standReminder)]);
   function point(event) {
     const rect = stageRef.current.getBoundingClientRect();
     return clampPosition({ x: (event.clientX - rect.left - stageRef.current.clientLeft) / stageRef.current.clientWidth * 100, y: (event.clientY - rect.top - stageRef.current.clientTop) / stageRef.current.clientHeight * 100 });
@@ -218,6 +220,7 @@ function Stage({ pet, state, speech, onInteract, onDraggingChange, period, origi
   }
   return <div ref={stageRef} style={{ '--stage-pet-size': `${210 * state.settings.size}px` }} className={`desktop-stage ${!original && state.settings.movement === 'edge' ? 'edge-mode' : ''} ${original ? `companion-stage period-${period?.key}` : ''}`} onPointerMove={move}>
     <div className="stage-grid" /><div className="cloud cloud-one" /><div className="cloud cloud-two" /><div className="stage-sun" />
+    <StandReminder reminder={standReminder} onDismiss={onDismissReminder} />
     <div className="stage-caption"><Monitor size={14} />{bridge.isDesktop ? '互动小桌面' : '你的桌面 · 互动预览'}</div>
     <span className="stage-range"><i />{state.settings.paused ? '活动已暂停' : original ? period?.label : state.settings.movement === 'edge' ? '沿着屏幕边缘散步' : '在桌面自在活动'}</span>
     <div className="wallpaper-type">make room<br /><em>for a little joy.</em></div>
@@ -225,11 +228,11 @@ function Stage({ pet, state, speech, onInteract, onDraggingChange, period, origi
     <div ref={anchorRef} className="stage-pet-anchor" style={{ left: `${position.x}%`, top: `${position.y}%` }}>
       {(speech || action === 'rest') && <div className={`speech-bubble ${original ? 'gentle-speech' : ''}`} role="status">{speech || 'Z z z …'}{action === 'pet' && <Heart size={14} fill="currentColor" />}</div>}
       {!original && <div className="pet-shadow" />}
-      <Pet pet={pet} size={210 * state.settings.size} originalClip={state.originalAnimation?.clip} originalStartedAt={state.originalAnimation?.startedAt} {...(original ? { onPlaybackComplete } : {})} locomotionRef={locomotionRef} onPlaybackReady={packet => { playbackReady.current=packet.ready; }} walking={walking && !dragging} facing={facing} action={action} paused={state.settings.paused || dragging || pickerOpen} actionStartedAt={state.lastInteraction} className="stage-pet" data-original-mode={original ? originalMode : undefined} tabIndex={0} aria-label={`${original ? '重播' : '抚摸'}${state.name || pet.defaultName}`} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onInteract('pet'); } }} onDoubleClick={() => onInteract('pet')} onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); drag.current = { x: event.clientX, y: event.clientY }; setDragging(true); setWalking(false); }} onPointerUp={event => { if (drag.current && Math.hypot(event.clientX - drag.current.x, event.clientY - drag.current.y) < 7) onInteract('pet'); drag.current = null; setDragging(false); locomotionRef.current = { ...locomotionRef.current, dragging: false }; event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={() => { drag.current = null; setDragging(false); locomotionRef.current = { ...locomotionRef.current, dragging: false }; }} />
+      <Pet pet={pet} size={210 * state.settings.size} originalClip={state.originalAnimation?.clip} originalStartedAt={state.originalAnimation?.startedAt} {...(original ? { onPlaybackComplete, onHeadNuzzle, nuzzling, headNuzzleEnabled: headNuzzleEnabled && !dragging && !pickerOpen && !standReminder } : {})} locomotionRef={locomotionRef} onPlaybackReady={packet => { playbackReady.current=packet.ready; }} walking={walking && !dragging} facing={facing} action={action} paused={state.settings.paused || dragging || pickerOpen || Boolean(standReminder)} actionStartedAt={state.lastInteraction} className="stage-pet" data-original-mode={original ? originalMode : undefined} tabIndex={0} aria-label={`${original ? '重播' : '抚摸'}${state.name || pet.defaultName}`} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onInteract('pet'); } }} onDoubleClick={() => onInteract('pet')} onPointerDown={event => { event.currentTarget.setPointerCapture(event.pointerId); drag.current = { x: event.clientX, y: event.clientY }; setDragging(true); setWalking(false); }} onPointerUp={event => { if (drag.current && Math.hypot(event.clientX - drag.current.x, event.clientY - drag.current.y) < 7) onInteract('pet'); drag.current = null; setDragging(false); locomotionRef.current = { ...locomotionRef.current, dragging: false }; event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={() => { drag.current = null; setDragging(false); locomotionRef.current = { ...locomotionRef.current, dragging: false }; }} />
       <div className="stage-name">{state.name || pet.defaultName}<span>{state.adopted ? '你的伙伴' : '等待领养'}</span></div>
     </div>
     {!original && action === 'play' && <div className={`stage-toy toy-${pet.id}`} style={{ left: `${toy.x}%`, top: `${toy.y}%` }}>{pet.id === 'cat' ? '〰' : pet.id === 'parrot' ? <Sparkles size={24} /> : <Circle size={28} fill="#f2a9b8" />}</div>}
-    <div className="stage-hint"><MousePointer2 size={14} />{original ? '轻点陪我玩 · 拖动换个位置' : action === 'play' ? `移动鼠标，和${state.name}一起玩` : '轻点摸摸 · 拖动换个位置'}</div>
+    <div className="stage-hint"><MousePointer2 size={14} />{original ? '停在头顶摸摸我 · 拖动换个位置' : action === 'play' ? `移动鼠标，和${state.name}一起玩` : '轻点摸摸 · 拖动换个位置'}</div>
     <div className="desktop-dock"><span><Home size={17} /></span><span><Heart size={17} /></span><span><PawPrint size={18} /></span><span><Leaf size={17} /></span></div>
   </div>;
 }
@@ -237,7 +240,7 @@ function Stage({ pet, state, speech, onInteract, onDraggingChange, period, origi
 function PetOverlay({ state, dispatch, ready }) {
   const pet = PETS.find(item => item.id === state.species) || PETS[0];
   const original = pet.animationMode === 'original-apng-v1';
-  const spriteRef = useRef(null), toolbarRef = useRef(null), pickerRef = useRef(null), visualRootRef = useRef(null);
+  const spriteRef = useRef(null), toolbarRef = useRef(null), pickerRef = useRef(null), reminderRef = useRef(null), visualRootRef = useRef(null);
   const locomotionRef = useRef(state.motion || {});
   const motionPaintRef = useRef(null);
   const reducedMotion = useReducedMotion();
@@ -248,10 +251,14 @@ function PetOverlay({ state, dispatch, ready }) {
   const drag = useRef(null);
   const speechTimer = useRef(null);
   const action = state.action?.until > Date.now() ? state.action.type : 'idle';
-  const routine = useCompanionRoutine({ pet, state: { ...state, settings: { ...state.settings, paused: state.settings.paused || dragging || state.motion?.dragging } }, quiet: pickerOpen, ready });
+  const reminderShowing = state.settings.standReminder && state.standReminder?.phase === 'visible' && !pickerOpen && !dragging && !state.motion?.dragging;
+  const routine = useCompanionRoutine({ pet, state: { ...state, settings: { ...state.settings, paused: state.settings.paused || dragging || state.motion?.dragging || reminderShowing } }, quiet: pickerOpen || reminderShowing, ready });
+  const standReminder = useStandReminder({ state, ready, owner: true,
+    blocked: pickerOpen || dragging || state.motion?.dragging || Boolean(speech) || (!reducedMotion && (Boolean(routine.speech) || routine.manual || routine.headNuzzle)) || action !== 'idle',
+    interrupted: pickerOpen || dragging || state.motion?.dragging });
   const visual = pet.presentation === 'visual-root-v1' && state.motion?.clockKind === 'visual-root-v1';
   const hitRegionsRef = useRef([]), latestVisualCommit = useRef(null), localBarrierRef = useRef({});
-  localBarrierRef.current = { paused: state.settings.paused || reducedMotion || dragging,
+  localBarrierRef.current = { paused: state.settings.paused || reducedMotion || dragging || reminderShowing,
     stationary: original || !['idle','play'].includes(action) };
   const visualDriverRef = useRef(null), visualMotionRef = useRef(null);
   if (!visualDriverRef.current) visualDriverRef.current = createVisualMotionDriver({ onCommit: packet => {
@@ -312,6 +319,7 @@ function PetOverlay({ state, dispatch, ready }) {
       const sprite = spriteRef.current?.getBoundingClientRect();
       const bar = toolbarRef.current?.getBoundingClientRect();
       const menu = pickerRef.current?.getBoundingClientRect();
+      const reminder = reminderRef.current?.getBoundingClientRect();
       const root = visual ? visualRootRef.current?.getBoundingClientRect() : null;
       const ox = root?.x ?? 0, oy = root?.y ?? 0;
       const regions = sprite ? [{ type: 'ellipse', x: sprite.x - ox + sprite.width * .16, y: sprite.y - oy + sprite.height * .14, width: sprite.width * .68, height: sprite.height * .8 }] : [];
@@ -324,6 +332,7 @@ function PetOverlay({ state, dispatch, ready }) {
       }
       if (toolbar || pickerOpen) addRect(bar);
       if (pickerOpen) addRect(menu);
+      if (standReminder) addRect(reminder);
       hitRegionsRef.current = regions;
       const packet = latestVisualCommit.current;
       if (visual && packet) bridge.setHitRegions({ epoch: packet.epoch, geometrySeq: packet.geometrySeq, regions });
@@ -334,10 +343,12 @@ function PetOverlay({ state, dispatch, ready }) {
     if (spriteRef.current) resize.observe(spriteRef.current);
     if (toolbarRef.current) resize.observe(toolbarRef.current);
     if (pickerRef.current) resize.observe(pickerRef.current);
+    if (reminderRef.current) resize.observe(reminderRef.current);
     window.addEventListener('resize', report);
     return () => { resize.disconnect(); window.removeEventListener('resize', report); };
-  }, [toolbar, pickerOpen, state.settings.size, visual, state.motion?.visual?.geometrySeq]);
+  }, [toolbar, pickerOpen, Boolean(standReminder), state.settings.size, visual, state.motion?.visual?.geometrySeq]);
   async function playExpression(clip) {
+    if (standReminder) await bridge.dismissStandReminder(standReminder.id).catch(() => {});
     clearTimeout(speechTimer.current); setSpeech('');
     await dispatch({ type: 'original-animation', clip });
   }
@@ -353,6 +364,7 @@ function PetOverlay({ state, dispatch, ready }) {
     }
     if (state.settings.paused) { setSpeech('先关闭暂停，再一起玩吧。'); return; }
     if (Date.now() - state.lastInteraction < 800) return;
+    if (standReminder) await bridge.dismissStandReminder(standReminder.id).catch(() => {});
     if (state.settings.sound) playResponse(pet.kind ?? pet.id);
     const next = await dispatch({ type: 'interact', action: type });
     if (!next || next.lastInteraction <= state.lastInteraction) return;
@@ -365,10 +377,11 @@ function PetOverlay({ state, dispatch, ready }) {
     width:geometry.rectGlobal.width, height:geometry.rectGlobal.height,
     visibility:'hidden', willChange:'transform' } : undefined;
   return <div ref={visualRootRef} className={`pet-overlay ${original ? 'original-overlay' : ''}`} style={visualStyle} data-presentation={visual ? 'visual-root-v1' : 'native-window-v1'} onPointerEnter={() => setToolbar(true)} onPointerLeave={() => { if (!drag.current && !pickerOpen) setToolbar(false); }}>
-    {!pickerOpen && (speech || (original && routine.speech)) && <div className={`overlay-speech ${original ? 'gentle-speech' : ''}`} role="status">{speech || routine.speech}</div>}
+    <StandReminder reminder={standReminder} onDismiss={() => bridge.dismissStandReminder(standReminder.id)} compact bubbleRef={reminderRef} />
+    {!pickerOpen && !standReminder && (speech || (original && routine.speech)) && <div className={`overlay-speech ${original ? 'gentle-speech' : ''}`} role="status">{speech || routine.speech}</div>}
     <div ref={spriteRef} className="overlay-sprite-box">
       {pet.id !== 'parrot' && !original && <div className="overlay-ground-shadow" />}
-      <Pet pet={pet} size="100%" originalClip={original ? routine.clip : undefined} originalStartedAt={original ? routine.token : undefined} {...(original ? { onPlaybackComplete: routine.onPlaybackComplete } : {})} locomotionRef={locomotionRef} motionPaintRef={motionPaintRef} visualMotionRef={visualMotionRef} onPlaybackReady={packet => bridge.setPlaybackReady(packet).catch(() => {})} action={action} paused={state.settings.paused || dragging || state.motion?.dragging || pickerOpen} actionStartedAt={state.lastInteraction} walking={Boolean(state.motion?.moving) && !state.settings.paused && !dragging && (action === 'idle' || action === 'play') && !state.motion?.dragging} facing={state.motion?.facing === -1 ? -1 : 1} className="overlay-sprite" data-original-mode={original ? routine.manual ? "manual" : "automatic" : undefined} tabIndex={0} aria-label={`${original ? '重播' : '抚摸'}${state.name}`} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); interact('pet'); } }} onDoubleClick={() => interact('pet')} onContextMenu={event => { event.preventDefault(); setToolbar(value => !value); }} onPointerDown={event => { if (event.button !== 0) return; drag.current = { x: event.clientX, y: event.clientY, active: false }; setDragging(true); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (!drag.current) return; if (!drag.current.active && Math.hypot(event.clientX - drag.current.x, event.clientY - drag.current.y) > 4) { drag.current.active = true; bridge.beginDrag(); } }} onPointerUp={event => { if (drag.current?.active) bridge.endDrag(); else if (drag.current) interact('pet'); drag.current = null; setDragging(false); event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={() => { bridge.endDrag(); drag.current = null; setDragging(false); }} />
+      <Pet pet={pet} size="100%" originalClip={original ? routine.clip : undefined} originalStartedAt={original ? routine.token : undefined} {...(original ? { onPlaybackComplete: routine.onPlaybackComplete, onHeadNuzzle: routine.onHeadNuzzle, nuzzling: routine.headNuzzle, headNuzzleEnabled: !routine.manual && routine.period.key !== "sleep" && !dragging && !state.motion?.dragging && !pickerOpen && !standReminder && !speech } : {})} locomotionRef={locomotionRef} motionPaintRef={motionPaintRef} visualMotionRef={visualMotionRef} onPlaybackReady={packet => bridge.setPlaybackReady(packet).catch(() => {})} action={action} paused={state.settings.paused || dragging || state.motion?.dragging || pickerOpen || Boolean(standReminder)} actionStartedAt={state.lastInteraction} walking={Boolean(state.motion?.moving) && !state.settings.paused && !dragging && (action === 'idle' || action === 'play') && !state.motion?.dragging} facing={state.motion?.facing === -1 ? -1 : 1} className="overlay-sprite" data-original-mode={original ? routine.manual ? "manual" : "automatic" : undefined} tabIndex={0} aria-label={`${original ? '重播' : '抚摸'}${state.name}`} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); interact('pet'); } }} onDoubleClick={() => interact('pet')} onContextMenu={event => { event.preventDefault(); setToolbar(value => !value); }} onPointerDown={event => { if (event.button !== 0) return; drag.current = { x: event.clientX, y: event.clientY, active: false }; setDragging(true); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (!drag.current) return; if (!drag.current.active && Math.hypot(event.clientX - drag.current.x, event.clientY - drag.current.y) > 4) { drag.current.active = true; bridge.beginDrag(); } }} onPointerUp={event => { if (drag.current?.active) bridge.endDrag(); else if (drag.current) interact('pet'); drag.current = null; setDragging(false); event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={() => { bridge.endDrag(); drag.current = null; setDragging(false); }} />
     </div>
     {original && pickerOpen && <OriginalPicker pet={pet} clip={routine.clip} compact menuRef={pickerRef} onSelect={playExpression} onClose={() => setPickerOpen(false)} />}
     <div ref={toolbarRef} className={`overlay-toolbar ${toolbar || pickerOpen ? 'visible' : ''} ${original ? 'gentle-toolbar' : ''}`} aria-label="伙伴互动">
@@ -381,6 +394,7 @@ function PetOverlay({ state, dispatch, ready }) {
 
 export default function App() {
   const { state, dispatch, error, ready } = useCompanion();
+  const reducedMotion = useReducedMotion();
   const [selected, setSelected] = useState(PETS[0].id);
   const [name, setName] = useState('');
   const [speech, setSpeech] = useState('');
@@ -400,7 +414,11 @@ export default function App() {
   const stageState = state.adopted ? state : { ...state, species: selected, name, action: { type: 'idle', until: 0 }, originalAnimation: originalPreview };
   const original = activePet.animationMode === 'original-apng-v1';
   const overlayView = new URLSearchParams(location.search).get('view') === 'pet';
-  const routine = useCompanionRoutine({ pet: activePet, state: { ...stageState, settings: { ...stageState.settings, paused: stageState.settings.paused || stageDragging } }, quiet: pickerOpen, enabled: !overlayView, ready });
+  const reminderShowing = !bridge.isDesktop && !overlayView && state.settings.standReminder && state.standReminder?.phase === 'visible' && !pickerOpen && !stageDragging;
+  const routine = useCompanionRoutine({ pet: activePet, state: { ...stageState, settings: { ...stageState.settings, paused: stageState.settings.paused || stageDragging || reminderShowing } }, quiet: pickerOpen || reminderShowing, enabled: !overlayView, ready });
+  const standReminder = useStandReminder({ state, ready, owner: !bridge.isDesktop && !overlayView,
+    blocked: pickerOpen || stageDragging || Boolean(speech) || (!reducedMotion && (Boolean(routine.speech) || routine.manual || routine.headNuzzle)) || (state.action?.type !== 'idle' && state.action?.until > clock),
+    interrupted: pickerOpen || stageDragging });
   useEffect(() => { setPickerOpen(false); setStageDragging(false); }, [activePet.id]);
   if (overlayView) return <PetOverlay state={state} dispatch={dispatch} ready={ready} />;
   function notify(message) { setToast(message); clearTimeout(timer.current); timer.current = setTimeout(() => setToast(''), 4500); }
@@ -416,6 +434,7 @@ export default function App() {
     if (!state.adopted) { notify('先为小伙伴起个名字，点击领养，就可以一起玩啦。'); return; }
     if (state.settings.paused) { notify('先关闭暂停，再和小伙伴一起玩吧。'); return; }
     if (Date.now() - state.lastInteraction < 800) { notify('稍等一下，小伙伴还在回应你～'); return; }
+    if (standReminder) await bridge.dismissStandReminder(standReminder.id).catch(() => {});
     if (state.settings.sound) playResponse(activePet.kind ?? activePet.id);
     const next = await dispatch({ type: 'interact', action: type });
     if (next && next.lastInteraction > state.lastInteraction) { setSpeech(responses[activePet.kind ?? activePet.id][type]); notify(`${next.name}：${responses[activePet.kind ?? activePet.id][type]}`); }
@@ -423,6 +442,7 @@ export default function App() {
   async function settings(patch) { await dispatch({ type: 'settings', patch }); }
   async function playOriginal(clip) {
     if (state.settings.paused) { notify('先关闭暂停，再播放原作动画。'); return; }
+    if (standReminder) await bridge.dismissStandReminder(standReminder.id).catch(() => {});
     setSpeech('');
     if (!state.adopted) { setOriginalPreview({ clip, startedAt: Date.now() }); return; }
     await dispatch({ type: 'original-animation', clip });
@@ -436,7 +456,7 @@ export default function App() {
       <div className="sidebar-section">你的陪伴空间</div>
       <nav aria-label="主导航"><button className={nav === 'home' ? 'active' : ''} onClick={() => navigate('home')}><Home size={18} />我的小伙伴<ChevronRight size={14} /></button><button className={nav === 'settings' ? 'active' : ''} onClick={() => navigate('settings')}><Settings2 size={18} />桌面设置</button></nav>
       <div className="sidebar-note"><div className="tiny-paws"><PawPrint size={17} /><PawPrint size={13} /></div><p>忙碌的日子里，<br />也有一份小小的陪伴。</p><span>A little friend. A lot of joy.</span></div>
-      <div className="sidebar-bottom"><span className="local-indicator"><i />陪伴留在这台电脑</span><span className="version">PawPal · v0.5.5</span></div>
+      <div className="sidebar-bottom"><span className="local-indicator"><i />陪伴留在这台电脑</span><span className="version">PawPal · v0.5.6</span></div>
     </aside>
     <main className="main-content">
       <header className="page-header"><div><div className="eyebrow">YOUR LITTLE COMPANION</div><h1>让桌面，多一点可爱<span className="headline-star">✳</span></h1><p>选一位小伙伴，让它陪你工作、发呆，和度过每个小日子。</p></div><span className={`environment-badge ${bridge.isDesktop ? 'desktop' : ''}`}><Monitor size={14} />{bridge.isDesktop ? '桌面模式' : '浏览器预览'}</span></header>
@@ -447,12 +467,12 @@ export default function App() {
         <form className="adoption-form" onSubmit={adopt}><div className="name-field"><PawPrint size={17} /><label htmlFor="pet-name">给伙伴起个名字</label><input id="pet-name" value={name} onChange={event => setName(event.target.value)} maxLength={24} placeholder={chosen.defaultName} required /></div><button className="primary-button" type="submit"><Heart size={16} />{state.adopted && selected === state.species ? (name.trim() === state.name ? `${state.name}，继续陪伴` : `为伙伴改名为${name.trim() || chosen.defaultName}`) : `${bridge.isDesktop ? '领养' : '在预览中领养'}${name.trim() || chosen.defaultName}`}<ArrowRight size={16} /></button></form>
       </section>
       <section className="play-section" aria-label="互动桌面"><div className="section-heading"><div className="heading-with-pill"><h2>{state.adopted ? `${state.name}的桌面` : '先和它打个招呼'}</h2>{state.adopted && !original && <span className="mood-pill"><span />{happy}</span>}</div>{original ? <span className="routine-clock"><Clock3 size={12} />北京时间 {routine.period.timeLabel}</span> : <span className="stage-meta"><span className="small-dot" />{activePet.toyLabel || '快乐小玩具'}</span>}</div>
-        <Stage pet={activePet} state={displayedState} speech={pickerOpen || stageDragging ? '' : speech || (original ? routine.speech : '')} onInteract={interact} onDraggingChange={setStageDragging} period={routine.period} originalMode={routine.manual ? "manual" : "automatic"} onPlaybackComplete={routine.onPlaybackComplete} pickerOpen={pickerOpen} />
+        <Stage pet={activePet} state={displayedState} speech={pickerOpen || stageDragging || standReminder ? '' : speech || (original ? routine.speech : '')} onInteract={interact} onDraggingChange={setStageDragging} period={routine.period} originalMode={routine.manual ? "manual" : "automatic"} onPlaybackComplete={routine.onPlaybackComplete} pickerOpen={pickerOpen} onHeadNuzzle={routine.onHeadNuzzle} nuzzling={routine.headNuzzle} headNuzzleEnabled={original && !routine.manual && routine.period.key !== 'sleep' && !speech} standReminder={standReminder} onDismissReminder={() => bridge.dismissStandReminder(standReminder.id)} />
         {original ? <div className="gentle-interactions"><span className="companion-whisper"><i />{routine.manual ? '陪你玩一会儿，再回到日常' : '跟着你的时间，慢慢陪伴'}</span><div className="gentle-actions"><button type="button" aria-label="抱一下" onClick={() => interact('hug')}><Heart size={15} /><span>抱一下</span></button><button type="button" data-expression-trigger aria-label="换个表情" aria-expanded={pickerOpen} aria-haspopup="dialog" onClick={() => setPickerOpen(value => !value)}><Smile size={15} /><span>换个表情</span></button></div>{pickerOpen && <OriginalPicker pet={activePet} clip={routine.clip} onSelect={playOriginal} onClose={() => setPickerOpen(false)} />}</div> : <div className="interaction-bar">{actions.map(({ id, label, detail, icon: Icon }) => <button type="button" key={id} onClick={() => interact(id)} aria-label={label} className={state.action?.type === id && state.action.until > clock ? 'action-active' : ''}><span className={`action-icon action-${id}`}><Icon size={21} /></span><span><b>{label}</b><small>{id === 'play' ? activePet.toyLabel || detail : detail}</small></span><ChevronRight size={14} /></button>)}</div>}
       </section>
       <div className="details-grid">
         {original ? <section className="care-card companion-day"><div className="section-heading"><h2>把小日子，陪成暖暖的</h2><Heart size={17} className="subtle-icon" /></div><p className="card-subtitle">按北京时间，陪你从早安走到晚安。</p><div className="day-rhythm">{[['07:00', '早安呀', 'morning'], ['12:00', '好好吃饭', 'lunch'], ['19:00', '想抱抱你', 'affection'], ['23:00', '做个好梦', 'sleep']].map(([time, label, key]) => <div key={key} className={routine.period.key === key ? 'current' : ''}><span>{time}</span><b>{label}</b><i /></div>)}</div><p className="companion-day-note">忙的时候，我会乖乖陪着。晚上七点以后，留一点时间给抱抱，也留一点温柔给自己。</p><div className="care-note"><Moon size={15} /><span>深夜安静休息；暂停时也会一起安静下来。</span></div></section> : <section className="care-card"><div className="section-heading"><h2>小伙伴的今天</h2><Heart size={17} className="subtle-icon" /></div><p className="card-subtitle">好好吃饭，好好睡觉，也要好好玩。</p><div className="stats-grid"><Stat label="心情" value={state.stats.happiness} icon={Sparkles} tone="pink" /><Stat label="饱腹" value={state.stats.hunger} icon={Utensils} tone="green" /><Stat label="精力" value={state.stats.energy} icon={Moon} tone="purple" /><Stat label="亲密度" value={state.stats.bond} icon={Heart} tone="peach" /></div><div className="care-note"><Leaf size={16} /><span>{state.adopted ? `${state.name}会记住每一次温柔的互动。` : '领养后，每次陪伴都会让你们更亲近。'}</span></div></section>}
-        <section className="settings-card" id="companion-settings"><div className="section-heading"><h2>按你的节奏陪伴</h2><Settings2 size={17} className="subtle-icon" /></div>{original ? <div className="original-placement"><MousePointer2 size={17} /><span>原作动画在原地播放，可拖动摆放。</span></div> : <div className="movement-setting"><label>活动范围</label><div className="segmented"><button aria-pressed={state.settings.movement === 'free'} aria-label="在桌面自由活动" onClick={() => settings({ movement: 'free' })}><Maximize2 size={15} />自由活动</button><button aria-pressed={state.settings.movement === 'edge'} aria-label="贴着屏幕边缘" onClick={() => settings({ movement: 'edge' })}><PanelLeft size={15} />屏幕边缘</button></div></div>}<div className="size-setting"><label htmlFor="pet-size">伙伴大小<span>{Math.round(state.settings.size * 100)}%</span></label><div><PawPrint size={13} /><input aria-label="伙伴大小" id="pet-size" type="range" min="0.65" max="1.5" step="0.05" value={state.settings.size} onChange={event => settings({ size: Number(event.target.value) })} /><PawPrint size={19} /></div></div><Switch label="暂停活动" icon={state.settings.paused ? Play : Pause} checked={state.settings.paused} onChange={paused => settings({ paused })} />{!original && <Switch label="轻声回应" icon={Volume2} checked={state.settings.sound} onChange={sound => settings({ sound })} />}<Switch label="始终在最上层" icon={Monitor} checked={state.settings.alwaysOnTop} onChange={alwaysOnTop => settings({ alwaysOnTop })} /></section>
+        <section className="settings-card" id="companion-settings"><div className="section-heading"><h2>按你的节奏陪伴</h2><Settings2 size={17} className="subtle-icon" /></div>{original ? <div className="original-placement"><MousePointer2 size={17} /><span>原作动画在原地播放，可拖动摆放。</span></div> : <div className="movement-setting"><label>活动范围</label><div className="segmented"><button aria-pressed={state.settings.movement === 'free'} aria-label="在桌面自由活动" onClick={() => settings({ movement: 'free' })}><Maximize2 size={15} />自由活动</button><button aria-pressed={state.settings.movement === 'edge'} aria-label="贴着屏幕边缘" onClick={() => settings({ movement: 'edge' })}><PanelLeft size={15} />屏幕边缘</button></div></div>}<div className="size-setting"><label htmlFor="pet-size">伙伴大小<span>{Math.round(state.settings.size * 100)}%</span></label><div><PawPrint size={13} /><input aria-label="伙伴大小" id="pet-size" type="range" min="0.65" max="1.5" step="0.05" value={state.settings.size} onChange={event => settings({ size: Number(event.target.value) })} /><PawPrint size={19} /></div></div><Switch label="每30分钟提醒起身" description="轻声提醒站一会儿，可随时关闭" icon={Footprints} checked={state.settings.standReminder} onChange={standReminder => settings({ standReminder })} /><Switch label="暂停活动" icon={state.settings.paused ? Play : Pause} checked={state.settings.paused} onChange={paused => settings({ paused })} />{!original && <Switch label="轻声回应" icon={Volume2} checked={state.settings.sound} onChange={sound => settings({ sound })} />}<Switch label="始终在最上层" icon={Monitor} checked={state.settings.alwaysOnTop} onChange={alwaysOnTop => settings({ alwaysOnTop })} /></section>
       </div>
       <footer className="page-footer"><span><PawPrint size={13} />一点可爱，刚刚好。</span><span>{bridge.isDesktop ? '从系统托盘随时找回小伙伴' : '浏览器仅展示互动预览'}</span></footer>
     </main>

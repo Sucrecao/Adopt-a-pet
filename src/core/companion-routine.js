@@ -45,12 +45,14 @@ export function createCompanionRoutineController({ random = Math.random } = {}) 
   let previousNow, previousStopped = true, activeElapsed = 0;
   let clip, token = 0, presentedPeriod, manual = false, manualUntil = 0;
   let seenManualToken, pendingManual;
+  let seenHeadGesture = 0, headNuzzle = false, headSpeechUntil = 0;
   let completedToken, settleAt = Infinity, nextReactionAt = Infinity;
   let speech = '', lastSpeech = '', speechUntil = 0, nextSpeechAt = 8000;
 
   const chance = () => Math.max(0, Math.min(1, random()));
   const present = nextClip => {
     clip = nextClip; token++;
+    headNuzzle = false; headSpeechUntil = 0;
     completedToken = undefined; settleAt = Infinity; nextReactionAt = Infinity;
   };
   const speak = (period, isTransition = false) => {
@@ -64,7 +66,7 @@ export function createCompanionRoutineController({ random = Math.random } = {}) 
   };
 
   return {
-    sample({ now = 0, paused = false, quiet = false, manualClip = 7, manualToken = 0, enabled = true, playback, playbackAware = false } = {}) {
+    sample({ now = 0, paused = false, quiet = false, manualClip = 7, manualToken = 0, enabled = true, playback, playbackAware = false, headCue } = {}) {
       const timestamp = now;
       const period = getBeijingPeriod(timestamp);
       const stopped = Boolean(paused || quiet);
@@ -113,6 +115,17 @@ export function createCompanionRoutineController({ random = Math.random } = {}) 
         }
       }
 
+      // Consume even a rejected cue: closing a menu or resuming must not replay it.
+      // A fresh manual choice has already been processed and always takes priority.
+      if (Number.isSafeInteger(headCue?.gestureId) && headCue.gestureId > seenHeadGesture) {
+        seenHeadGesture = headCue.gestureId;
+        if (!stopped && enabled && !manual && !pendingManual && period.key !== 'sleep'
+          && [7, 16, 22].includes(clip) && headCue.clip === clip && headCue.token === token) {
+          present(clip === 22 ? 22 : 16);
+          headNuzzle = true; headSpeechUntil = activeElapsed + 3200;
+        }
+      }
+
       // The renderer reports only a successfully drawn final frame. A repeated or
       // stale packet must not reset this hold or finish a newer manual choice.
       if (playback?.clip === clip && playback.token === token && completedToken !== token) {
@@ -123,6 +136,7 @@ export function createCompanionRoutineController({ random = Math.random } = {}) 
         if (activeElapsed >= settleAt) {
           settleAt = Infinity;
           manual = false;
+          headNuzzle = false;
           if (period.key !== presentedPeriod) {
             present(period.clip); presentedPeriod = period.key;
             if (enabled) speak(period, true);
@@ -146,7 +160,8 @@ export function createCompanionRoutineController({ random = Math.random } = {}) 
           speak(period);
         }
       }
-      return { period, clip, token, speech: stopped || !enabled || manual ? '' : speech, manual };
+      return { period, clip, token, speech: stopped || !enabled || manual ? ''
+        : activeElapsed < headSpeechUntil ? '蹭蹭～最喜欢你摸摸头啦。' : speech, manual, headNuzzle };
     },
   };
 }

@@ -2,7 +2,7 @@
 
 Mac / Windows 的桌面宠物程序：领养马尔济斯、金毛或鹦鹉青柠，在透明窗口里陪伴与互动。Maltese 和 Golden Retriever 使用 Moonlab 的原作画面与原始动画，在原地播放并支持拖动摆放；青柠保留飞行和照顾互动。
 
-## 当前角色 · 0.5.5
+## 当前角色 · 0.5.6
 
 领养列表仅保留马尔济斯、金毛和青柠。旧奶糖、豆包存档迁移为马尔济斯，保留自定义名字、状态和设置。
 
@@ -14,17 +14,23 @@ Mac / Windows 的桌面宠物程序：领养马尔济斯、金毛或鹦鹉青柠
 
 官方参考：[Maltese](https://store.line.me/stickershop/product/24856130/en) / [Retriever](https://store.line.me/stickershop/product/24856095/en)。源预览保存在 `public/pets/*-original-source-*.png`，逐帧无损导入脚本为 `scripts/import-original-puppies.py`。验证记录见 `docs/verification-moonlab-original-0.5.2.md`。
 
+## 摸摸头与活动提醒
+
+鼠标在头部停留片刻，小狗会轻轻向光标靠近两下，回应一句亲昵的话。同次停留只回应一次；离开并经过短暂冷却后可以再摸。手动选动作、拖动、暂停、菜单、深夜及减少动态效果时保持安静。
+
+“每30分钟提醒起身”默认开启，可在设置里随时关闭。提醒用宠物旁的气泡显示，点“知道啦”或等待12秒收起；忙着互动时先排队。暂停、隐藏、深夜和系统唤醒后重新计时，不补发积压提醒。
+
 ## 启动
 
 已经打包的试用版在 `release/`：
 
-- Apple 芯片 Mac：解压 `PawPal-0.5.5-mac-arm64.zip`，打开 `PawPal.app`。
+- Apple 芯片 Mac：解压 `PawPal-0.5.6-mac-arm64.zip`，打开 `PawPal.app`。
 - Intel 芯片 Mac：解压 `PawPal-0.3.2-mac-x64.zip`，打开 `PawPal.app`。
 - Windows x64：解压 `PawPal-0.3.2-win.zip`，运行 `PawPal.exe`，保留同目录其他文件。
 
-0.5.5 Apple 芯片 Mac 包使用本地 ad-hoc 签名并通过原生桌面检查。旧版 Intel Mac 和 Windows 包尚待对应系统实测。
+0.5.6 Apple 芯片 Mac 包使用本地 ad-hoc 签名，已启动确认新版面板和提醒设置。旧版 Intel Mac 和 Windows 包尚待对应系统实测。
 
-Apple 芯片 Mac 与源码已更新到 0.5.5；Intel Mac / Windows 下载包暂保留 0.3.2。
+Apple 芯片 Mac 与源码已更新到 0.5.6；Intel Mac / Windows 下载包暂保留 0.3.2。
 
 从源码运行：
 

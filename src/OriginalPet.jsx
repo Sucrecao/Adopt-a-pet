@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { createOriginalAnimationController } from './core/original-animation.js';
+import useHeadNuzzle from './useHeadNuzzle.js';
+import './head-nuzzle.css';
 
 const assetUrl = asset => `${import.meta.env.BASE_URL}${asset}`;
 
@@ -18,8 +20,12 @@ async function loadAtlas(asset, signal) {
 export default function OriginalPet({ pet, originalClip = 7, originalStartedAt = 0,
   size = 200, paused = false, ambient = true, static: staticPose = false, reducedMotion = false,
   locomotionRef, motionPaintRef, visualMotionRef, onPlaybackReady, onPlaybackComplete,
+  headNuzzleEnabled = false, nuzzling = false, onHeadNuzzle,
   action, walking, facing, actionStartedAt, className = '', style, ...handlers }) {
   const elementRef = useRef(null), canvasRef = useRef(null), playbackRef = useRef(null);
+  const actualRef = useRef(null);
+  const nuzzle = useHeadNuzzle({ pet, elementRef, canvasRef, actualRef, nuzzling, onHeadNuzzle,
+    enabled: headNuzzleEnabled && !paused && !staticPose && ambient !== false && !reducedMotion });
   const propsRef = useRef(null);
   propsRef.current = { originalClip, originalStartedAt, paused,
     static: staticPose || ambient === false, reducedMotion,
@@ -51,6 +57,7 @@ export default function OriginalPet({ pet, originalClip = 7, originalStartedAt =
       const props = propsRef.current;
       element.dataset.loadState = loadState;
       element.dataset.originalClip = selectedId();
+      if (actualRef.current) actualRef.current.ready = false;
       if (!active || !context) return;
       if (loadState === 'ready') active.token = props.originalStartedAt;
       const sample = active.controller.sample({ clip: active.clip,
@@ -78,6 +85,8 @@ export default function OriginalPet({ pet, originalClip = 7, originalStartedAt =
         element.dataset.loadState = loadState;
       }
       const committed = locomotion ? driver.commit({ now, locomotion, sample, painted }) : !driver;
+      if (painted && committed) actualRef.current = { clip: sample.clip, token: active.token,
+        ready: loadState === 'ready' && active.clip.id === selectedId() && active.token === props.originalStartedAt };
       if (painted && committed && loadState === 'ready' && sample.done
         && active.clip.id === selectedId() && active.token === props.originalStartedAt
         && active.completedSequence !== sample.sequence) {
@@ -159,6 +168,7 @@ export default function OriginalPet({ pet, originalClip = 7, originalStartedAt =
       metadataAbort.abort(); atlasAbort?.abort();
       if (request !== null) cancelAnimationFrame(request);
       active?.image.close(); active = null;
+      actualRef.current = null;
       playbackRef.current = null;
       if (motionPaintRef?.current === refresh) motionPaintRef.current = null;
     };
@@ -169,13 +179,20 @@ export default function OriginalPet({ pet, originalClip = 7, originalStartedAt =
     playbackRef.current?.refresh();
   }, [originalClip, originalStartedAt, paused, ambient, staticPose, reducedMotion, visualMotionRef, onPlaybackReady]);
 
+  const pointerHandlers = {};
+  for (const [name, handler] of Object.entries(nuzzle.handlers)) pointerHandlers[name] = event => {
+    handler(event); handlers[name]?.(event);
+  };
+
   return <div ref={elementRef} className={`pet-sprite ${className}`}
     data-renderer="original-whole-frame" data-animation-mode="original-apng-v1"
     data-original-clip={originalClip} data-frame="0" data-clip={originalClip} data-load-state="loading"
+    data-nuzzling={nuzzle.active} data-head-contact={nuzzle.touching}
     style={{ width: size, height: typeof size === 'number' ? size * 300 / 320 : size,
       backgroundImage: `url("${assetUrl(pet.neutralAsset ?? pet.asset)}")`,
-      backgroundSize: 'contain', backgroundPosition: 'center', ...style, transform: 'none' }}
-    role="img" aria-label={pet.label} {...handlers}>
+      backgroundSize: 'contain', backgroundPosition: 'center', ...style, transform: 'none',
+      '--nuzzle-direction': nuzzle.direction }}
+    role="img" aria-label={pet.label} {...handlers} {...pointerHandlers}>
     <canvas ref={canvasRef} width={320} height={300} aria-hidden="true"
       style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain', visibility: 'hidden', pointerEvents: 'none' }} />
   </div>;

@@ -4,7 +4,7 @@ import { useReducedMotion } from './Pet.jsx';
 
 export default function useCompanionRoutine({ pet, state, quiet = false, enabled = true, ready = true }) {
   const controller = useMemo(() => createCompanionRoutineController(), [pet.id]);
-  const currentController = useRef(controller), completion = useRef(null);
+  const currentController = useRef(controller), completion = useRef(null), headCue = useRef(null);
   currentController.current = controller;
   const reducedMotion = useReducedMotion();
   const inputs = useRef({});
@@ -19,7 +19,7 @@ export default function useCompanionRoutine({ pet, state, quiet = false, enabled
   };
   const initialRoutine = useMemo(() => {
     const period = getBeijingPeriod(Date.now());
-    return { period, clip: period.clip, token: 0, speech: '', manual: false };
+    return { period, clip: period.clip, token: 0, speech: '', manual: false, headNuzzle: false };
   }, [controller]);
   const [snapshot, setSnapshot] = useState({ controller, value: initialRoutine });
   const refresh = useRef(null);
@@ -28,12 +28,18 @@ export default function useCompanionRoutine({ pet, state, quiet = false, enabled
     completion.current = packet;
     refresh.current?.();
   }, [controller, pet.id]);
+  const onHeadNuzzle = useCallback(packet => {
+    if (currentController.current !== controller || packet.species !== pet.id) return;
+    headCue.current = packet;
+    refresh.current?.();
+  }, [controller, pet.id]);
   useEffect(() => {
-    completion.current = null;
+    completion.current = null; headCue.current = null;
     function sample() {
       if (!inputs.current.ready) return;
       setSnapshot({ controller, value: controller.sample({ ...inputs.current,
-        playback: completion.current, paused: inputs.current.paused || document.hidden, now: Date.now() }) });
+        playback: completion.current, headCue: headCue.current,
+        paused: inputs.current.paused || document.hidden, now: Date.now() }) });
     }
     refresh.current = sample;
     sample();
@@ -42,5 +48,5 @@ export default function useCompanionRoutine({ pet, state, quiet = false, enabled
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', sample); refresh.current = null; };
   }, [controller]);
   useEffect(() => { refresh.current?.(); }, [ready, quiet, enabled, state.settings.paused, reducedMotion, state.desktop?.hidden, state.originalAnimation?.clip, state.originalAnimation?.startedAt]);
-  return { ...(snapshot.controller === controller ? snapshot.value : initialRoutine), onPlaybackComplete };
+  return { ...(snapshot.controller === controller ? snapshot.value : initialRoutine), onPlaybackComplete, onHeadNuzzle };
 }

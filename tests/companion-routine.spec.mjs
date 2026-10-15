@@ -170,6 +170,8 @@ test('dragging holds the dog and suppresses an unsolicited greeting', async ({ p
   await expect(gentleSpeech(page)).toHaveCount(0);
   await expect(sprite(page)).toHaveAttribute('data-original-clip', '6');
   await page.mouse.up();
+  // Leaving the pet avoids requesting its deliberate head-hover interaction.
+  await page.mouse.move(0, 0);
   await page.clock.runFor(7_000);
   await expect(gentleSpeech(page)).toHaveCount(0);
   await page.clock.runFor(1_500);

@@ -4,6 +4,8 @@ contextBridge.exposeInMainWorld('companion', {
   isDesktop: true,
   getState: () => ipcRenderer.invoke('companion:state'),
   dispatch: command => ipcRenderer.invoke('companion:dispatch', command),
+  presentStandReminder: id => ipcRenderer.invoke('companion:stand-reminder-present', id),
+  dismissStandReminder: id => ipcRenderer.invoke('companion:stand-reminder-dismiss', id),
   onState: listener => {
     const handler = (_event, state) => listener(state);
     ipcRenderer.on('companion:update', handler);

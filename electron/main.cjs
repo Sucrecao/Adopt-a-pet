@@ -1,8 +1,8 @@
-const { app, BrowserWindow, ipcMain, Menu, Tray, screen, nativeImage, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, Tray, screen, nativeImage, dialog, powerMonitor } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
-const { isValidCommand, isTrustedSender, isValidHitRegions, isValidPoint, isValidVisualCommit } = require('./security.cjs');
+const { isValidCommand, isTrustedSender, isValidHitRegions, isValidPoint, isValidVisualCommit, isValidReminderId } = require('./security.cjs');
 
 if (process.env.PAWPAL_TEST_USER_DATA) app.setPath('userData', process.env.PAWPAL_TEST_USER_DATA);
 let panel, petWindow, tray, state, storePath, transition, normalizeState, clampWindow, chooseTarget, advanceMotion, desktopSpriteSize, gaitSpeedDip;
@@ -12,6 +12,7 @@ let motion = null, lastMovementAt = null, turnRemainingMs = 0;
 let motionEpoch = 0, distanceDip = 0, reducedMotion = false;
 let playbackReady = true, playbackReadyKnown = false, movementWanted = false, prepareEpoch = 0;
 let petCatalog = [], visualRect = null, visualGeometrySeq = 0, visualSequence = 0, visualSpeedDip = 0;
+let standReminderController, getBeijingPeriod, reminderSpecies, standReminder = null;
 const timers = [];
 const devURL = !app.isPackaged ? process.env.VITE_DEV_SERVER_URL : undefined;
 const preload = path.join(__dirname, 'preload.cjs');
@@ -22,7 +23,7 @@ function motionSnapshot() {
   return { clockKind: visualRect ? 'visual-root-v1' : 'native-window-v1', epoch: motionEpoch, distanceDip,
     spriteSizeDip: desktopSpriteSize(bounds?.width ?? 340 * (state?.settings.size ?? 1)),
     facing: facing === 'left' ? -1 : 1, moving, intentMoving: movementWanted || moving, prepareEpoch, dragging: Boolean(dragging),
-    paused: Boolean(state?.settings.paused || reducedMotion || hidden),
+    paused: Boolean(state?.settings.paused || reducedMotion || hidden || standReminder?.phase === 'visible'),
     ...(visualRect && host ? { visual: { geometrySeq: visualGeometrySeq, host, rectGlobal: { ...visualRect },
       targetGlobal: target && { ...target }, speedDip: visualSpeedDip, committedSequence: visualSequence,
       displayId: screen.getDisplayMatching(host).id } } : {}) };
@@ -30,8 +31,26 @@ function motionSnapshot() {
 function emitMotion() {
   if (petWindow && !petWindow.isDestroyed()) petWindow.webContents.send('companion:motion', motionSnapshot());
 }
-function snapshot() { return { ...state, motion: motionSnapshot(), desktop: { hidden } }; }
+function snapshot() { return { ...state, motion: motionSnapshot(), desktop: { hidden }, standReminder }; }
+function setStandReminder(cue) {
+  const wasVisible = standReminder?.phase === 'visible';
+  standReminder = cue;
+  if (wasVisible !== (cue?.phase === 'visible')) {
+    resetMotion(); wanderAt = Date.now() + 4000;
+  }
+  return cue;
+}
+function standReminderTick() {
+  if (!standReminderController || !state || !getBeijingPeriod) return;
+  const now = Date.now();
+  if (reminderSpecies !== state.species) {
+    reminderSpecies = state.species; standReminderController.reset(now);
+  }
+  setStandReminder(standReminderController.sample({ now, enabled: state.settings.standReminder !== false,
+    available: state.adopted && !state.settings.paused && !hidden && getBeijingPeriod(now).key !== 'sleep' }));
+}
 function publish() {
+  standReminderTick();
   for (const window of [panel, petWindow]) {
     if (window && !window.isDestroyed()) window.webContents.send('companion:update', snapshot());
   }
@@ -186,7 +205,7 @@ function movementTick() {
   const previousMovementAt = lastMovementAt;
   const elapsed = lastMovementAt === null ? 0 : Math.min(0.05, Math.max(0, (now - lastMovementAt) / 1000));
   lastMovementAt = now;
-  if (!state.adopted || !petWindow || petWindow.isDestroyed() || !petWindow.isVisible() || state.settings.paused || reducedMotion || dragging) return;
+  if (!state.adopted || !petWindow || petWindow.isDestroyed() || !petWindow.isVisible() || state.settings.paused || reducedMotion || dragging || standReminder?.phase === 'visible') return;
   const bounds = companionBounds(), area = visualRect ? petWindow.getBounds() : areaFor(bounds);
   // getBounds() is integer-valued; use it for geometry, never to overwrite the
   // floating position during an ordinary tick.
@@ -317,6 +336,21 @@ function registerIPC() {
     return callback(event, ...args);
   });
   handle('companion:state', () => snapshot());
+  handle('companion:stand-reminder-present', (event, id) => {
+    if (event.sender !== petWindow?.webContents) return false;
+    if (!isValidReminderId(id)) throw new Error('操作参数无效');
+    standReminderTick();
+    setStandReminder(standReminderController?.present(id, Date.now()) ?? null);
+    publish();
+    return standReminder;
+  });
+  handle('companion:stand-reminder-dismiss', (event, id) => {
+    if (event.sender !== petWindow?.webContents) return false;
+    if (!isValidReminderId(id)) throw new Error('操作参数无效');
+    setStandReminder(standReminderController?.dismiss(id) ?? null);
+    publish();
+    return standReminder;
+  });
   handle('companion:playback-ready', (event, value) => {
     if(event.sender !== petWindow?.webContents || !value || typeof value.ready !== 'boolean'
       || !Number.isInteger(value.epoch) || value.epoch !== prepareEpoch) return false;
@@ -373,7 +407,7 @@ function registerIPC() {
     if (!trusted(event) || event.sender !== petWindow?.webContents || !visualRect) return;
     if (!isValidVisualCommit(value, { epoch: motionEpoch, geometrySeq: visualGeometrySeq, sequence: visualSequence,
       rect: visualRect, area: petWindow.getBounds(), distanceDip,
-      allowMovement: moving && !state.settings.paused && !reducedMotion && !hidden && !dragging && !turnRemainingMs })) return;
+      allowMovement: moving && !state.settings.paused && !reducedMotion && !hidden && !dragging && !turnRemainingMs && standReminder?.phase !== 'visible' })) return;
     visualRect = { ...value.rectGlobal }; distanceDip = value.distanceDip; visualSequence = value.sequence;
     motion = { x: visualRect.x, y: visualRect.y, vx: 0, vy: 0, arrived: false };
   });
@@ -398,16 +432,21 @@ else {
     ({ advanceMotion } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/motion.js')).href));
     ({ desktopSpriteSize, gaitSpeedDip } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/gait.js')).href));
     ({ PETS: petCatalog } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/pets.js')).href));
+    const { createStandReminderController } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/stand-reminder.js')).href);
+    ({ getBeijingPeriod } = await import(pathToFileURL(path.join(__dirname, '..', 'src/core/companion-routine.js')).href));
+    standReminderController = createStandReminderController();
     storePath = path.join(app.getPath('userData'), 'companion.json');
     try { state = normalizeState(JSON.parse(fs.readFileSync(storePath, 'utf8'))); }
     catch { state = normalizeState(null); }
     state = transition(state, {type:'tick'});
+    standReminderTick();
     registerIPC(); createPanel(); createTray();
     if (state.adopted) createPet();
     timers.push(setInterval(pointerTick, 40), setInterval(movementTick, 16), setInterval(() => {
       state = transition(state, {type:'tick'}); publish(); scheduleSave();
     }, 1000));
     for (const event of ['display-added', 'display-removed', 'display-metrics-changed']) screen.on(event, () => constrainPet());
+    powerMonitor.on('resume', () => { setStandReminder(standReminderController.reset(Date.now())); publish(); });
     app.on('activate', showPanel);
   }).catch(error => { dialog.showErrorBox('PawPal 启动失败', error.message); app.quit(); });
   app.on('before-quit', () => { quitting = true; for (const timer of timers) clearInterval(timer); clearTimeout(saveTimer); saveNow(); });

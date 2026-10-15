@@ -14,7 +14,7 @@ const validOriginalClip = clip => Number.isInteger(clip) && clip >= 1 && clip <=
 export function createState(now = Date.now()) {
   return { species: PETS[0].id, name: PETS[0].defaultName, adopted: false,
     stats: { hunger: 78, energy: 85, happiness: 80, bond: 0 },
-    settings: { size: 1, movement: 'free', sound: false, alwaysOnTop: true, paused: false },
+    settings: { size: 1, movement: 'free', sound: false, alwaysOnTop: true, paused: false, standReminder: true },
     action: { type: 'idle', until: 0 }, originalAnimation: { clip: 7, startedAt: 0 }, lastInteraction: 0, updatedAt: now };
 }
 
@@ -29,7 +29,7 @@ export function normalizeState(value, now = Date.now()) {
   for (const key of Object.keys(state.stats)) state.stats[key] = clamp(finite(value.stats?.[key], state.stats[key]));
   state.settings.size = clamp(finite(value.settings?.size, 1), 0.65, 1.5);
   if (['free', 'edge'].includes(value.settings?.movement)) state.settings.movement = value.settings.movement;
-  for (const key of ['sound', 'alwaysOnTop', 'paused']) {
+  for (const key of ['sound', 'alwaysOnTop', 'paused', 'standReminder']) {
     if (typeof value.settings?.[key] === 'boolean') state.settings[key] = value.settings[key];
   }
   if (!retiredName && Object.hasOwn(actions, value.action?.type) && Number.isFinite(value.action?.until)) {
@@ -91,7 +91,7 @@ export function transition(value, command, now = Date.now()) {
       for (const [key, value] of Object.entries(command.patch)) {
         const valid = key === 'size' ? Number.isFinite(value) && value >= 0.65 && value <= 1.5
           : key === 'movement' ? ['free', 'edge'].includes(value)
-          : ['sound', 'alwaysOnTop', 'paused'].includes(key) && typeof value === 'boolean';
+          : ['sound', 'alwaysOnTop', 'paused', 'standReminder'].includes(key) && typeof value === 'boolean';
         if (!valid) throw new Error('无效设置');
         state.settings[key] = value;
       }

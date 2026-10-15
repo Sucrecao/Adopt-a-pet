@@ -1,0 +1,15 @@
+.pet-sprite[data-renderer="original-whole-frame"] > canvas {
+  transform-origin: 50% 76%;
+  transition: transform 180ms ease-out;
+}
+.pet-sprite[data-nuzzling="true"] > canvas {
+  animation: head-nuzzle 850ms ease-in-out 2;
+}
+@keyframes head-nuzzle {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  40% { transform: translate(calc(var(--nuzzle-direction, 1) * 2.5px), -1.5px) rotate(calc(var(--nuzzle-direction, 1) * -.9deg)); }
+  70% { transform: translate(calc(var(--nuzzle-direction, 1) * 1px), -.4px) rotate(calc(var(--nuzzle-direction, 1) * -.3deg)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pet-sprite[data-renderer="original-whole-frame"] > canvas { animation: none; transition: none; transform: none; }
+}

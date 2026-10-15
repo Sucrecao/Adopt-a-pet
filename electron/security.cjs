@@ -6,6 +6,7 @@ const settings = {
   sound: value => typeof value === 'boolean',
   alwaysOnTop: value => typeof value === 'boolean',
   paused: value => typeof value === 'boolean',
+  standReminder: value => typeof value === 'boolean',
 };
 
 function isValidCommand(command) {
@@ -53,4 +54,5 @@ function isValidVisualCommit(value, context) {
 }
 
 const isValidPoint = point => isRecord(point) && ['x', 'y'].every(key => Number.isFinite(point[key]) && Math.abs(point[key]) <= 100000);
-module.exports = { isValidCommand, isTrustedSender, isValidHitRegions, isValidPoint, isValidVisualCommit };
+const isValidReminderId = id => Number.isSafeInteger(id) && id > 0;
+module.exports = { isValidCommand, isTrustedSender, isValidHitRegions, isValidPoint, isValidVisualCommit, isValidReminderId };

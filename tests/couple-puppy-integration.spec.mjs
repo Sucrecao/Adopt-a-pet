@@ -49,7 +49,7 @@ for (const species of ['maltese', 'golden']) test(`${species} adopts, selects an
 });
 
 for (const species of ['cat', 'dog']) test(`saved ${species} migrates to Maltese and preserves custom name and preferences`, async ({ page }) => {
-  const settings = { size: .85, movement: 'edge', sound: true, alwaysOnTop: false, paused: true };
+  const settings = { size: .85, movement: 'edge', sound: true, alwaysOnTop: false, paused: true, standReminder: true };
   const stats = { hunger: 62, energy: 73, happiness: 84, bond: 15 };
   await page.evaluate(({ species, settings, stats }) => localStorage.setItem('pawpal.companion.v1', JSON.stringify({
     species, name: '老朋友', adopted: true, settings, stats,

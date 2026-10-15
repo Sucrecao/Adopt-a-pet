@@ -26,7 +26,7 @@ for (const [species, name] of [['cat', '奶糖'], ['dog', '豆包']]) {
     assert.equal(migrated.name, '马尔济斯');
     assert.equal(migrated.adopted, true);
     assert.deepEqual(migrated.stats, saved.stats);
-    assert.deepEqual(migrated.settings, saved.settings);
+    assert.deepEqual(migrated.settings, { ...saved.settings, standReminder: true });
     assert.deepEqual(migrated.action, { type: 'idle', until: 0 });
     assert.deepEqual(migrated.originalAnimation, { clip: 7, startedAt: 0 });
     assert.equal(normalizeState({ ...saved, name: '我的老朋友' }, 2000).name, '我的老朋友');

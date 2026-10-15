@@ -63,7 +63,7 @@ test('fresh state uses deterministic defaults', () => {
   assert.equal(state.name, '马尔济斯');
   assert.equal(state.adopted, false);
   assert.deepEqual(state.stats, { hunger: 78, energy: 85, happiness: 80, bond: 0 });
-  assert.deepEqual(state.settings, { size: 1, movement: 'free', sound: false, alwaysOnTop: true, paused: false });
+  assert.deepEqual(state.settings, { size: 1, movement: 'free', sound: false, alwaysOnTop: true, paused: false, standReminder: true });
   assert.equal(state.updatedAt, 1000);
 });
 
