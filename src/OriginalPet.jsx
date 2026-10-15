@@ -17,13 +17,13 @@ async function loadAtlas(asset, signal) {
 /** Paints a complete source picture, without gait, mirroring, or interpolation. */
 export default function OriginalPet({ pet, originalClip = 7, originalStartedAt = 0,
   size = 200, paused = false, ambient = true, static: staticPose = false, reducedMotion = false,
-  locomotionRef, motionPaintRef, visualMotionRef, onPlaybackReady,
+  locomotionRef, motionPaintRef, visualMotionRef, onPlaybackReady, onPlaybackComplete,
   action, walking, facing, actionStartedAt, className = '', style, ...handlers }) {
   const elementRef = useRef(null), canvasRef = useRef(null), playbackRef = useRef(null);
   const propsRef = useRef(null);
   propsRef.current = { originalClip, originalStartedAt, paused,
     static: staticPose || ambient === false, reducedMotion,
-    locomotionRef, visualMotionRef, onPlaybackReady };
+    locomotionRef, visualMotionRef, onPlaybackReady, onPlaybackComplete };
 
   useEffect(() => {
     const element = elementRef.current, canvas = canvasRef.current;
@@ -77,7 +77,14 @@ export default function OriginalPet({ pet, originalClip = 7, originalStartedAt =
         loadState = 'error';
         element.dataset.loadState = loadState;
       }
-      if (locomotion) driver.commit({ now, locomotion, sample, painted });
+      const committed = locomotion ? driver.commit({ now, locomotion, sample, painted }) : !driver;
+      if (painted && committed && loadState === 'ready' && sample.done
+        && active.clip.id === selectedId() && active.token === props.originalStartedAt
+        && active.completedSequence !== sample.sequence) {
+        active.completedSequence = sample.sequence;
+        props.onPlaybackComplete?.({ species: pet.id, clip: active.clip.id,
+          token: active.token, sequence: sample.sequence });
+      }
     }
 
     function running() {

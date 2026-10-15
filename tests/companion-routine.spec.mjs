@@ -65,8 +65,13 @@ test('Beijing 19:00 changes to a tender evening pose even in a New York browser'
     await expect(sprite(page)).toHaveAttribute('data-original-clip', '22');
     await expect(page.locator('.routine-clock')).toContainText('北京时间 18:59');
     await page.clock.runFor(1_500);
-    await expect(sprite(page)).toHaveAttribute('data-original-clip', '6');
     await expect(page.locator('.routine-clock')).toContainText('北京时间 19:00');
+    // A time boundary must not cut off the source animation already playing.
+    await expect(sprite(page)).toHaveAttribute('data-original-clip', '22');
+    await expect.poll(async () => {
+      await page.clock.runFor(100);
+      return sprite(page).getAttribute('data-original-clip');
+    }, { intervals: [0] }).toBe('6');
     await expect(sprite(page)).toHaveAttribute('data-original-mode', 'automatic');
     // Crossing into the evening is a deliberate greeting; later idle speech
     // remains several minutes apart.
@@ -81,38 +86,49 @@ test('Beijing 19:00 changes to a tender evening pose even in a New York browser'
   }
 });
 
-test('morning, lunch, work, and bedtime use different complete original clips', async ({ page }) => {
-  await prepare(page, '2026-10-13T23:00:00Z'); // Beijing 07:00
-  await expect(sprite(page)).toHaveAttribute('data-original-clip', '7');
+test('morning, lunch, work, and bedtime enter with different complete original clips', async ({ browser }) => {
   for (const [time, clip, clock] of [
+    ['2026-10-13T23:00:00Z', 7, '07:00'],
     ['2026-10-14T02:00:00Z', 22, '10:00'],
     ['2026-10-14T04:00:00Z', 21, '12:00'],
     ['2026-10-14T06:00:00Z', 22, '14:00'],
     ['2026-10-14T15:00:00Z', 24, '23:00'],
   ]) {
-    await page.clock.setSystemTime(new Date(time));
-    await page.clock.runFor(600);
-    await expect(sprite(page)).toHaveAttribute('data-original-clip', String(clip));
-    await expect(page.locator('.routine-clock')).toContainText(`北京时间 ${clock}`);
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    try {
+      await prepare(page, time);
+      await expect(sprite(page)).toHaveAttribute('data-original-clip', String(clip));
+      await expect(page.locator('.routine-clock')).toContainText(`北京时间 ${clock}`);
+    } finally { await context.close(); }
   }
 });
 
-test('a manual expression returns to the time-of-day pose after 30 active seconds', async ({ page }) => {
+test('a manual expression finishes across pause, then settles into relaxed evening idle', async ({ page }) => {
   await prepare(page, '2026-10-14T11:30:00Z');
   await expect(sprite(page)).toHaveAttribute('data-original-clip', '6');
   await selectClip(page, '鲜花', 4);
   await expect(sprite(page)).toHaveAttribute('data-original-mode', 'manual');
-  await page.clock.runFor(20_000);
+  await page.clock.runFor(2_000);
   await page.getByRole('switch', { name: '暂停活动', exact: true }).click();
   const frame = await sprite(page).getAttribute('data-frame');
   await page.clock.runFor(60_000);
   await expect(sprite(page)).toHaveAttribute('data-original-clip', '4');
   await expect(sprite(page)).toHaveAttribute('data-frame', frame);
   await page.getByRole('switch', { name: '暂停活动', exact: true }).click();
-  await page.clock.runFor(9_000);
+  await page.clock.runFor(1_000);
   await expect(sprite(page)).toHaveAttribute('data-original-clip', '4');
-  await page.clock.runFor(2_000);
-  await expect(sprite(page)).toHaveAttribute('data-original-clip', '6');
+  await expect.poll(async () => {
+    await page.clock.runFor(100);
+    return sprite(page).getAttribute('data-done');
+  }, { intervals: [0] }).toBe('true');
+  await page.clock.runFor(700);
+  await expect(sprite(page)).toHaveAttribute('data-original-clip', '4');
+  await page.clock.runFor(1_000);
+  await expect.poll(async () => {
+    await page.clock.runFor(100);
+    return sprite(page).getAttribute('data-original-clip');
+  }).toBe('22');
   await expect(sprite(page)).toHaveAttribute('data-original-mode', 'automatic');
 });
 

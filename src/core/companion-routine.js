@@ -45,9 +45,14 @@ export function createCompanionRoutineController({ random = Math.random } = {}) 
   let previousNow, previousStopped = true, activeElapsed = 0;
   let clip, token = 0, presentedPeriod, manual = false, manualUntil = 0;
   let seenManualToken, pendingManual;
+  let completedToken, settleAt = Infinity, nextReactionAt = Infinity;
   let speech = '', lastSpeech = '', speechUntil = 0, nextSpeechAt = 8000;
 
   const chance = () => Math.max(0, Math.min(1, random()));
+  const present = nextClip => {
+    clip = nextClip; token++;
+    completedToken = undefined; settleAt = Infinity; nextReactionAt = Infinity;
+  };
   const speak = (period, isTransition = false) => {
     const words = period.key === 'affection' ? affectionWords : daytimeWords;
     let index = Math.min(words.length - 1, Math.floor(chance() * words.length));
@@ -59,13 +64,13 @@ export function createCompanionRoutineController({ random = Math.random } = {}) 
   };
 
   return {
-    sample({ now = 0, paused = false, quiet = false, manualClip = 7, manualToken = 0, enabled = true } = {}) {
+    sample({ now = 0, paused = false, quiet = false, manualClip = 7, manualToken = 0, enabled = true, playback, playbackAware = false } = {}) {
       const timestamp = now;
       const period = getBeijingPeriod(timestamp);
       const stopped = Boolean(paused || quiet);
       const initial = !token;
       if (initial) {
-        clip = period.clip; token++; presentedPeriod = period.key;
+        present(period.clip); presentedPeriod = period.key;
         if (period.key === 'sleep') nextSpeechAt = Infinity;
       } else if (!stopped && !previousStopped) {
         // Resuming a suspended computer or adjusting its clock must not replay a backlog.
@@ -86,25 +91,58 @@ export function createCompanionRoutineController({ random = Math.random } = {}) 
       // A saved paused presentation must start on its selected original frame.
       // Later changes stay queued while the user is paused or using a menu.
       if (pendingManual && (initial || !stopped)) {
-        clip = pendingManual.clip; token++; manual = true;
+        present(pendingManual.clip); manual = true;
         manualUntil = activeElapsed + pendingManual.remaining;
         pendingManual = undefined; speech = ''; speechUntil = 0;
         nextSpeechAt = Math.max(nextSpeechAt, manualUntil);
       }
       if (!stopped) {
-        if (manual && activeElapsed >= manualUntil) {
-          manual = false; clip = period.clip; token++;
+        // Older renderers have no completion notification; retain their bounded hold.
+        if (!playbackAware && manual && completedToken !== token && activeElapsed >= manualUntil
+          && !(playback?.clip === clip && playback.token === token)) {
+          manual = false; present(period.clip);
         }
-        if (!manual && period.key !== presentedPeriod) {
-          clip = period.clip; token++; presentedPeriod = period.key;
+        // A completion-aware renderer must finish its current source before a
+        // clock boundary replaces it. Infinity after a completion means settled.
+        const canChangePeriod = !playbackAware || (completedToken === token
+          && (settleAt === Infinity || activeElapsed >= settleAt));
+        if (!manual && period.key !== presentedPeriod && canChangePeriod) {
+          present(period.clip); presentedPeriod = period.key;
           if (enabled) speak(period, true);
           else nextSpeechAt = period.key === 'sleep' ? Infinity : activeElapsed + 8000;
+        }
+      }
+
+      // The renderer reports only a successfully drawn final frame. A repeated or
+      // stale packet must not reset this hold or finish a newer manual choice.
+      if (playback?.clip === clip && playback.token === token && completedToken !== token) {
+        completedToken = token;
+        settleAt = activeElapsed + 900;
+      }
+      if (!stopped) {
+        if (activeElapsed >= settleAt) {
+          settleAt = Infinity;
+          manual = false;
+          if (period.key !== presentedPeriod) {
+            present(period.clip); presentedPeriod = period.key;
+            if (enabled) speak(period, true);
+            else nextSpeechAt = period.key === 'sleep' ? Infinity : activeElapsed + 8000;
+          } else {
+            const restingClip = period.key === 'sleep' ? 24 : 22;
+            if (clip !== restingClip) present(restingClip);
+            else if (period.key !== 'sleep') nextReactionAt = activeElapsed + 14000 + chance() * 10000;
+          }
+        }
+        if (!manual && period.key !== 'sleep' && activeElapsed >= nextReactionAt) {
+          const pool = period.key === 'affection' ? [22, 22, 16, 1, 6] : [22, 22, 22, 16];
+          present(pool[Math.min(pool.length - 1, Math.floor(chance() * pool.length))]);
         }
         if (activeElapsed >= speechUntil) speech = '';
         if (!enabled) {
           speech = '';
           if (period.key !== 'sleep') nextSpeechAt = Math.max(nextSpeechAt, activeElapsed + 8000);
-        } else if (!manual && period.key !== 'sleep' && activeElapsed >= nextSpeechAt) {
+        } else if (!manual && period.key !== 'sleep' && activeElapsed >= nextSpeechAt
+          && (!playbackAware || period.key === presentedPeriod)) {
           speak(period);
         }
       }
